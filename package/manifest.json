@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+
+  "name": "Kiwi Conversations",
+  "short_name": "Kiwi Conversations",
+  "description": "Kiwi Conversations searches community sites and finds forum comment threads about the url you're visiting.",
+  "version": "0.9.64",
+
+  "permissions": [
+    "tabs",
+    "storage"
+  ],
+  "background":{
+    "scripts": [
+      "vendor/jquery-2.1.4.min.js",
+      "vendor/Underscore1-8-3.js",
+      "vendor/sha512.js",
+      "pre-localStorageextraction-background.js"
+    ]
+  },
+  
+  "content_scripts": [ {
+    "js": ["vendor/jquery-2.1.4.min.js", "popup.js", "vendor/Underscore1-8-3.js",
+      "vendor/bootstrap-3.3.5-dist/js/bootstrap.min.js"
+    ],
+    "matches": ["https://hn.algolia.com/*","https://www.reddit.com/submit.json*","https://news.ycombinator.com/*",
+      "http://news.ycombinator.com/*"
+    ],
+    "run_at": "document_end"
+  }]
+  
+  ,"browser_action": {
+    "name": "Kiwi",
+    "default_icon": "kiwiFavico128.png",
+    "default_popup": "popup.html"
+  }
+}

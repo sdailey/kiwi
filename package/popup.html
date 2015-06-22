@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Kiwi</title>
+    
+    <link rel="stylesheet" href="popup.css"></link>
+    
+    <link rel="stylesheet" href="vendor/bootstrap-3.3.5-dist/css/bootstrap-theme.min.css"></link>
+    
+    <link rel="stylesheet" href="vendor/bootstrap-3.3.5-dist/css/bootstrap.min.css"></link>
+    
+    
+    
+    <script src="vendor/jquery-2.1.4.min.js" ></script>
+    <script src="vendor/Underscore1-8-3.js"></script>
+    
+    <script src="popup.js"></script>
+    
+    
+    <style type="text/css">
+      
+      .nsfw {
+        color: red;
+      }
+      .listing {
+        border-color: green;
+        border-width: 1px;
+        border-style: solid;
+        margin: 6px;
+        padding: 4px;
+      }
+      
+      .serviceListing {
+        border-color: green;
+        border-width: 1px;
+        border-style: solid;
+        margin: 3px;
+        padding: 8px;
+      }
+      
+      .userErrMsg {
+        color: rgb(229, 21, 21);
+      }
+      
+      
+      .upDownButtons {
+        padding-right: 4px;
+      }
+      /*
+      .serviceInfo {
+        padding-left: 12px;
+      }
+      */
+      .altURL {
+        padding-left: 0px;
+        /*word-wrap: break-word;*/
+        
+        /*display: inline-block;*/
+      }
+    </style>
+    
+  </head>
+  
+  <body style="height: 580px; width: 400px;">
+    
+    <div id="conversationsView">
+      
+      
+      <br>
+      <br>
+    Results:<br>
+      
+      <!-- ordered according to user prefs -->
+      <span id="resultsByService"></span>
+      
+      <br>
+      
+      <div id="alertsDrop">
+        
+      </div>
+      <div id="actionButtons">
+      <button>Research this Url</button> (if off)<br>
+      
+      <button>Refresh</button> <button>Research Mode - On</button><br>
+      <br>
+      <button>Be the first to submit on Hacker News!</button> <br>
+      <button>Be the first to submit on Reddit!</button> <br>
+      
+      <br>
+      <button>Get Alert if conversation starts at URL</button><br>
+      <button class="goTo_alertsView">View Alerts</button> <br>
+      
+      <br>
+      
+      <button class="goTo_userPreferencesView">View User Preferences</button> <br>
+      
+      <br>
+    </div>
+      
+    </div>
+    
+    
+    <div id='userPreferencesView' style='display:none;'>
+      
+      <br>
+      <button class="goTo_conversationsView"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> View Conversations for this Url</button>&nbsp; <button class="goTo_alertsView">View Alerts</button> <br>
+      
+      <br>
+      userPreferencesView
+      <br>
+      <br>
+      Research Mode - 
+      
+      <span id="researchModeDrop"></span>
+      
+      <br><br>
+      
+      <button class="userPreferencesSave"> save preferences </button> <span class="userErrMsg"></span>
+      
+      <br><br>  
+      
+      Services: <br><span id="servicesInfoDrop"> </span>
+        
+      
+      <button class="userPreferencesSave"> save preferences </button> <span class="userErrMsg"></span>
+      
+    </div>
+    
+    <div id='alertsView' style='display:none;'>
+      alertsView
+      <br>
+      <button class="goTo_conversationsView">View Conversations for this Url</button><br>
+      <br>
+        
+      <button class="goTo_userPreferencesView">View User Preferences</button> <br>
+      
+    
+    </div>
+    
+    
+      
+  </body>
+  
+</html>
+
+
+
+
+
+

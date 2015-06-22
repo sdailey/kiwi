@@ -1,0 +1,97 @@
+
+
+servicesCache
+  
+  facebook
+  
+    sharedTotalResults: [
+      {
+        timestamp: <>
+        shared: "<service>"
+        score: <float>
+      },
+      ...
+    ]
+    
+    canonicalTimestamp
+    
+    canonical: 
+      
+      "twitter": "@500px"
+    
+      links
+        definitions
+          name
+          url
+        faq
+          name
+          url
+        privacy
+          name
+          url
+        terms
+          name
+          url
+    
+    decisionPoints:
+      E58aPtzP3jk: [
+      {
+        canonical:
+          3.
+          'id':''
+          "meta": {
+            "author": "ToS;DR by Unhosted",
+            "contributors": [
+              "Hugo Roy <hugo@unhosted.org>"
+            ],
+            "license-for-this-file": "This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, .USA",
+            "spec-version": "1.1"
+          },
+          4.
+          source: {}
+          5.
+          title: "This service tracks you on other websites"
+          6. tosdr ->
+          tldr: "This service uses cookies to track you even if you are not interacting with them directly. Amazon for instance, use <a href="http://www.amazon.com/gp/help/customer/display.html/ref=hp_468496_cookies?nodeId=468496&amp;#cookies">cookies</a> to track your device and serve targeted advertisements on other websites (Amazon associates, websites using Amazon Checkout). They “obtain certain types of information when your Web browser accesses Amazon.com or advertisements and other content served by or on behalf of Amazon.com on other Web sites”."
+        
+        
+        
+        
+        <timestamp>:<>
+        
+        voteAgree: <true | false | null>
+        
+        deleted: no
+        
+        shared: [<serviceString>,...]
+        
+      },
+      ...
+      ]
+    
+      if source:? 
+        if source['terms']?
+          if source['terms']?
+          "http://www.google.com/intl/en/policies/terms/"
+          
+          
+        if source['privacy']?
+          "http://www.google.com/intl/en/policies/privacy/"
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          

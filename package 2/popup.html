@@ -65,16 +65,7 @@
     
     <div id="conversationsView">
       
-      <input type="text" placeholder=" search" />  
-      <button style="float:right;" class="goTo_userPreferencesView">View User Preferences <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> <br>
-      
-      <div class="actionButtons">
-        <br>
-        <div style="width:100%; background-color:white;">
-          <button style="float:left;" class="goTo_creditsView"> credits </button> &nbsp;&nbsp; <button style="" class=""> stay up to date </button> <br>
-        </div>
-        
-        <br>
+      <div id="actionButtons">
         <button>Research this Url</button> (if off)<br>
         
         <button>Refresh</button> <button>Research Mode - On</button><br>
@@ -82,10 +73,16 @@
         <button>Be the first to submit on Hacker News!</button> <br>
         <button>Be the first to submit on Reddit!</button> <br>
         
-      
+        <br>
+        <button>Get Alert if conversation starts at URL</button><br>
+        <button class="goTo_alertsView">View Alerts</button> <br>
         
+        <br>
+        
+        <button class="goTo_userPreferencesView">View User Preferences</button> <br>
+        
+        <br>
       </div>
-      
       <br>
       <br>
     Results:<br>
@@ -109,6 +106,8 @@
       <button class="goTo_conversationsView"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> View Conversations for this Url</button>&nbsp; <button class="goTo_alertsView">View Alerts</button> <br>
       
       <br>
+      userPreferencesView
+      <br>
       <br>
       Research Mode - 
       
@@ -127,27 +126,18 @@
       
     </div>
     
-    <div id='creditsView' style='display:none;'>
-      credits view
-      <br>
-      <button class="goTo_conversationsView">View Conversations for this Url</button><br>
-      <br>
-        
-      <button class="goTo_userPreferencesView">View User Preferences</button> <br>
-    </div>
-    
-    
-    <!-- <div id='alertsView' style='display:none;'>
+    <div id='alertsView' style='display:none;'>
       alertsView
       <br>
       <button class="goTo_conversationsView">View Conversations for this Url</button><br>
       <br>
         
       <button class="goTo_userPreferencesView">View User Preferences</button> <br>
-    </div>
-     -->
-    
       
+    
+    </div>
+    
+    
   </body>
   
 </html>

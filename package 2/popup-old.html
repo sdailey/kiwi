@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Getting Started Extension's Popup</title>
+    <link rel="stylesheet" href="popup.css"></link>
+    
+    
+    <script src="vendor/jquery-1.11.1.min.js" ></script>
+    <script src="vendor/Underscore1-8-3.js"></script>
+    
+    <!-- // <script src="popup.js"></script> -->
+    
+    <script src="popup.min.js"></script>
+    
+  </head>
+  
+  <body style="height:600px;">
+      
+      <div id="pointSummaryView">
+        <div class="reviewSkipBox">
+            <table class="slotMainSolo" border="0" cellpadding="0" cellspacing="0"><tbody><tr>
+              <td style="vertical-align: middle; text-align: center;"><button class="btn goToHistoryView" style="font-size: 1em;background-color: rgb(244, 252, 255); padding:3px;margin-top:2px; height: 56px;color:#565656;" class='goToHistoryView' > review<br> points </button></td>
+              <td style="vertical-align: middle; text-align: center;"><div style="display:inline-block;font-size:.9em;line-height: 1.4em;margin-top: 4px;" id="pointStats"></div></td>
+              <td style="vertical-align: middle; text-align: center;"><button class="btn" style="font-size: 1em;background-color: rgb(244, 252, 255);padding:3px;margin-top:2px; height: 56px;color:#565656;" id='goToNext' > skip<br> point </button></td>
+            </tr></tbody></table>
+        </div>
+        
+        <div class="pTitleMain">
+          <div id='landingTitle'>/title/</div>
+        </div>
+        
+        <div class="pointSummary">
+          <div id='landingSummary' class='paddedBox'>
+            <div class='textDrop'>
+              <span id='textDropLanding'></span>
+            </div>
+            <span id='pointDropBox'></span>
+            
+            <table class="slotMain" border="0" cellpadding="0" cellspacing="0"><tbody><tr>
+              <td style="vertical-align: middle; text-align: center;">
+              Is this term fair? 
+              <a href="#" class="tooltip">
+                  <div style="display:inline; font-size:.9em;"><sup><em>?</em></sup></div>
+                  <span>
+                      Your opinions are not synced/shared with <b>any</b> service. 
+                      Review them by clicking "review".
+                  </span>
+              </a>
+              
+              </td>
+              <td style="vertical-align: middle; width: 25%; text-align: center; font-weight:bold;" class='voteYes' id='yesDrop'></td>
+              <td style="vertical-align: middle; width: 2%; text-align: center; "></td>
+              <td style="vertical-align: middle; width: 25%; text-align: center; font-weight:bold;" class='voteNo' id='noDrop'> </td>
+              <td style="vertical-align: middle; width: 2%; text-align: center;"></td>
+            </tr></tbody></table>
+            
+          </div>
+        </div>
+        
+        
+        <div id='share-box-textarea' class="bottomBox paddedBox" style="display:none; width: 346px; font-size:1.1em;   margin: auto;"></div>
+        
+        <div id='credits-attributions-box' class="bottomBox paddedBox" style="display:none; width: 346px; font-size:1.1em;   margin: auto;"></div>
+        
+        <table class="bottomBox" border="0" cellpadding="0" cellspacing="0"><tbody><tr>
+          <!-- <td style="vertical-align: top; width: 7%;"> -->
+          <td class="linkTableCell" style="vertical-align: bottom;border-right-color: rgb(247, 238, 223);border-right-style: solid;border-right-width: 1px;width: 50%;padding-left: 10px;padding-right: 10px;">
+            <span id='creditsDropBox'></span>
+            <br>
+            
+            <button class="btn goToHistoryView" style="font-size: 1em;background-color: rgb(232, 249, 255);" > review </button>
+            <br><br>
+          </td>
+          <td class="linkTableCell" style="vertical-align: bottom; width: 50%;">
+            <span id='serviceDropBox'></span>
+            <br>
+          </td>
+        </tr></tbody></table>
+      </div>
+      
+      <div id='historyView' style='display:none;'>
+        <span id='votedOnKeys' > </span>
+      </div>
+      
+      <div id='backupView' style='display:none;'></div>
+      
+  </body>
+  
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

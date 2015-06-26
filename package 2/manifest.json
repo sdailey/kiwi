@@ -12,25 +12,24 @@
   ],
   "background":{
     "scripts": [
-      "vendor/gApiLoader.js",
       "vendor/jquery-2.1.4.min.js",
       "vendor/Underscore1-8-3.js",
       "vendor/sha512.js",
-      "background.js"
+      "pre-localStorageextraction-background.js"
     ]
   },
-  
+  "content_security_policy": "script-src 'self' https://www.google.com/uds/?file=search&v=1; object-src 'self'",
   "content_scripts": [ {
     "js": ["vendor/jquery-2.1.4.min.js", "popup.js", "vendor/Underscore1-8-3.js",
       "vendor/bootstrap-3.3.5-dist/js/bootstrap.min.js"
     ],
-    "matches": ["https://hn.algolia.com/*","https://www.reddit.com/submit.json*",
-      "https://news.ycombinator.com/*","http://news.ycombinator.com/*"
+    "matches": ["https://hn.algolia.com/*","https://www.reddit.com/submit.json*","https://slashdot-api.herokuapp.com/slashdot_postings/*","https://news.ycombinator.com/*",
+      "http://news.ycombinator.com/*"
     ],
     "run_at": "document_end"
-  }],
-  "content_security_policy": "script-src 'self' https://www.google.com/uds/?file=search&v=1; object-src 'self'",
-  "browser_action": {
+  }]
+  
+  ,"browser_action": {
     "name": "Kiwi",
     "default_icon": "kiwiFavico128.png",
     "default_popup": "popup.html"

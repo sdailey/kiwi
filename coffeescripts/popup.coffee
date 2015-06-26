@@ -12,11 +12,11 @@ renderedBool = false
 # `
 initialize = (popupParcel) ->
   console.log 'in init'
-  views.userPreferences.render(popupParcel)
-  # if popupParcel.view? and views[popupParcel.view]?
-  #   views[popupParcel.view].render(popupParcel)
-  # else
-  #   views.conversations.render(popupParcel)
+  # views.userPreferences.render(popupParcel)
+  if popupParcel.view? and views[popupParcel.view]?
+    views[popupParcel.view].render(popupParcel)
+  else
+    views.conversations.render(popupParcel)
     
   
   
@@ -48,23 +48,20 @@ views =
       for serviceInfoObject in popupParcel.kiwi_servicesInfo
       
         if popupParcel.allPreppedResults[serviceInfoObject.name]?
-          if popupParcel.allPreppedResults[serviceInfoObject.name]?
-            serviceResults = popupParcel.allPreppedResults[serviceInfoObject.name]
-            
-            
-            # serviceInfoObject, serviceResults
-            
-            
-            preppedHTMLstring += tailorResults_returnHtml(serviceInfoObject,serviceResults)
-            
-            
-            # preppedHTMLstring += "<br>" + serviceInfoObject.title + "<br>"
-            
-            # for listing, index in serviceResults.service_PreppedResults
-            #   preppedHTMLstring += '<br> Result [' + index + "]<br>"
-            #   for key, value of listing
-            #     preppedHTMLstring += key + " : " + value + " ;; "
+          serviceResults = popupParcel.allPreppedResults[serviceInfoObject.name]
           
+          preppedHTMLstring += tailorResults[serviceInfoObject.name](serviceInfoObject,serviceResults)
+          
+        else
+          preppedHTMLstring += '<div>No results for ' + serviceInfoObject.title + '</div>'
+          
+          # preppedHTMLstring += "<br>" + serviceInfoObject.title + "<br>"
+          
+          # for listing, index in serviceResults.service_PreppedResults
+          #   preppedHTMLstring += '<br> Result [' + index + "]<br>"
+          #   for key, value of listing
+          #     preppedHTMLstring += key + " : " + value + " ;; "
+        
       # console.log 'preppedHTMLstring'
       # console.log preppedHTMLstring
       
@@ -80,11 +77,13 @@ views =
       
       setTimeout( -> # to reign in a chrome rendering issue
           renderExtensionHeight(viewName+'View', 1)
+          $($('input')[0]).blur()
           $($('a')[0]).blur()
           $($('button')[0]).blur()
         , 300
       )
       renderExtensionHeight(viewName+'View', 1)
+      $($('input')[0]).blur()
       $($('a')[0]).blur()
       $($('button')[0]).blur()
       
@@ -101,7 +100,7 @@ views =
       
       researchModeHtml = ''
       
-      if popupParcel.kiwi_userPreferences.researchMode == "on"
+      if popupParcel.kiwi_userPreferences.researchModeOnOff == "on"
         researchOnString = " checked='checked' "
         researchOffString = ""
       else
@@ -167,16 +166,32 @@ views =
               status:
               on <input type="radio" name="' + service.name + '_serviceStatus" value="on" ' + activeCheck + '> - 
               off <input type="radio" name="' + service.name + '_serviceStatus" value="off" ' + notActiveCheck + '>
-              <br>Results are deemed notable (capitilizes badge letter, optionally plays sound) if:
-              <br> URL is an exact match, and:
-              <br> it has been <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or
-              <br> it has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments
+              <br>Results are deemed notable (capitilizes badge letter, optionally plays sound) if:'
+        
+        if service.name == 'gnews'      
+          console.log " if service.name == 'gnews'  servicesHtml "
+          console.debug service
+          servicesHtml += '<br> it has <input id="' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit" type="text" size="4" value="' + service.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit + '"/> or related stories
+            <br> posted within  <input id="' + service.name + '_numberOfRelatedItemsWithClusterURL" type="text" size="4" value="' + service.notableConditions.numberOfRelatedItemsWithClusterURL + '"/> hours
             </div>
-          </td>
+            </td>
           </tr></tbody></table>
           </div>'
-        console.log 'trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or'
-      
+          console.log 'trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or'
+        
+          
+        
+        else
+        
+          servicesHtml +=  '<br> URL is an exact match, and:
+          <br> it has been <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting <br> - or - 
+          <br> it has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments
+            </div>
+            </td>
+          </tr></tbody></table>
+          </div>'
+          console.log 'trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or'
+        
         
       servicesHtml += '<div class="serviceListing">
         
@@ -264,9 +279,9 @@ views =
         
       saveButtons.bind 'click', ->
         
-        researchMode = $("input:radio[name='research']:checked").val()
-        
-        if researchMode != 'on' and researchMode != 'off'
+        researchModeHTMLval = $("input:radio[name='research']:checked").val()
+        console.log 'researchModeHTMLval is ' + researchModeHTMLval
+        if researchModeHTMLval != 'on' and researchModeHTMLval != 'off'
           postError('research mode must be "on" or "off"'); return 0;
         
         allowedAutoOffTypes = ["20","60","always","custom"]
@@ -286,22 +301,36 @@ views =
         
         for service, index in popupParcel.kiwi_servicesInfo
           
-          active = $("input:radio[name='" + service.name + "_serviceStatus']:checked").val()
-          if active != 'on' and active != 'off'
-            postError('active must be "on" or "off"'); return 0;
+          if service.name == 'gnews'
             
-          hoursSincePosted = $('#' + service.name + '_hoursNotable').val()
-          if hoursSincePosted == '' or isNaN(hoursSincePosted)
-            postError('Hours must be an number'); return 0;
+            active = $("input:radio[name='" + service.name + "_serviceStatus']:checked").val()
+            if active != 'on' and active != 'off'
+              postError('active must be "on" or "off"'); return 0;
+              
+            numberOfStoriesFoundWithinTheHoursSincePostedLimit = $('#' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit').val()
+            if numberOfStoriesFoundWithinTheHoursSincePostedLimit == '' or isNaN(numberOfStoriesFoundWithinTheHoursSincePostedLimit)
+              postError('number Of Stories Found Within The Hours Since Posted Limit must be an integer'); return 0;
+            
+            numberOfRelatedItemsWithClusterURL = $('#' + service.name + '_numberOfRelatedItemsWithClusterURL').val()
+            if numberOfRelatedItemsWithClusterURL == '' or isNaN(numberOfRelatedItemsWithClusterURL)
+              postError('number Of Related Items With Cluster URL of comments must be an integer'); return 0;
           
-          num_comments = $('#' + service.name + '_commentsNotable').val()
-          if num_comments == '' or isNaN(num_comments)
-            postError('Number of comments must be an integer'); return 0;
-        
+          else
+            active = $("input:radio[name='" + service.name + "_serviceStatus']:checked").val()
+            if active != 'on' and active != 'off'
+              postError('active must be "on" or "off"'); return 0;
+              
+            hoursSincePosted = $('#' + service.name + '_hoursNotable').val()
+            if hoursSincePosted == '' or isNaN(hoursSincePosted)
+              postError('Hours must be an number'); return 0;
+            
+            num_comments = $('#' + service.name + '_commentsNotable').val()
+            if num_comments == '' or isNaN(num_comments)
+              postError('Number of comments must be an integer'); return 0;
 
           
-          
-        popupParcel.kiwi_userPreferences.researchMode = researchMode
+        popupParcel.kiwi_userPreferences.researchModeOnOff = researchModeHTMLval
+        
         if (autoOffTimerType != 'custom')
           popupParcel.kiwi_userPreferences.autoOffTimerType = autoOffTimerType
         else  
@@ -328,23 +357,69 @@ views =
         
         sendParcel(parcel)
         
-  alerts:
-    elsToUnbind: []
+  # alerts:
+  #   elsToUnbind: []
 
-    render: (popupParcel) ->
-      viewName = 'alerts'
-      unbindView(popupParcel) # prevents redundant bindings
-      showViewAndBindGoToViewButtons(viewName, popupParcel)
+  #   render: (popupParcel) ->
+  #     viewName = 'alerts'
+  #     unbindView(popupParcel) # prevents redundant bindings
+  #     showViewAndBindGoToViewButtons(viewName, popupParcel)
       
   credits:
     elsToUnbind: []
     
     render: (popupParcel) ->
       'http://glyphicons.com/'
-      unbindView(popupParcel) # prevents redundant bindings
+      viewName = 'credits'
+      unbindView(viewName) # prevents redundant bindings
       showViewAndBindGoToViewButtons(viewName, popupParcel)
 
-tailorResults_returnHtml = (serviceInfoObject, serviceResults) ->
+tailorResults = 
+  gnews: (serviceInfoObject, serviceResults) ->
+    # preppedHTMLstring = ''
+    # for listing, index in serviceResults.service_PreppedResults
+    preppedHTMLstring = ""
+    preppedHTMLstring += "<br>" + serviceInfoObject.title + "<br>"
+    
+    serviceResults.service_PreppedResults = _.sortBy(serviceResults.service_PreppedResults, 'clusterUrl')
+    serviceResults.service_PreppedResults.reverse()
+    
+    
+    # clusterUrl
+    # publisher
+    # content
+    # publishedDate
+    # unescapedUrl
+    # titleNoFormatting
+    console.log 'console.debug serviceResults.service_PreppedResults'
+    console.debug serviceResults.service_PreppedResults
+    
+    for listing, index in serviceResults.service_PreppedResults
+      
+      preppedHTMLstring += '<div class="listing" style="position:relative;">
+        <a class="listingTitle" target="_blank" href="' + listing.unescapedUrl + '">
+          ' + listing.titleNoFormatting + '<br>'
+      
+      _time = formatTime(listing.kiwi_created_at)
+      
+      preppedHTMLstring += listing.publisher + ' -- ' + _time + '</a>
+      <br>' + listing.content + '<br>'
+      if listing.clusterUrl != ''
+        preppedHTMLstring += '<a target="_blank" href="' + listing.clusterUrl + '"> Google News cluster </a>'
+      preppedHTMLstring += '</a>
+        </div><br>'
+        
+    
+    return preppedHTMLstring
+    
+  hackerNews: (serviceInfoObject, serviceResults) ->
+    return tailorRedditAndHNresults_returnHtml(serviceInfoObject, serviceResults)
+    
+  reddit: (serviceInfoObject, serviceResults) ->
+    return tailorRedditAndHNresults_returnHtml(serviceInfoObject, serviceResults)
+    
+    
+tailorRedditAndHNresults_returnHtml = (serviceInfoObject, serviceResults) ->
   # reddit:
     preppedHTMLstring = ''
     
@@ -352,29 +427,16 @@ tailorResults_returnHtml = (serviceInfoObject, serviceResults) ->
     
       # fuzzy matches
     
-    
     # linkify stuff
     
     fuzzyMatchBool = false
     
     preppedHTMLstring += "<br>" + serviceInfoObject.title + "<br>"
     
-    
-    # subreddit : boblist ;; url : http://www.ted.com/ ;; score : 1 ;; over_18 : false ;; author : [deleted] ;; 
-        # kiwi_created_at : 1424067318000 ;; kiwi_exact_match : true ;; 
-        # hidden : false ;; downs : 0 ;; permalink : /r/boblist/comments/2w1voc/ted_ideas_worth_spreading/ ;; 
-        # title : TED: Ideas worth spreading ;; created_utc : 1424067318 ;; ups : 1 ;; num_comments : 0 ;; created : 1424067318 ;; 
-    
-    
-    
     serviceResults.service_PreppedResults = _.sortBy(serviceResults.service_PreppedResults, 'num_comments')
     serviceResults.service_PreppedResults.reverse()
     
-    
-    
-    
     for listing, index in serviceResults.service_PreppedResults
-      
       
       if listing.kiwi_exact_match
         preppedHTMLstring += '<div class="listing" style="position:relative;">'
@@ -433,29 +495,6 @@ tailorResults_returnHtml = (serviceInfoObject, serviceResults) ->
     
     return preppedHTMLstring
     
-  # hackerNews: (serviceInfoObject, serviceResults) ->
-  #   preppedHTMLstring = ''
-    
-  #   # kiwi_exact_match
-    
-  #     # fuzzy matches
-    
-    
-  #   # kiwi_created_at : 1402506093000 ;; kiwi_exact_match : true ;;
-  #   # points : 6 ;; num_comments : 3 ;; objectID : 7879063 ;; author : jdorfman ;; created_at : 2014-06-11T17:01:33.000Z ;; 
-  #   # title : TweetDeck down? ;; url : https://tweetdeck.twitter.com/ ;; created_at_i : 1402506093 ;; 
-    
-  #   # linkify stuff
-    
-  #   preppedHTMLstring += "<br>" + serviceInfoObject.title + "<br>"
-    
-  #   for listing, index in serviceResults.service_PreppedResults
-  #     preppedHTMLstring += '<br> Result [' + index + "]<br>"
-  #     for key, value of listing
-  #       preppedHTMLstring += key + " : " + value + " ;; "
-    
-  #   return preppedHTMLstring
-
 unbindView = (viewName) ->
   for el in views[viewName].elsToUnbind
     el.unbind()
@@ -518,10 +557,12 @@ receiveParcel  = (parcel) ->
           # # $("#landingStatusBox").html('Summaries available! :)')
       )
 
-port = chrome.extension.connect({name: "kiwi_fromBackgroundToPopup"})
+
 
 sendParcel = (parcel) ->
   console.log 'wtf sent'
+  port = chrome.extension.connect({name: "kiwi_fromBackgroundToPopup"})
+  
   # chrome.tabs.getSelected(null,(tab) ->
   chrome.tabs.query({ currentWindow: true, active: true }, (tabs) ->
     if tabs.length > 0 and tabs[0].status is "complete"

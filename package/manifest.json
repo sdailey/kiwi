@@ -10,6 +10,9 @@
     "tabs",
     "storage"
   ],
+  
+  "options_page": "popup.html?optionsOnly=true",
+  
   "background":{
     "scripts": [
       "vendor/gApiLoader.js",

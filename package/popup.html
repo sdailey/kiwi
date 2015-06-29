@@ -9,13 +9,10 @@
     
     <link rel="stylesheet" href="vendor/bootstrap-3.3.5-dist/css/bootstrap.min.css"></link>
     
-    
-    
     <script src="vendor/jquery-2.1.4.min.js" ></script>
     <script src="vendor/Underscore1-8-3.js"></script>
     
     <script src="popup.js"></script>
-    
     
     <style type="text/css">
       
@@ -57,6 +54,12 @@
         
         /*display: inline-block;*/
       }
+      
+      #menuBar_conversations {
+        padding-top:10px;
+        padding-bottom:10px;
+      }
+      
     </style>
     
   </head>
@@ -65,24 +68,33 @@
     
     <div id="conversationsView">
       
-      <input type="text" placeholder=" search" />  
-      <button style="float:right;" class="goTo_userPreferencesView">View User Preferences <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> <br>
-      
+      <div id="customSearch_Widget"></div>
       <div class="actionButtons">
+        
+        <span id="researchModeDisabledButtons">
+        </span>
+        
         <br>
+        
         <div style="width:100%; background-color:white;">
-          <button style="float:left;" class="goTo_creditsView"> credits </button> &nbsp;&nbsp; <button style="" class=""> stay up to date </button> <br>
+          
+          <button style="float:left;" class="goTo_creditsView"> credits </button> &nbsp;&nbsp; 
+          
+          <br> 
+          
+          <br> <button style="" class=""> email newsletter </button> 
+          
         </div>
         
         <br>
-        <button>Research this Url</button> (if off)<br>
         
-        <button>Refresh</button> <button>Research Mode - On</button><br>
+        <button id="clearKiwiURLCache"> clear URLCache </button>
+        
+        <br> 
+        
+        <button id="refreshURLresults">Refresh</button> <br>
+        
         <br>
-        <button>Be the first to submit on Hacker News!</button> <br>
-        <button>Be the first to submit on Reddit!</button> <br>
-        
-      
         
       </div>
       
@@ -105,10 +117,13 @@
     
     <div id='userPreferencesView' style='display:none;'>
       
+      <div id="menuBar_preferences">
+        <br>
+        <button class="goTo_conversationsView"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> View Conversations for this Url</button>&nbsp; <button style="" class="goTo_creditsView"> credits </button> <br>
+      </div>
       <br>
-      <button class="goTo_conversationsView"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> View Conversations for this Url</button>&nbsp; <button class="goTo_alertsView">View Alerts</button> <br>
+      <div id="autoOffTimer" ></div>
       
-      <br>
       <br>
       Research Mode - 
       

@@ -15,7 +15,7 @@ last_periodicCleanup = 0 # timestamp
 
 CLEANUP_INTERVAL = 3 * 3600000 # three hours
 
-queryThrottleSeconds = 2
+queryThrottleSeconds = 3 # to respect the no-more-than 30/min stiplation for Reddit's api
 
 serviceQueryTimestamps = {}
 
@@ -27,8 +27,18 @@ kiwi_urlsResultsCache = {}
     #   forUrl: url
     #   timestamp:
     #   service_PreppedResults: 
+    #   urlBlocked:
     # }
 
+kiwi_customSearchResults = {}  # stores temporarily so if they close popup, they'll still have results
+      # maybe it won't clear until new result -- "see last search"
+  
+  # queryString
+  
+  # services
+    # otherSearchParams
+    # results
+  
 
 kiwi_autoOffClearInterval = null
 
@@ -108,7 +118,9 @@ defaultUserPreferences = {
       'hotmail.com',
       'outlook.com',
       #future - ending in:
-      'youtube.com' # /
+      'youtube.com', # /
+      'chrome-devtools://',  # hardcoded block
+      'chrome-extension://'  # hardcoded block
     # ,
     #   'twitter.com'
   ]
@@ -128,6 +140,9 @@ defaultServicesInfo = [
     
     permalinkBase: 'https://news.ycombinator.com/item?id='
     userPageBaselink: 'https://news.ycombinator.com/user?id='
+    
+    submitTitle: 'Be the first to submit on Hacker News!'
+    submitUrl: 'https://news.ycombinator.com/submit'
     
     active: 'on'
     
@@ -153,6 +168,9 @@ defaultServicesInfo = [
     
     userPageBaselink: 'https://www.reddit.com/user/'
     
+    submitTitle: 'Be the first to submit on Reddit!'
+    submitUrl: 'https://www.reddit.com/submit'
+    
     active: 'on'
     
     notableConditions:
@@ -175,6 +193,9 @@ defaultServicesInfo = [
     userPageBaselink: ''
     
     active: 'on'
+    
+    submitTitle: null
+    submitUrl: null
     
     notableConditions:
       numberOfRelatedItemsWithClusterURL: 2 # (or more)
@@ -199,27 +220,6 @@ returnNumberOfActiveServices = (servicesInfo) ->
     if service.active == 'on'
       numberOfActiveServices++
   return numberOfActiveServices
-      
-      
-      
-  # allItemsInLocalStorage:  
-    
-    # only gets set if there's a response (even w/o results) from all services
-      # otherwise, badge will update but no cache set.
-      
-
-    
-    # persistent_urlResultsCheck = {
-      
-      # < url >: 
-        # {
-        #   url: url
-        #   timestamp:
-        #   servicesResults: 
-          # if another url pops up. update again
-        # }
-    # }
-
 
 sendParcel = (parcel) ->
   outPort = chrome.extension.connect({name: "kiwi_fromBackgroundToPopup"})
@@ -237,10 +237,7 @@ sendParcel = (parcel) ->
     # when 'kiwi_alertAddResponse' -> new popup parcel ^^
     # 'kiwi_userPreferencesResponse' -> again, new popup parcel, with viewPreference
     
-# popupParcel
-
-    # viewPreference: null # could be results, alerts, preferences
-
+    
 _save_a_la_carte = (parcel) ->
   
   setObj = {}
@@ -266,9 +263,45 @@ chrome.extension.onConnect.addListener((port) ->
       
       switch dataFromPopup.msg
         
-        # when 'post_refreshQuery'
+        when 'kiwiPP_post_customSearch'
           
-        # when 'kiwiPP_post_addAlert'
+          dataFromPopup.queryString
+          dataFromPopup.forServices
+          
+          kiwi_customSearchResults
+          
+          
+          
+          
+          # kiwi_customSearchResults = {}  # stores temporarily so if they close popup, they'll still have results
+              # maybe it won't clear until new result -- "see last search"
+          
+          # queryString
+          # setAtUrl
+          # minimizedBool
+          
+          # services
+            # otherSearchParams
+            # results
+          
+          
+        when 'kiwiPP_researchUrlOverrideButton'
+          
+          initIfNewURL(true,true)
+          
+        when 'kiwiPP_clearAllURLresults'
+          console.log "when 'kiwiPP_clearAllURLresults'"
+          updateBadgeText('')
+          kiwi_urlsResultsCache = {}
+          tempResponsesStore = {}
+          _set_popupParcel({}, tabUrl, true)
+          
+        when 'kiwiPP_refreshURLresults'
+          if kiwi_urlsResultsCache? and kiwi_urlsResultsCache[tabUrl]?
+            delete kiwi_urlsResultsCache[tabUrl]
+            
+          tempResponsesStore = {}
+          initIfNewURL(true)
           
         when 'kiwiPP_reset_timer'
           
@@ -286,7 +319,6 @@ chrome.extension.onConnect.addListener((port) ->
             localOrSync: 'sync'
           
           _save_a_la_carte(parcel)
-          
           
         when 'kiwiPP_post_save_a_la_carte'
           _save_a_la_carte(dataFromPopup)    
@@ -357,24 +389,6 @@ chrome.extension.onConnect.addListener((port) ->
               else
                 _set_popupParcel(tempResponsesStore.services, tabUrl, true)
           
-          # if tabUrl is serviceMatchObj.forUrl and serviceMatchObj.serviceMatch is false
-          #   messageMainView_noServiceMatch(tabUrl)
-            
-          # else if Object.keys(popupParcel).length > 0 and tabUrl is dataFromPopup.forUrl
-          #   sendObj = 
-          #     'popupParcel': popupParcel 
-          #     'forUrl':tabUrl
-          #     'msg':'popupParcel_ready'
-          #   sendParcel(sendObj)
-            
-          # else if tabUrl is dataFromPopup.forUrl
-          #   sendObj = 
-          #     'msg':'popupParcel_pending'
-          #     'forUrl':tabUrl
-          #   sendParcel(sendObj)
-          # else
-          #   messageMainView_noServiceMatch(tabUrl)
-          
     )
 )
 
@@ -382,9 +396,6 @@ chrome.extension.onConnect.addListener((port) ->
 
 initialize = (currentUrl) ->
   console.log 'yolo 1 ' + currentUrl
-  
-  
-  
   
    # to prevent repeated api requests - we check to see if we have an up-to-date version in local storage
   chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
@@ -548,8 +559,10 @@ dispatchGnewsQuery = (service_info, currentUrl, servicesInfo) ->
   
   currentTime = Date.now()
   
+  
+  
   if newsSearch? and tabTitleObject? and tabTitleObject.forUrl == currentUrl and 
-      tabTitleObject.tabTitle? and tabTitleObject.tabTitle != "" 
+      tabTitleObject.tabTitle != null and tabTitleObject.tabTitle != ""
       # because we depend on externally loaded libraries 
       # the extension will *ignore* gnews if its deprecated loader api is slow or down for the day
       # please google, allow your search api to be downloaded a la carte. either way - thanks! :)
@@ -562,13 +575,14 @@ dispatchGnewsQuery = (service_info, currentUrl, servicesInfo) ->
         #wait a couple seconds before querying service
         console.log 'too soon on dispatch, waiting a couple seconds'
         setTimeout(->
-            dispatchGnewsQuery(service_info, currentUrl, servicesInfo) 
+            if currentUrl == tabUrl # if they've tabbed away, don't bother
+                # (although this check exists within dispatchGnewsQuery as well)
+              dispatchGnewsQuery(service_info, currentUrl, servicesInfo) 
           , 2000
         )
         return 0
       else
         serviceQueryTimestamps[service_info.name] = currentTime
-    
     
     
     # // Set searchComplete as the callback function when a search is 
@@ -642,80 +656,6 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
   
   # the popup should always have enough to render with a properly set popupParcel.
 
-_save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
-  formerResearchModeValue = null
-  formerKiwi_servicesInfo = null
-  console.log 'console.debug popupParcel
-   console.debug _popupParcel'
-  
-  console.debug popupParcel
-  console.debug _popupParcel
-  if popupParcel? and popupParcel.kiwi_userPreferences? and popupParcel.kiwi_servicesInfo
-    formerResearchModeValue = popupParcel.kiwi_userPreferences.researchModeOnOff
-    formerKiwi_servicesInfo = popupParcel.kiwi_servicesInfo
-  
-  popupParcel = {}
-  
-  if formerResearchModeValue? and formerResearchModeValue == 'off' and 
-      _popupParcel.kiwi_userPreferences? and _popupParcel.kiwi_userPreferences.researchModeOnOff == 'on'
-    resetTimerBool = true
-  else
-    
-    resetTimerBool = false
-    
-  _autoOffAtUTCmilliTimestamp = setAutoOffTimer(resetTimerBool, _popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp, 
-      _popupParcel.kiwi_userPreferences.autoOffTimerValue, _popupParcel.kiwi_userPreferences.autoOffTimerType, 
-      _popupParcel.kiwi_userPreferences.researchModeOnOff)
-  
-  _popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp
-  
-  chrome.storage.sync.set({'kiwi_userPreferences': _popupParcel.kiwi_userPreferences}, ->
-      
-      chrome.storage.sync.set({'kiwi_servicesInfo': _popupParcel.kiwi_servicesInfo}, ->
-          
-          chrome.storage.sync.set({'kiwi_alerts': _popupParcel.kiwi_alerts}, ->
-              
-              if updateToView?
-                
-                parcel = {}
-                popupParcel = _popupParcel
-                parcel.msg = 'kiwiPP_popupParcel_ready'
-                parcel.forUrl = tabUrl
-                parcel.popupParcel = _popupParcel
-                
-                sendParcel(parcel)
-              
-              console.log 'in _save_from_popupParcel _popupParcel.forUrl ' + _popupParcel.forUrl
-              console.log 'in _save_from_popupParcel tabUrl ' + tabUrl
-              if _popupParcel.forUrl == tabUrl
-                
-                
-                
-                if formerResearchModeValue? and formerResearchModeValue == 'off' and 
-                    _popupParcel.kiwi_userPreferences? and _popupParcel.kiwi_userPreferences.researchModeOnOff == 'on'
-                  
-                  initIfNewURL(true); return 0
-                else if formerKiwi_servicesInfo? 
-                  # so if user turns on a service and saves - it will immediately begin new query
-                  formerActiveServicesList = _.pluck(formerKiwi_servicesInfo, 'active')
-                  newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo, 'active')
-                  console.log 'formerActiveServicesList = _.pluck(formerKiwi_servicesInfo)'
-                  console.debug formerActiveServicesList
-                  console.log 'newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo)'
-                  console.debug newActiveServicesList
-                  
-                  if !_.isEqual(formerActiveServicesList, newActiveServicesList)
-                    initIfNewURL(true); return 0
-                  else
-                    refreshBadge(_popupParcel.kiwi_servicesInfo, _popupParcel.allPreppedResults); return 0
-                else
-                  refreshBadge(_popupParcel.kiwi_servicesInfo, _popupParcel.allPreppedResults); return 0
-                
-              
-            )
-        )
-    )
-  
 
 _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = null) ->
   
@@ -726,13 +666,13 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
       console.log "_set_popupParcel request for old url"
       return false
   
-  
   setObj_popupParcel = {}
   
   setObj_popupParcel.forUrl = tabUrl
   
-  chrome.storage.sync.get(null, (allItemsInSyncedStorage) -> 
-    
+  
+  
+  chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
     
     if !allItemsInSyncedStorage['kiwi_userPreferences']?
       setObj_popupParcel.kiwi_userPreferences = defaultUserPreferences
@@ -746,6 +686,10 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
     else
       setObj_popupParcel.kiwi_servicesInfo = allItemsInSyncedStorage['kiwi_servicesInfo']
     
+    
+    
+    
+    
     if renderView != null
       setObj_popupParcel.view = renderView
     
@@ -757,6 +701,9 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
     else
       setObj_popupParcel.kiwi_alerts = allItemsInSyncedStorage['kiwi_alerts']
       
+    
+    setObj_popupParcel.kiwi_customSearchResults = kiwi_customSearchResults
+    
     
     if !setWith_urlResults?
       console.log '_set_popupParcel called with undefined responses (not supposed to happen, ever)'
@@ -770,6 +717,11 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
       setObj_popupParcel.tabInfo.tabTitle = tabTitleObject.tabTitle
     else 
       setObj_popupParcel.tabInfo = null
+    
+    setObj_popupParcel.urlBlocked = false
+    for urlSubstring in allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklist
+      if tabUrl.indexOf(urlSubstring) != -1
+        setObj_popupParcel.urlBlocked = true
     
     popupParcel = setObj_popupParcel
     
@@ -865,97 +817,7 @@ setPreppedServiceResults = (responsePackage, servicesInfo) ->
 
 
 
-setAutoOffTimer = (resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue, autoOffTimerType, researchModeOnOff) ->
-  if resetTimerBool and kiwi_autoOffClearInterval?
-    console.log 'clearing timout'
-    clearTimeout(kiwi_autoOffClearInterval)
-    kiwi_autoOffClearInterval = null
-  
-    
-  currentTime = Date.now()
-  
-  new_autoOffAtUTCmilliTimestamp = null
-  
-  if researchModeOnOff == 'on'
-    if autoOffAtUTCmilliTimestamp == null || resetTimerBool
-      
-        
-      if autoOffTimerType == '20'
-        new_autoOffAtUTCmilliTimestamp = currentTime + 20 * 60 * 1000
-      else if autoOffTimerType == '60'
-        new_autoOffAtUTCmilliTimestamp = currentTime + 60 * 60 * 1000
-      else if autoOffTimerType == 'always'
-        new_autoOffAtUTCmilliTimestamp = null
-      else if autoOffTimerType == 'custom'
-        new_autoOffAtUTCmilliTimestamp = currentTime + parseInt(autoOffTimerValue) * 60 * 1000
-        console.log 'setting custom new_autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
-        
-    else
-      
-      new_autoOffAtUTCmilliTimestamp = autoOffAtUTCmilliTimestamp
-      
-      if !kiwi_autoOffClearInterval? and autoOffAtUTCmilliTimestamp > currentTime
-        console.log 'resetting timer timeout'
-        
-        kiwi_autoOffClearInterval = setTimeout( turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime )
-      
-      console.log ' setting 123 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
-      
-      return new_autoOffAtUTCmilliTimestamp
-  else
-    # it's already off - no need for timer
-    new_autoOffAtUTCmilliTimestamp = null
-    
-    console.log 'researchModeOnOff is off - resetting autoOff timestamp and clearInterval'
-    
-    if kiwi_autoOffClearInterval?
-      clearTimeout(kiwi_autoOffClearInterval)
-      kiwi_autoOffClearInterval = null
-  
-  console.log ' setting 000 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
-  
-  if new_autoOffAtUTCmilliTimestamp != null
-    console.log 'setting timer timeout'
-    kiwi_autoOffClearInterval = setTimeout( turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime )
-  
-  return new_autoOffAtUTCmilliTimestamp
-    
-    
-turnResearchModeOff = ->
-  console.log 'turning off research mode - in turnResearchModeOff'
-  
-  chrome.storage.sync.get(null, (allItemsInSyncedStorage) -> 
-    
-    if kiwi_urlsResultsCache[tabUrl]?
-      urlResults = kiwi_urlsResultsCache[tabUrl]
-    else
-      urlResults = {}
-    
-    if allItemsInSyncedStorage.kiwi_userPreferences?
-      
-      allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff = 'off'
-      chrome.storage.sync.set({'kiwi_userPreferences':allItemsInSyncedStorage.kiwi_userPreferences}, ->
-          _set_popupParcel(urlResults, tabUrl, true)
-          if allItemsInSyncedStorage.kiwi_servicesInfo?
-            refreshBadge(allItemsInSyncedStorage.kiwi_servicesInfo, urlResults)
-          else
-            console.log 'weird, allItemsInSyncedStorage.kiwi_servicesInfo not set'
-        )
-      
-    else
-      defaultUserPreferences.researchModeOnOff = 'off'
-      
-      chrome.storage.sync.set({'kiwi_userPreferences':defaultUserPreferences}, ->
-          
-          
-          _set_popupParcel(urlResults, tabUrl, true)
-          
-          if allItemsInSyncedStorage.kiwi_servicesInfo?
-            refreshBadge(allItemsInSyncedStorage.kiwi_servicesInfo, urlResults)
-            
-        )
-    
-  )
+
     
   
   
@@ -1034,6 +896,8 @@ parseResults =
       preppedResult.kiwi_score = null
       
       preppedResult.kiwi_permaId = preppedResult.unescapedUrl
+      
+      preppedResult.kiwi_searchedFor = tabTitleObject.tabTitle
       
       if preppedResult.unescapedUrl != forUrl
         matchedListings.push preppedResult
@@ -1272,12 +1136,13 @@ refreshBadge = (servicesInfo, resultsObjForCurrentUrl) ->
         badgeText = 'off'
         updateBadgeText(badgeText); return 0;
       
-      for urlSubstring in allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklist
-        if tabUrl.indexOf(urlSubstring) != -1
-          # user is not interested in results for this url
-          updateBadgeText('block')
-          console.log '# user is not interested in results for this url: ' + tabUrl
-          return 0 # we return before initializing script
+      # \/\/\/\/ this is supposed to happen in initIfNewUrl \/\/\/\/
+      # for urlSubstring in allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklist
+      #   if tabUrl.indexOf(urlSubstring) != -1
+      #     # user is not interested in results for this url
+      #     updateBadgeText('block')
+      #     console.log '# user is not interested in results for this url: ' + tabUrl
+      #     return 0 # we return before initializing script
     )
   
   updateBadgeText(badgeText)
@@ -1349,6 +1214,376 @@ periodicCleanup = (tab, allItemsInLocalStorage, allItemsInSyncedStorage, initial
     console.log 'wtf c'
     initialize_callback(tab, allItemsInLocalStorage, allItemsInSyncedStorage)
 
+chrome.tabs.onUpdated.addListener((tabId , info) ->
+    if (info.status == "complete") 
+      console.log ' if (info.status == "complete") '
+      console.debug info
+  )
+
+
+initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff = false) ->
+  console.log 'wtf 1 kiwi_urlsResultsCache'
+  if overrideSameURLCheck_popupOpen # for when a user turns researchModeOnOff "on" or refreshes results from popup
+    popupOpen = true
+  else
+    popupOpen = false
+  
+  currentTime = Date.now()
+  
+  # chrome.tabs.getSelected(null,(tab) ->
+  chrome.tabs.query({ currentWindow: true, active: true }, (tabs) ->
+    
+    if tabs.length > 0 and tabs[0].url?
+        
+      if tabs[0].url.indexOf('chrome-devtools://') != 0
+      
+        tabUrl = tabs[0].url
+        
+        console.log 'tabs[0]tabs[0]tabs[0]tabs[0]tabs[0]'
+        console.debug tabs[0]
+        
+        if tabs[0].status == 'complete'
+          tabTitleObject = 
+            tabTitle: tabs[0].title
+            forUrl: tabUrl
+            
+        else
+          tabTitleObject = 
+            tabTitle: null
+            forUrl: tabUrl
+        
+        # console.log 'console.debug tabs[0]'
+        # console.debug tabs[0]
+      else 
+        _set_popupParcel({}, tabUrl, false)
+        console.log 'chrome-devtools:// has been the only url visited so far'
+        return 0  
+      
+      tabUrl_hashWordArray = CryptoJS.SHA512(tabUrl)
+      tabUrl_hash = tabUrl_hashWordArray.toString(CryptoJS.enc.Base64)
+            
+      chrome.storage.local.get(null, (allItemsInLocalStorage) ->  
+        
+        console.log 'chrome.storage.local.get(null, (allItemsInLocalStorage) ->  '
+        sameURLCheck = true
+        
+        if (overrideSameURLCheck_popupOpen == false and !allItemsInLocalStorage.persistentUrlHash?) or 
+            allItemsInLocalStorage.persistentUrlHash != tabUrl_hash
+          sameURLCheck = false
+          
+        else if overrideSameURLCheck_popupOpen == true
+          sameURLCheck = false
+          
+        
+        if sameURLCheck == false          
+          updateBadgeText('')
+          console.log 'console.debug kiwi_urlsResultsCache'
+          console.debug kiwi_urlsResultsCache
+          
+            #useful for switching window contexts
+          chrome.storage.local.set({'persistentUrlHash': tabUrl_hash}, ->)
+          
+          
+          console.log 'popupParcel 123123'
+          console.debug popupParcel
+          
+        
+          chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
+            
+            console.log 'allItemsInSyncedStorage123'
+            console.debug allItemsInSyncedStorage
+            if allItemsInSyncedStorage.kiwi_userPreferences?
+              
+              if allItemsInSyncedStorage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp?
+                if currentTime > allItemsInSyncedStorage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp 
+                  console.log 'timer is past due - turning off - in initifnewurl'
+                  allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff = 'off'
+                  
+              if allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff is 'off' and overrideResearchModeOff == false
+                updateBadgeText('off')
+                
+                console.log 'console.debug kiwi_urlsResultsCache'
+                console.debug kiwi_urlsResultsCache
+                
+                # showing cached responses
+                if tabUrl == tempResponsesStore.forUrl
+                  console.log 'if tabUrl == tempResponsesStore.forUrl'
+                  console.log tabUrl
+                  console.log tempResponsesStore.forUrl
+                  if kiwi_urlsResultsCache[tabUrl]?
+                    _set_popupParcel(kiwi_urlsResultsCache[tabUrl],tabUrl,false);
+                    if allItemsInSyncedStorage['kiwi_servicesInfo']?
+                      refreshBadge(allItemsInSyncedStorage['kiwi_servicesInfo'], kiwi_urlsResultsCache[tabUrl])
+                else
+                  console.log '_set_popupParcel({},tabUrl,false);  '
+                  _set_popupParcel({},tabUrl,false);  
+                return 0;
+            
+            
+            periodicCleanup(tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage, (tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage) ->
+              
+              console.log 'in initialize callback'
+              
+              if !allItemsInSyncedStorage['kiwi_userPreferences']?
+                
+                  
+                # defaultUserPreferences 
+                
+                console.log "console.debug allItemsInSyncedStorage['kiwi_userPreferences']"
+                console.debug allItemsInSyncedStorage['kiwi_userPreferences']
+                
+                _autoOffAtUTCmilliTimestamp = setAutoOffTimer(false, defaultUserPreferences.autoOffAtUTCmilliTimestamp, 
+                    defaultUserPreferences.autoOffTimerValue, defaultUserPreferences.autoOffTimerType, defaultUserPreferences.researchModeOnOff)
+                
+                defaultUserPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp
+                  
+                chrome.storage.sync.set({'kiwi_userPreferences':defaultUserPreferences}, ->
+                  for urlSubstring in defaultUserPreferences.urlSubstring_blacklist
+                    if tabUrl.indexOf(urlSubstring) != -1 and overrideResearchModeOff == false
+                      
+                      # user is not interested in results for this url
+                      updateBadgeText('block')
+                      console.log '# user is not interested in results for this url: ' + tabUrl
+                      
+                      _set_popupParcel({}, tabUrl, true)  # trying to send, because options page
+                      
+                      return 0 # we return before initializing script
+                    
+                  initialize(tabUrl)
+                )
+              else
+                console.log "allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklist"
+                console.debug allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklist
+                
+                
+                for urlSubstring in allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklist
+                  if tabUrl.indexOf(urlSubstring) != -1 and overrideResearchModeOff == false
+                    # user is not interested in results for this url
+                    updateBadgeText('block')
+                    console.log '# user is not interested in results for this url: ' + tabUrl
+                    _set_popupParcel({}, tabUrl, true)  # trying to send, because options page
+                    
+                    return 0 # we return before initializing script
+                    
+                initialize(tabUrl)
+            )
+          )
+        
+    )
+  )
+  
+
+_save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
+  
+  formerResearchModeValue = null
+  formerKiwi_servicesInfo = null
+  former_autoOffTimerType = null
+  former_autoOffTimerValue = null
+  
+  # console.log 'console.debug popupParcel
+  #  console.debug _popupParcel'
+  
+  # console.debug popupParcel
+  # console.debug _popupParcel
+  
+  if popupParcel? and popupParcel.kiwi_userPreferences? and popupParcel.kiwi_servicesInfo
+    formerResearchModeValue = popupParcel.kiwi_userPreferences.researchModeOnOff
+    formerKiwi_servicesInfo = popupParcel.kiwi_servicesInfo
+    former_autoOffTimerType = popupParcel.kiwi_userPreferences.autoOffTimerType
+    former_autoOffTimerValue = popupParcel.kiwi_userPreferences.autoOffTimerValue
+  
+  popupParcel = {}
+  
+  # console.log ' asdfasdfasd formerKiwi_autoOffTimerType'
+  # console.log former_autoOffTimerType
+  # console.log _popupParcel.kiwi_userPreferences.autoOffTimerType
+  # console.log ' a;woeifjaw;ef formerKiwi_autoOffTimerValue'
+  # console.log former_autoOffTimerValue
+  # console.log _popupParcel.kiwi_userPreferences.autoOffTimerValue
+  
+  if formerResearchModeValue? and formerResearchModeValue == 'off' and 
+      _popupParcel.kiwi_userPreferences? and _popupParcel.kiwi_userPreferences.researchModeOnOff == 'on' or 
+      (former_autoOffTimerType != _popupParcel.kiwi_userPreferences.autoOffTimerType or
+      former_autoOffTimerValue != _popupParcel.kiwi_userPreferences.autoOffTimerValue)
+    
+    resetTimerBool = true
+  else
+    resetTimerBool = false
+  
+  _autoOffAtUTCmilliTimestamp = setAutoOffTimer(resetTimerBool, _popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp, 
+      _popupParcel.kiwi_userPreferences.autoOffTimerValue, _popupParcel.kiwi_userPreferences.autoOffTimerType, 
+      _popupParcel.kiwi_userPreferences.researchModeOnOff)
+  
+  _popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp
+  
+  chrome.storage.sync.set({'kiwi_userPreferences': _popupParcel.kiwi_userPreferences}, ->
+      
+      chrome.storage.sync.set({'kiwi_servicesInfo': _popupParcel.kiwi_servicesInfo}, ->
+          
+          chrome.storage.sync.set({'kiwi_alerts': _popupParcel.kiwi_alerts}, ->
+              
+              if updateToView?
+                
+                parcel = {}
+                popupParcel = _popupParcel
+                parcel.msg = 'kiwiPP_popupParcel_ready'
+                parcel.forUrl = tabUrl
+                parcel.popupParcel = _popupParcel
+                
+                sendParcel(parcel)
+              
+              console.log 'in _save_from_popupParcel _popupParcel.forUrl ' + _popupParcel.forUrl
+              console.log 'in _save_from_popupParcel tabUrl ' + tabUrl
+              if _popupParcel.forUrl == tabUrl
+                
+                
+                
+                if formerResearchModeValue? and formerResearchModeValue == 'off' and 
+                    _popupParcel.kiwi_userPreferences? and _popupParcel.kiwi_userPreferences.researchModeOnOff == 'on'
+                  
+                  initIfNewURL(true); return 0
+                else if formerKiwi_servicesInfo? 
+                  # so if user turns on a service and saves - it will immediately begin new query
+                  formerActiveServicesList = _.pluck(formerKiwi_servicesInfo, 'active')
+                  newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo, 'active')
+                  console.log 'formerActiveServicesList = _.pluck(formerKiwi_servicesInfo)'
+                  console.debug formerActiveServicesList
+                  console.log 'newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo)'
+                  console.debug newActiveServicesList
+                  
+                  if !_.isEqual(formerActiveServicesList, newActiveServicesList)
+                    initIfNewURL(true); return 0
+                  else
+                    refreshBadge(_popupParcel.kiwi_servicesInfo, _popupParcel.allPreppedResults); return 0
+                else
+                  refreshBadge(_popupParcel.kiwi_servicesInfo, _popupParcel.allPreppedResults); return 0
+                
+              
+            )
+        )
+    )
+
+setAutoOffTimer = (resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue, autoOffTimerType, researchModeOnOff) ->
+  if resetTimerBool and kiwi_autoOffClearInterval?
+    console.log 'clearing timout'
+    clearTimeout(kiwi_autoOffClearInterval)
+    kiwi_autoOffClearInterval = null
+  
+    
+  currentTime = Date.now()
+  
+  new_autoOffAtUTCmilliTimestamp = null
+  
+  if researchModeOnOff == 'on'
+    if autoOffAtUTCmilliTimestamp == null || resetTimerBool
+      
+        
+      if autoOffTimerType == '20'
+        new_autoOffAtUTCmilliTimestamp = currentTime + 20 * 60 * 1000
+      else if autoOffTimerType == '60'
+        new_autoOffAtUTCmilliTimestamp = currentTime + 60 * 60 * 1000
+      else if autoOffTimerType == 'always'
+        new_autoOffAtUTCmilliTimestamp = null
+      else if autoOffTimerType == 'custom'
+        new_autoOffAtUTCmilliTimestamp = currentTime + parseInt(autoOffTimerValue) * 60 * 1000
+        console.log 'setting custom new_autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
+        
+    else
+      
+      new_autoOffAtUTCmilliTimestamp = autoOffAtUTCmilliTimestamp
+      
+      if !kiwi_autoOffClearInterval? and autoOffAtUTCmilliTimestamp > currentTime
+        console.log 'resetting timer timeout'
+        
+        kiwi_autoOffClearInterval = setTimeout( turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime )
+      
+      console.log ' setting 123 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
+      
+      return new_autoOffAtUTCmilliTimestamp
+  else
+    # it's already off - no need for timer
+    new_autoOffAtUTCmilliTimestamp = null
+    
+    console.log 'researchModeOnOff is off - resetting autoOff timestamp and clearInterval'
+    
+    if kiwi_autoOffClearInterval?
+      clearTimeout(kiwi_autoOffClearInterval)
+      kiwi_autoOffClearInterval = null
+  
+  console.log ' setting 000 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
+  
+  if new_autoOffAtUTCmilliTimestamp != null
+    console.log 'setting timer timeout'
+    kiwi_autoOffClearInterval = setTimeout( turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime )
+  
+  return new_autoOffAtUTCmilliTimestamp
+    
+    
+turnResearchModeOff = ->
+  console.log 'turning off research mode - in turnResearchModeOff'
+  
+  chrome.storage.sync.get(null, (allItemsInSyncedStorage) -> 
+    
+    if kiwi_urlsResultsCache[tabUrl]?
+      urlResults = kiwi_urlsResultsCache[tabUrl]
+    else
+      urlResults = {}
+    
+    if allItemsInSyncedStorage.kiwi_userPreferences?
+      
+      allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff = 'off'
+      chrome.storage.sync.set({'kiwi_userPreferences':allItemsInSyncedStorage.kiwi_userPreferences}, ->
+          _set_popupParcel(urlResults, tabUrl, true)
+          if allItemsInSyncedStorage.kiwi_servicesInfo?
+            refreshBadge(allItemsInSyncedStorage.kiwi_servicesInfo, urlResults)
+          else
+            console.log 'weird, allItemsInSyncedStorage.kiwi_servicesInfo not set'
+        )
+      
+    else
+      defaultUserPreferences.researchModeOnOff = 'off'
+      
+      chrome.storage.sync.set({'kiwi_userPreferences':defaultUserPreferences}, ->
+          
+          
+          _set_popupParcel(urlResults, tabUrl, true)
+          
+          if allItemsInSyncedStorage.kiwi_servicesInfo?
+            refreshBadge(allItemsInSyncedStorage.kiwi_servicesInfo, urlResults)
+            
+        )
+    
+  )
+
+
+chrome.tabs.onActivated.addListener( initIfNewURL )
+
+chrome.tabs.onUpdated.addListener( ->
+
+  if tabTitleObject? and tabTitleObject.forUrl == tabUrl and !tabTitleObject.tabTitle?
+    
+    chrome.tabs.query({ currentWindow: true, active: true }, (tabs) ->
+      
+      # because gnews query won't run unless title is set -
+        # which we only set if the tab has finished completing
+      if tabs[0].status == 'complete'
+        
+        initIfNewURL(true)
+        return 0
+    )
+    
+  else
+    initIfNewURL()
+)
+
+chrome.windows.onFocusChanged.addListener( initIfNewURL )
+
+# intial startup
+if tabTitleObject == null
+  initIfNewURL(true)
+
+
+
 
 
 
@@ -1405,161 +1640,3 @@ periodicCleanup = (tab, allItemsInLocalStorage, allItemsInSyncedStorage, initial
 #   ,6000)
 
 
-
-initIfNewURL = (overrideSameURLCheck_popupOpen = false) ->
-  console.log 'wtf 1 kiwi_urlsResultsCache'
-  if overrideSameURLCheck_popupOpen # for when a user turns researchModeOnOff "on" or refreshes results from popup
-    popupOpen = true
-  else
-    popupOpen = false
-  
-  currentTime = Date.now()
-  
-  # chrome.tabs.getSelected(null,(tab) ->
-  chrome.tabs.query({ currentWindow: true, active: true }, (tabs) ->
-    
-    if tabs.length > 0 and tabs[0].url?
-        
-      if tabs[0].url.indexOf('chrome-devtools://') != 0
-      
-        tabUrl = tabs[0].url
-        console.log 'tabs[0]tabs[0]tabs[0]tabs[0]tabs[0]'
-        console.debug tabs[0]
-        
-        
-        
-        # chrome.tabs.onUpdated.addListener(function(tabId , info) {
-        #     if (info.status == "complete") {
-        #         // your code ...
-        #     }
-        # });
-        
-        
-        
-        tabTitleObject = 
-          tabTitle: tabs[0].title
-          forUrl: tabUrl
-        
-        # console.log 'console.debug tabs[0]'
-        # console.debug tabs[0]
-      else 
-        _set_popupParcel({}, tabUrl, false)
-        console.log 'chrome-devtools:// has been the only url visited so far'
-        return 0  
-      
-      tabUrl_hashWordArray = CryptoJS.SHA512(tabUrl)
-      tabUrl_hash = tabUrl_hashWordArray.toString(CryptoJS.enc.Base64)
-            
-      chrome.storage.local.get(null, (allItemsInLocalStorage) ->  
-           
-        sameURLCheck = true
-        if overrideSameURLCheck_popupOpen == false and !allItemsInLocalStorage.persistentUrlHash? or allItemsInLocalStorage.persistentUrlHash != tabUrl_hash
-          sameURLCheck = false
-        else if overrideSameURLCheck_popupOpen == true
-          sameURLCheck = false
-          
-        if sameURLCheck == false          
-          updateBadgeText('')
-          
-          console.debug kiwi_urlsResultsCache
-          
-            #useful for switching window contexts
-          chrome.storage.local.set({'persistentUrlHash': tabUrl_hash}, ->)
-          
-          
-          console.log 'popupParcel 123123'
-          console.debug popupParcel
-          
-        
-          chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
-            
-            console.log 'allItemsInSyncedStorage123'
-            console.debug allItemsInSyncedStorage
-            if allItemsInSyncedStorage.kiwi_userPreferences?
-              
-              if allItemsInSyncedStorage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp?
-                if currentTime > allItemsInSyncedStorage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp 
-                  console.log 'timer is past due - turning off - in initifnewurl'
-                  allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff = 'off'
-                  
-              if allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff is 'off'
-                updateBadgeText('off')
-                
-                console.log 'console.debug kiwi_urlsResultsCache'
-                console.debug kiwi_urlsResultsCache
-                
-                # showing cached responses
-                if tabUrl == tempResponsesStore.forUrl
-                  console.log 'if tabUrl == tempResponsesStore.forUrl'
-                  console.log tabUrl
-                  console.log tempResponsesStore.forUrl
-                  if kiwi_urlsResultsCache[tabUrl]?
-                    _set_popupParcel(kiwi_urlsResultsCache[tabUrl],tabUrl,false);
-                    if allItemsInSyncedStorage['kiwi_servicesInfo']?
-                      refreshBadge(allItemsInSyncedStorage['kiwi_servicesInfo'], kiwi_urlsResultsCache[tabUrl])
-                else
-                  console.log '_set_popupParcel({},tabUrl,false);  '
-                  _set_popupParcel({},tabUrl,false);  
-                return 0;
-            
-            
-            periodicCleanup(tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage, (tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage) ->
-              
-              console.log 'in initialize callback'
-              
-              if !allItemsInSyncedStorage['kiwi_userPreferences']?
-                
-                  
-                # defaultUserPreferences 
-                
-                console.log "console.debug allItemsInSyncedStorage['kiwi_userPreferences']"
-                console.debug allItemsInSyncedStorage['kiwi_userPreferences']
-                
-                _autoOffAtUTCmilliTimestamp = setAutoOffTimer(false, defaultUserPreferences.autoOffAtUTCmilliTimestamp, 
-                    defaultUserPreferences.autoOffTimerValue, defaultUserPreferences.autoOffTimerType, defaultUserPreferences.researchModeOnOff)
-                
-                defaultUserPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp
-                
-                chrome.storage.sync.set({'kiwi_userPreferences':defaultUserPreferences}, ->
-                  
-                    
-                  for urlSubstring in defaultUserPreferences.urlSubstring_blacklist
-                    if tabUrl.indexOf(urlSubstring) != -1
-                      # user is not interested in results for this url
-                      updateBadgeText('block')
-                      console.log '# user is not interested in results for this url: ' + tabUrl
-                      
-                      _set_popupParcel({}, tabUrl, false)
-                      
-                      return 0 # we return before initializing script
-                    
-                  initialize(tabUrl)
-                )
-              else
-                console.log "allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklist"
-                console.debug allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklist
-                
-                
-                for urlSubstring in allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklist
-                  if tabUrl.indexOf(urlSubstring) != -1
-                    # user is not interested in results for this url
-                    updateBadgeText('block')
-                    console.log '# user is not interested in results for this url: ' + tabUrl
-                    _set_popupParcel({}, tabUrl, false)
-                    return 0 # we return before initializing script
-                    
-                initialize(tabUrl)
-            )
-          )
-        
-    )
-  )
-  
-
-
-
-chrome.tabs.onActivated.addListener( initIfNewURL )
-
-chrome.tabs.onUpdated.addListener( initIfNewURL )
-
-chrome.windows.onFocusChanged.addListener( initIfNewURL )

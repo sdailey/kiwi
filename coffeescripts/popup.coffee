@@ -3,6 +3,10 @@ viewElementId = ''
 
 renderedBool = false
 
+preferencesOnlyPage = false
+
+
+
 # `
 # var head = document.getElementsByTagName('head')[0];
 #  var script = document.createElement('script');
@@ -10,70 +14,210 @@ renderedBool = false
 #  script.src = "https://www.google.com/uds/?file=search&v=1";
 #  head.appendChild(script);
 # `
+
+
+  
+
+
 initialize = (popupParcel) ->
   console.log 'in init'
+  
+  if getURLParam(window.location, 'optionsOnly') != ''
+    preferencesOnlyPage = true
+    views.userPreferences.render(popupParcel)
+    return 0
+
   # views.userPreferences.render(popupParcel)
   if popupParcel.view? and views[popupParcel.view]?
     views[popupParcel.view].render(popupParcel)
   else
     views.conversations.render(popupParcel)
     
+
+class Widget # basic building block
+  constructor: (@name) ->
+    @elsToUnbind = []
+    @DOMselector = "#" + @name + "_Widget"
+    
+    @bindAllGoToViewButtons = (viewData) =>
+      console.log '@bindAllGoToViewButtons = (viewData) =>'
+      console.log @DOMname
+      
+      for _viewName, viewValue of views
+        console.log _viewName
+        # bind to goToView buttons
+        els_goTo_view = $(@DOMselector + ' .goTo_' + _viewName + 'View')
+        console.debug els_goTo_view
+        @elsToUnbind.push els_goTo_view
+        bindGoToViewButtons(els_goTo_view, _viewName, viewData)
+  
+    @unbindWidget = =>
+      for el in @elsToUnbind
+        el.unbind()
+      @elsToUnbind = []
+      
+    @render = (renderState, popupParcel) =>
+      @unbindWidget(@name)
+      
+      @renderStates[renderState].paint(popupParcel)
+      
+      @bindAllGoToViewButtons(popupParcel)
+      
+      @renderStates[renderState].bind(popupParcel)
+    return @
+    
+class CustomSearch extends Widget
+  constructor: (@name, @widgetOpenBool) ->
+    super @name
+    @renderStates = @__renderStates__()
+    
+  init: (popupParcel) ->
+    @unbindWidget()
+    if @widgetOpenBool == false
+      @render('collapsed',popupParcel)
+    else
+      @render('opened',popupParcel)
   
   
-  # // Set a callback to call your code when the page loads
+  __renderStates__: =>
+      collapsed: 
+        paint: (popupParcel) =>
+          openedCustomSearchHTML = '<div>
+              <input style="width:275px; margin-right:10px;" id="customSearchQuery" type="text" placeholder=" search" />
+              <button class="goTo_userPreferencesView">User Options 
+              <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> 
+            </div><br>'
+              
+          $(@DOMselector).html(openedCustomSearchHTML)  
+          
+          
+        bind: (popupParcel) =>
+          inputSearchQuery = $("#customSearchQuery")
+          @elsToUnbind.push inputSearchQuery
+          inputSearchQuery.bind 'click', =>
+            @widgetOpenBool = true
+            @render('opened',popupParcel)
+            
+      opened: 
+        paint: (popupParcel) =>
+          cellWidth = (popupParcel.kiwi_servicesInfo.length + 1)/100 
+          openedCustomSearchHTML = '<div>
+              
+              <input id="customSearchQuery" type="text" placeholder=" search" style="width:234px; margin-right: 10px;" />
+              <button style="margin-right: 10px;">Submit</button>
+              <button style="" class="goTo_userPreferencesView"> Options 
+              <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button>  
+              <br><br>
+          <table style="width:100%;"><tbody><tr>'
+          for serviceInfoObject in popupParcel.kiwi_servicesInfo
+            
+            serviceInfoObject.name
+            serviceDisabledAttr = if serviceInfoObject.active is 'off' then ' disabled ' else ' checked '
+            openedCustomSearchHTML += '<td style="width:' + cellWidth + '%;">
+              &nbsp;&nbsp;' + serviceInfoObject.name + '&nbsp; <input type="checkbox" ' + serviceDisabledAttr + ' /></td>'
+          
+          openedCustomSearchHTML += '<td style="width:' + cellWidth + '%;" id="close__' + @name + '"> &nbsp; close <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> </td>
+          </tr></tbody></table></div><br>'
+          
+          $(@DOMselector).html(openedCustomSearchHTML)
+          
+        
+        bind: (popupParcel) =>
+          inputSearchQuery = $("#customSearchQuery")
+          closeWidget = $('#close__' + @name)
+          inputSearchQuery.focus()
+          @elsToUnbind.concat [inputSearchQuery, closeWidget]
+          
+          closeWidget.bind 'click', =>
+            @widgetOpenBool = false
+            @render('collapsed',popupParcel)    
+    
+    
+    renderStates: {}
+
+widgets = 
+  customSearch: new CustomSearch 'customSearch', false
   
+      
+vFs = 
+  unbindView: (viewName) ->
+    for el in views[viewName].elsToUnbind
+      el.unbind()
+    views[viewName].elsToUnbind = []
   
-  
+  showViewAndBindGoToViewButtons: (viewName, viewData) ->
+    for _viewName, viewValue of views
+      if _viewName == viewName
+        # show
+        console.log 'showing ' + viewName
+        
+        $('#' + viewName + 'View').css({'display':'block'})
+      else
+        # hide
+        console.log 'hiding ' + _viewName
+        
+        $('#' + _viewName + 'View').css({'display':'none'})
+        
+        # bind to goToView buttons
+        els_goTo_view = $('#' + viewName + 'View .goTo_' + _viewName + 'View')
+        views[viewName].elsToUnbind.push els_goTo_view
+        bindGoToViewButtons(els_goTo_view, _viewName, viewData)
 
 views =
+  
   conversations:
     elsToUnbind: []
-
+    
     render: (popupParcel) ->
       viewName = 'conversations'
-      console.log ' in conversations view'
-      console.debug popupParcel
-      unbindView(viewName) # prevents redundant bindings
       
-        # forUrl
-        # allPreppedResults
-        # servicesInfo
-        # alerts
-        # userPrefs
+      console.log ' in conversations view'
+      
+      console.debug popupParcel
+      
+      vFs.unbindView(viewName) # prevents redundant bindings
+      
+      
+      widgets['customSearch'].init(popupParcel)
+      
+      
+      researchModeDisabledButtonsHTML = ''
+      
+      if popupParcel.urlBlocked == true or popupParcel.kiwi_userPreferences.researchModeOnOff == 'off'
         
-      showViewAndBindGoToViewButtons(viewName, popupParcel)
+        researchModeDisabledButtonsHTML += "<br><button id='researchUrlOverride'>Research this Url</button><br>"
+        
+      if popupParcel.kiwi_userPreferences.researchModeOnOff == 'off'
+        
+        researchModeDisabledButtonsHTML +=  "<br>Research Mode is off <button class='goTo_userPreferencesView'> change settings </button><br>"
+        
+      $("#researchModeDisabledButtons").html(researchModeDisabledButtonsHTML)
+      
       
       preppedHTMLstring = ''
       
       for serviceInfoObject in popupParcel.kiwi_servicesInfo
-      
-        if popupParcel.allPreppedResults[serviceInfoObject.name]?
+        
+        if popupParcel.allPreppedResults[serviceInfoObject.name]? and popupParcel.allPreppedResults[serviceInfoObject.name].service_PreppedResults.length > 0
+          
           serviceResults = popupParcel.allPreppedResults[serviceInfoObject.name]
           
           preppedHTMLstring += tailorResults[serviceInfoObject.name](serviceInfoObject,serviceResults)
           
         else
-          preppedHTMLstring += '<div>No results for ' + serviceInfoObject.title + '</div>'
+          if serviceInfoObject.submitTitle?
+            submitUrl = serviceInfoObject.submitUrl
+            submitTitle = serviceInfoObject.submitTitle
+            preppedHTMLstring += '<div><a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div>'
+            
+          else
+            
+            preppedHTMLstring += '<div>No results for ' + serviceInfoObject.title + '</div>'
           
-          # preppedHTMLstring += "<br>" + serviceInfoObject.title + "<br>"
           
-          # for listing, index in serviceResults.service_PreppedResults
-          #   preppedHTMLstring += '<br> Result [' + index + "]<br>"
-          #   for key, value of listing
-          #     preppedHTMLstring += key + " : " + value + " ;; "
-        
-      # console.log 'preppedHTMLstring'
-      # console.log preppedHTMLstring
-      
       $("#resultsByService").html(preppedHTMLstring)
       
-      # resultsByService_drop
-      # for service in serviceInfo
-      
-      #   if popupParcel [service][preppedResults] . length > 0
-      #   else 
-      #     nothing to show for <service>
-          
+      vFs.showViewAndBindGoToViewButtons(viewName, popupParcel)
       
       setTimeout( -> # to reign in a chrome rendering issue
           renderExtensionHeight(viewName+'View', 1)
@@ -87,17 +231,59 @@ views =
       $($('a')[0]).blur()
       $($('button')[0]).blur()
       
+      views[viewName].bind(popupParcel)
       
-        
+    bind: (popupParcel) ->
+      viewName = 'conversations'
+      
+      researchUrlOverrideButton = $("#researchUrlOverride")
+      
+      clearKiwiURLCacheButton = $("#clearKiwiURLCache")
+      
+      refreshURLresultsButton = $("#refreshURLresults")
+      
+      views[viewName].elsToUnbind.concat [refreshURLresultsButton, researchUrlOverrideButton, clearKiwiURLCacheButton]
+      
+      if refreshURLresultsButton?
+        refreshURLresultsButton.bind 'click', ->
+          parcel =
+            msg: 'kiwiPP_refreshURLresults'
+          sendParcel(parcel)
+      
+      if clearKiwiURLCacheButton?
+        clearKiwiURLCacheButton.bind 'click', ->
+          parcel =
+            msg: 'kiwiPP_clearAllURLresults'
+          sendParcel(parcel)
+      
+      if researchUrlOverrideButton?
+        researchUrlOverrideButton.bind 'click', ->
+          parcel =
+            msg: 'kiwiPP_researchUrlOverrideButton'
+          sendParcel(parcel)
+      
       
   userPreferences:
     elsToUnbind: []
     render: (popupParcel) ->
       viewName = 'userPreferences'
       
-      unbindView(viewName) # prevents redundant bindings
-      showViewAndBindGoToViewButtons(viewName, popupParcel)
+      vFs.unbindView(viewName) # prevents redundant bindings
+      vFs.showViewAndBindGoToViewButtons(viewName, popupParcel)
       
+      
+      if preferencesOnlyPage is true
+        $("#menuBar_preferences").hide()
+      
+      
+      currentTime = Date.now()
+      if popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp? and popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp > currentTime
+        $("#autoOffTimer").html("Auto-Off timer expires at: " + formatTime(popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp) + "<br>")
+      else if popupParcel.kiwi_userPreferences.researchModeOnOff == 'off' and popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp?
+        $("#autoOffTimer").html("Auto-off timer last expired at: " + formatTime(popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp) + "<br>")
+      else
+        $("#autoOffTimer").html("Auto-off timer is not set")
+        
       researchModeHtml = ''
       
       if popupParcel.kiwi_userPreferences.researchModeOnOff == "on"
@@ -209,6 +395,8 @@ views =
       saveButtons = $(".userPreferencesSave")
       
       saveButtons.attr('disabled','disabled')
+      
+      
       
       views[viewName].elsToUnbind.push saveButtons
       
@@ -357,22 +545,16 @@ views =
         
         sendParcel(parcel)
         
-  # alerts:
-  #   elsToUnbind: []
-
-  #   render: (popupParcel) ->
-  #     viewName = 'alerts'
-  #     unbindView(popupParcel) # prevents redundant bindings
-  #     showViewAndBindGoToViewButtons(viewName, popupParcel)
-      
   credits:
     elsToUnbind: []
     
     render: (popupParcel) ->
       'http://glyphicons.com/'
       viewName = 'credits'
-      unbindView(viewName) # prevents redundant bindings
-      showViewAndBindGoToViewButtons(viewName, popupParcel)
+      vFs.unbindView(viewName) # prevents redundant bindings
+      vFs.showViewAndBindGoToViewButtons(viewName, popupParcel)
+
+
 
 tailorResults = 
   gnews: (serviceInfoObject, serviceResults) ->
@@ -380,6 +562,11 @@ tailorResults =
     # for listing, index in serviceResults.service_PreppedResults
     preppedHTMLstring = ""
     preppedHTMLstring += "<br>" + serviceInfoObject.title + "<br>"
+    if serviceResults.service_PreppedResults? and serviceResults.service_PreppedResults.length > 0
+      preppedHTMLstring += "
+        Searched for: " + serviceResults.service_PreppedResults[0].kiwi_searchedFor + "<br>
+        
+        results are good" + serviceResults.service_PreppedResults[0].kiwi_exact_match + "<br>"
     
     serviceResults.service_PreppedResults = _.sortBy(serviceResults.service_PreppedResults, 'clusterUrl')
     serviceResults.service_PreppedResults.reverse()
@@ -495,10 +682,9 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, serviceResults) ->
     
     return preppedHTMLstring
     
-unbindView = (viewName) ->
-  for el in views[viewName].elsToUnbind
-    el.unbind()
-  views[viewName].elsToUnbind = []
+
+
+
 
 bindGoToViewButtons = (buttonEls, viewName, viewData) ->
   for el in buttonEls
@@ -507,23 +693,7 @@ bindGoToViewButtons = (buttonEls, viewName, viewData) ->
       views[viewName].render(viewData)
     )
 
-showViewAndBindGoToViewButtons = (viewName, viewData) ->
-  
-  for _viewName, viewValue of views
-    if _viewName == viewName
-      # show
-      console.log 'showing ' + viewName
-      $('#' + viewName + 'View').css({'display':'block'})
-    else
-      # hide
-      console.log 'hiding ' + _viewName
-      $('#' + _viewName + 'View').css({'display':'none'})
-      
-      # bind to goToView buttons
-      els_goTo_view = $('#' + viewName + 'View .goTo_' + _viewName + 'View')
-      views[viewName].elsToUnbind.push els_goTo_view
-      bindGoToViewButtons(els_goTo_view, _viewName, viewData)
-        
+
 
 
 
@@ -532,6 +702,7 @@ receiveParcel  = (parcel) ->
   if !parcel.msg?
     
     return false
+    
   
   switch parcel.msg
     
@@ -576,13 +747,16 @@ sendParcel = (parcel) ->
         switch parcel.msg
           when 'kiwiPP_request_popupParcel'
             port.postMessage(parcel)
-          
           when 'kiwiPP_post_savePopupParcel'
             port.postMessage(parcel)
-          
           when 'kiwiPP_post_save_a_la_carte'
             port.postMessage(parcel)
-          
+          when 'kiwiPP_clearAllURLresults'
+            port.postMessage(parcel)
+          when 'kiwiPP_refreshURLresults'
+            port.postMessage(parcel)
+          when 'kiwiPP_researchUrlOverrideButton'
+            port.postMessage(parcel)
       else 
         console.log 'chrome-devtools:// '
         return 0     
@@ -639,8 +813,13 @@ capitalizeFirstLetter = (string) ->
 htmlEntities = (str) ->
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+getURLParam = (oTarget, sVar) ->
+  return decodeURI(oTarget.search.replace(new RegExp("^(?:.*[&\\?]" + encodeURI(sVar).replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
+
+
 console.log 'trying to send123'
 
-sendParcel({'msg':'kiwiPP_request_popupParcel'})
-
+$().ready(
+  sendParcel({'msg':'kiwiPP_request_popupParcel'})
+)
 

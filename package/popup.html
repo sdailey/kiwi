@@ -15,7 +15,12 @@
     <script src="popup.js"></script>
     
     <style type="text/css">
-      
+      body {
+        font-family: 'Lucida Grande', 'Lucida Sans Unicode', Helvetica, Arial, Verdana, sans-serif;
+        min-width: 450px;
+        overflow-x: hidden;
+        padding: 20px;
+      }
       .nsfw {
         color: red;
       }
@@ -25,6 +30,12 @@
         border-style: solid;
         margin: 6px;
         padding: 4px;
+      }
+      
+      .servicesToSearch {
+        border-color: rgb(193, 229, 193);
+        border-width: 1px;
+        border-style: solid;
       }
       
       .serviceListing {
@@ -64,15 +75,16 @@
     
   </head>
   
-  <body style="height: 580px; width: 400px;">
+  <body style="height: 580px; width: 460px;">
     
-    <div id="conversationsView">
+    <div id="conversations_View">
       
       <div id="customSearch_Widget"></div>
+      
       <div class="actionButtons">
         
-        <span id="researchModeDisabledButtons">
-        </span>
+        <span id="previousSearchLink"></span>
+        <span id="researchModeDisabledButtons"></span>
         
         <br>
         
@@ -115,7 +127,7 @@
     </div>
     
     
-    <div id='userPreferencesView' style='display:none;'>
+    <div id='userPreferences_View' style='display:none;'>
       
       <div id="menuBar_preferences">
         <br>
@@ -142,13 +154,18 @@
       
     </div>
     
-    <div id='creditsView' style='display:none;'>
-      credits view
+    <div id='credits_View' style='display:none;'>
       <br>
-      <button class="goTo_conversationsView">View Conversations for this Url</button><br>
-      <br>
+      credits
+      <br><br>
+      <button class="goTo_conversationsView">View Conversations for this Url</button> 
         
       <button class="goTo_userPreferencesView">View User Preferences</button> <br>
+      
+      <br>
+      Software provided as-is <br>
+        like https://code.google.com/p/crypto-js/wiki/License <br>
+      http://glyphicons.com/
     </div>
     
     

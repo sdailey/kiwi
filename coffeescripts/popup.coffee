@@ -893,6 +893,8 @@ class KiwiSlice extends FixedView
       bind: (popupParcel) =>
         console.log 'binding ' + @name
   
+  
+  # \/ \/ \/ THIS IS A WORK IN PROGRESS \/ \/ \/
   __renderStateTransition__: =>
     
     open: 

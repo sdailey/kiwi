@@ -10,25 +10,35 @@ initialize = (popupParcel) ->
   
   if getURLParam(window.location, 'optionsOnly') != ''
     preferencesOnlyPage = true
-    Views.userPreferences.render(popupParcel)
+    switchViews.userPreferences.render(popupParcel)
     return 0
 
   # views.userPreferences.render(popupParcel)
-  if popupParcel.view? and Views[popupParcel.view]?
-    Views[popupParcel.view].render(popupParcel)
+  if popupParcel.view? and switchViews[popupParcel.view]?
+    switchViews[popupParcel.view].render(popupParcel)
+    
   else
-    Views.conversations.render(popupParcel)
+    switchViews.conversations.render(popupParcel)
+    
+  for viewName, view of fixedViews
+    view.init(popupParcel)
+
 
 class Widget # basic building block
-  constructor: (@name, @__renderStates__) ->
+  constructor: (@name, @parentView, @__renderStates__) ->
     @elsToUnbind = []
-    @DOMselector = "#" + @name + "_Widget"
     
+    @DOMselector = @parentView.DOMselector + " #" + @name + "_Widget"
+    
+    
+    console.log 'class Widget # basic building block constructor: (@name, @parentView, @__renderStates__) ->'
+    console.log @name
+    console.debug @__renderStates__()
     @bindAllGoToViewButtons = (viewData) =>
       console.log '@bindAllGoToViewButtons = (viewData) =>'
       console.log @DOMname
       
-      for _viewName, viewValue of Views
+      for _viewName, viewValue of switchViews
         console.log _viewName
         # bind to goToView buttons
         els_goTo_view = $(@DOMselector + ' .goTo_' + _viewName + 'View')
@@ -54,8 +64,9 @@ class Widget # basic building block
     return @
     
 class CustomSearch extends Widget
-  constructor: (@name, @widgetOpenBool) ->
-    super @name, @__renderStates__
+  constructor: (@name, @parentView, @widgetOpenBool) ->
+    console.debug @__renderStates__
+    super @name, @parentView, @__renderStates__
     
   init: (popupParcel) ->
     @unbindWidget()
@@ -67,18 +78,38 @@ class CustomSearch extends Widget
   __renderStates__: =>
     collapsed: 
       paint: (popupParcel) =>
-        openedCustomSearchHTML = '<div>
-            <input style="width:275px; margin-right:10px;" id="customSearchQueryInput" type="text" placeholder=" combined search" />
-            <button class="goTo_userPreferencesView">User Options 
+        
+        openedCustomSearchHTML = '
+          
+          <div class="topSearchBar">
+            
+            <input class="queryInputOpen" id="customSearchQueryInput" type="text" placeholder=" combined search" />
+            <button class="btn btn-mini btn-default goTo_userPreferencesView">User Options 
             <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> 
-          </div><br>'
+          '
           
         if popupParcel.kiwi_customSearchResults.queryString? and popupParcel.kiwi_customSearchResults.queryString != ''
-          openedCustomSearchHTML += "<a id='openPreviousSearch'>check previous for '" + popupParcel.kiwi_customSearchResults.queryString + "'
-            </a> <a id='clearPreviousSearch'>clear</a><br>"
-            
-        $(@DOMselector).html(openedCustomSearchHTML)  
+          openedCustomSearchHTML += "<br><br><a id='openPreviousSearch'>check previous for '" + popupParcel.kiwi_customSearchResults.queryString + "'
+            </a> <a id='clearPreviousSearch'>clear</a><br><br>"
+        openedCustomSearchHTML += "</div>
+          <div class='notFixed'></div>"
+        $(@DOMselector).html(openedCustomSearchHTML)
         
+        console.log 'console.log @DOMselector + " .topSearchBar"' + @DOMselector + " .topSearchBar"
+        
+        duplicateFixedHeight = =>
+          fixedElHeight = $(@DOMselector + " .topSearchBar").outerHeight()
+          console.log 'console.log fixedElHeight'
+          console.log fixedElHeight
+          if fixedElHeight == 0
+            setTimeout ->
+                duplicateFixedHeight()
+              , 80
+          else
+            $(@DOMselector + " .notFixed").css({'height':fixedElHeight + "px"})
+        
+        duplicateFixedHeight()
+        # $(@DOMselector + " .notFixed").css({'height':fixedHeight + "px"})
         
       bind: (popupParcel) =>
         console.log 'bind: (popupParcel) =>'
@@ -113,10 +144,10 @@ class CustomSearch extends Widget
         
         queryString = if popupParcel.kiwi_customSearchResults.queryString? then popupParcel.kiwi_customSearchResults.queryString else ''
         
-        openedCustomSearchHTML = '<div>
+        openedCustomSearchHTML = '<div class="topSearchBar">
             <input id="customSearchQueryInput" value="' + queryString + '" type="text" placeholder=" combined search" style="width:234px; margin-right: 10px;" />
-            <button id="customSearchQuerySubmit" style="margin-right: 10px;">Submit</button>
-            <button style="" class="goTo_userPreferencesView"> Options 
+            <button  class="btn btn-mini btn-default" id="customSearchQuerySubmit" style="margin-right: 10px;">Submit</button>
+            <button style="" class="goTo_userPreferencesView btn btn-mini btn-default"> Options 
             <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button>  
             <br><br>
         <table style="width:100%;"><tbody><tr style="vertical-align:top;">'
@@ -154,19 +185,27 @@ class CustomSearch extends Widget
           openedCustomSearchHTML += '</td>'
         
         openedCustomSearchHTML += '<td style="width:15%;" id="close__' + @name + '"> &nbsp; close <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> </td>
-          </tr></tbody></table></div><br>'
+            </tr></tbody></table><br>
+          </div>
+          <div class="notFixed"></div>'
         
-        # queryString
-        
-        # servicesToSearch
-          # otherSearchParams
-          # allPreppedResults
         
         if popupParcel.kiwi_customSearchResults? and popupParcel.kiwi_customSearchResults.queryString? and 
             popupParcel.kiwi_customSearchResults.queryString != ''
-        
-          openedCustomSearchHTML += '<div id="customSearchResultsDrop">
-            Search for: ' + popupParcel.kiwi_customSearchResults.queryString
+          # if popupParcel.kiwi_userPreferences.sortByPref == 'attention'
+          #   selectedString_attention = 'selected'
+          #   selectedString_recency = ''
+          # else
+          #   selectedString_attention = ''
+          #   selectedString_recency = 'selected'
+          
+          # openedCustomSearchHTML += '<div id="customSearchResultsDrop">
+          #   <div style="float:right;"> searched for: <strong>' + popupParcel.kiwi_customSearchResults.queryString + '</strong> &nbsp; 
+          #   sorted by: 
+          #     <select id="customSearch_sortByPref">
+          #       <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option>
+          #       <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option>
+          #     </select></div>'
             
           for serviceInfoObject in popupParcel.kiwi_servicesInfo
             
@@ -174,8 +213,12 @@ class CustomSearch extends Widget
               
               service_PreppedResults = popupParcel.kiwi_customSearchResults.servicesSearched[serviceInfoObject.name].results
               
-              openedCustomSearchHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults)
+              openedCustomSearchHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences)
               
+              
+              
+              if service_PreppedResults.length > 14
+                openedCustomSearchHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>'
             else
               openedCustomSearchHTML += '<br>No results for ' + serviceInfoObject.name + '<br>'
             
@@ -184,34 +227,79 @@ class CustomSearch extends Widget
         else
           openedCustomSearchHTML += '<div id="customSearchResultsDrop">No results to show... make a search! :) </div><br>'
         
-        $(@DOMselector).html(openedCustomSearchHTML)
         
+        $(@DOMselector).html(openedCustomSearchHTML)
+        $(@DOMselector + " .hidden_listing").hide()
+        duplicateFixedHeight = =>
+          fixedElHeight = $(@DOMselector + " .topSearchBar").outerHeight()
+          fixedElTableHeight = $(@DOMselector + " .topSearchBar table").outerHeight()
+          console.log 'console.log fixedElHeight'
+          console.log fixedElHeight
+          if fixedElTableHeight == 0
+            setTimeout ->
+                duplicateFixedHeight()
+              , 80
+          else
+            $(@DOMselector + " .notFixed").css({'height':fixedElHeight + "px"})
+        
+        duplicateFixedHeight()
       
       bind: (popupParcel) =>
         
         
-        customSearchQueryInput = $("#customSearchQueryInput")
-        customSearchQuerySubmit = $("#customSearchQuerySubmit")
-        closeWidget = $('#close__' + @name)
-        elsServicesActivePrefs = $(".servicesToSearch .customSearchServicePref input")
+        customSearchQueryInput = $(@DOMselector + " #customSearchQueryInput")
+        customSearchQuerySubmit = $(@DOMselector + " #customSearchQuerySubmit")
+        closeWidget = $(@DOMselector + ' #close__' + @name)
+        customSearch_sortByPref = $(@DOMselector + " .conversations_sortByPref")
+        elsServicesActivePrefs = $(@DOMselector + " .servicesToSearch .customSearchServicePref input")
         
-        @elsToUnbind.concat [customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesActivePrefs]
+        showHidden = $(@DOMselector + " .showHidden")
         
-        elsServicesActivePrefs.bind('change', (ev) ->
+        @elsToUnbind.concat [
+          customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesActivePrefs, 
+          customSearch_sortByPref, showHidden
+        ]
+        
+        
+        
+        showHidden.bind 'click', (ev) =>
+          console.log "showHidden.bind 'click', (ev) ->"
+          console.debug ev
+          serviceName = $(ev.target).data('servicename')
+          # resultsBox__" + serviceInfoObject.name + 
+          console.log @DOMselector + " .resultsBox__" + serviceName + " .hidden_listing"
+          $(@DOMselector + " .resultsBox__" + serviceName + " .hidden_listing").show(1200)
+          $(ev.target).remove()
+          
+        elsServicesActivePrefs.bind('change', (ev) =>
             serviceName = ev.target.value
             console.log 'ev.target.checked ' + (ev.target.checked == false)
             if ev.target.checked == false
               console.log 'if ev.target.checked == "false" ' + serviceName
-              $("input.tagPref_" + serviceName ).attr('disabled','disabled')
+              $(@DOMselector + " input.tagPref_" + serviceName ).attr('disabled','disabled')
             else
-              $("input.tagPref_" + serviceName ).removeAttr('disabled')
+              $(@DOMselector + " input.tagPref_" + serviceName ).removeAttr('disabled')
           )
         
-        sendSearch = ->
+        customSearch_sortByPref.bind 'change', ->
+          
+          popupParcel.kiwi_userPreferences.sortByPref = customSearch_sortByPref.val()
+          
+          parcel =
+            refreshView: 'conversations'
+            keyName: 'kiwi_userPreferences'
+            newValue: popupParcel.kiwi_userPreferences
+            localOrSync: 'sync'
+            
+            msg: 'kiwiPP_post_save_a_la_carte'
+          
+          sendParcel(parcel)
+      
+        sendSearch = =>
           
           queryString = customSearchQueryInput.val()
           
-          elsServicesToSearch = $(".servicesToSearch .customSearchServicePref input:checked")
+          elsServicesToSearch = $(@DOMselector + " .servicesToSearch .customSearchServicePref input:checked")
           
           servicesToSearch = {}
           
@@ -220,7 +308,7 @@ class CustomSearch extends Widget
             servicesToSearch[serviceName] = {}
             servicesToSearch[serviceName].customSearchTags = {}
             
-            elTagPrefs = $("input.tagPref_" + serviceName + ":checked")
+            elTagPrefs = $(@DOMselector + " input.tagPref_" + serviceName + ":checked")
             
             for elTagPref in elTagPrefs 
               tagName = $(elTagPref).val()
@@ -251,11 +339,7 @@ class CustomSearch extends Widget
         
         customSearchQueryInput.focus()
     
-    renderStates: {}
-
-Widgets = 
-  customSearch: new CustomSearch 'customSearch', false
-
+    
 
 # showViewAndBindGoToViewButtons
 
@@ -265,27 +349,14 @@ class View # basic building block
     
     @DOMselector = "#" + @name + "_View"
     
-    @showView = =>
-      for _viewName, viewValue of Views
-        if _viewName == @name
-          # show
-          console.log 'showing ' + _viewName
-          $('#' + _viewName + '_View').css({'display':'block'})
-        else
-          # hide
-          console.log 'hiding ' + _viewName
-          $('#' + _viewName + '_View').css({'display':'none'})
-        
+    @Widgets = {}
     
     @bindAllGoToViewButtons = (viewData) =>
-      console.log '@bindAllGoToViewButtons = (viewData) =>'
-      console.log @DOMname
       
-      for _viewName, viewValue of Views
-        # bind to goToView buttons
+      for _viewName, viewValue of switchViews
+        
         els_goTo_view = $(@DOMselector + ' .goTo_' + _viewName + 'View')
-        # console.log _viewName
-        # console.debug els_goTo_view
+        
         @elsToUnbind.push els_goTo_view
         bindGoToViewButtons(els_goTo_view, _viewName, viewData)
   
@@ -294,24 +365,59 @@ class View # basic building block
       for el in @elsToUnbind
         el.unbind()
       @elsToUnbind = []
+      for widget in @Widgets
+        widget.unbindWidget()
       
-    @render = (popupParcel, renderState = "__normal__") =>
-      @unbindView(@name)
-      
-      @renderStates[renderState].paint(popupParcel)
-      
-      @showView()
-      @bindAllGoToViewButtons(popupParcel)
-      
-      @renderStates[renderState].bind(popupParcel)
       
     @renderStates = @__renderStates__()
     
     return @
     
-class Conversations extends View
+  render: (popupParcel, renderState = "__normal__") =>
+    
+    @unbindView(@name)
+    if !render? and !@renderStates.__normal__?
+      console.log 'ERROR: must declare renderState for view ' + @name + ' since __normal__ undefined'
+      
+    console.log 'console.debug renderState ' + renderState
+    console.debug @renderStates
+    @renderStates[renderState].paint(popupParcel)
+    
+    @bindAllGoToViewButtons(popupParcel)
+    
+    @renderStates[renderState].bind(popupParcel)
+
+class FixedView extends View
+  constructor: (@name, @__renderStates__, uniqueSelectorPostfix) ->
+    super @name, @__renderStates__
+    @DOMselector += uniqueSelectorPostfix
+    console.log @DOMselector
+
+class SwitchView extends View
+  constructor: (@name, @__renderStates__) ->
+    super @name, @__renderStates__
+  
+  showView: =>
+    for _viewName, viewValue of switchViews
+      if _viewName == @name
+        # show
+        console.log 'showing ' + _viewName
+        $('#' + _viewName + '_View').css({'display':'block'})
+      else
+        # hide
+        console.log 'hiding ' + _viewName
+        $('#' + _viewName + '_View').css({'display':'none'})
+  
+  render: (popupParcel, renderState = "__normal__") =>
+    super popupParcel, renderState
+    @showView()
+    
+class Conversations extends SwitchView
   constructor: (@name) ->
     super @name, @__renderStates__
+    
+    @Widgets =
+      customSearch: new CustomSearch 'customSearch', @, false
     
   init: (popupParcel) ->
     @unbindWidget()
@@ -320,23 +426,22 @@ class Conversations extends View
   __renderStates__: =>
     __normal__: 
       paint: (popupParcel) =>
-        # viewName = 'conversations'
         
         console.log ' in conversations view'
         
         console.debug popupParcel
         
-        Widgets['customSearch'].init(popupParcel)
+        @Widgets['customSearch'].init(popupParcel)
           
         researchModeDisabledButtonsHTML = ''
         
         if popupParcel.urlBlocked == true or popupParcel.kiwi_userPreferences.researchModeOnOff == 'off' or (popupParcel.oldUrl? and popupParcel.oldUrl == true)
           
-          researchModeDisabledButtonsHTML += "<br><button id='researchUrlOverride'>Research this Url</button><br>"
+          researchModeDisabledButtonsHTML += "<br><button class='btn btn-mini btn-default' id='researchUrlOverride'>Research this Url</button><br>"
           
         if popupParcel.kiwi_userPreferences.researchModeOnOff == 'off'
           
-          researchModeDisabledButtonsHTML +=  "<br>Research Mode is off <button class='goTo_userPreferencesView'> change settings </button><br>"
+          researchModeDisabledButtonsHTML +=  "<br>Research Mode is off <button class='goTo_userPreferencesView btn btn-mini btn-default'> change settings </button><br>"
           
         $("#researchModeDisabledButtons").html(researchModeDisabledButtonsHTML)
         
@@ -348,8 +453,10 @@ class Conversations extends View
             
             service_PreppedResults = popupParcel.allPreppedResults[serviceInfoObject.name].service_PreppedResults
             
-            preppedHTMLstring += tailorResults[serviceInfoObject.name](serviceInfoObject,service_PreppedResults)
+            preppedHTMLstring += tailorResults[serviceInfoObject.name](serviceInfoObject,service_PreppedResults, popupParcel.kiwi_userPreferences)
             
+            if service_PreppedResults.length > 14
+              preppedHTMLstring += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>'
           else
             if serviceInfoObject.submitTitle?
               submitUrl = serviceInfoObject.submitUrl
@@ -359,18 +466,18 @@ class Conversations extends View
             else
               
               preppedHTMLstring += '<div>No results for ' + serviceInfoObject.title + '</div>'
-            
-            
+        
         $("#resultsByService").html(preppedHTMLstring)
+        $(@DOMselector + " .hidden_listing").hide()
         
         setTimeout( -> # to reign in a chrome rendering issue
-            renderExtensionHeight(@DOMselector, 1)
+            # renderExtensionHeight(@DOMselector, 1)
             $($('input')[0]).blur()
             $($('a')[0]).blur()
             $($('button')[0]).blur()
           , 300
         )
-        renderExtensionHeight(@DOMselector, 1)
+        # renderExtensionHeight(@DOMselector, 1)
         $($('input')[0]).blur()
         $($('a')[0]).blur()
         $($('button')[0]).blur()
@@ -378,13 +485,43 @@ class Conversations extends View
         
       bind: (popupParcel) =>
         
+        showHidden = $(@DOMselector + " .showHidden")
+        
         researchUrlOverrideButton = $("#researchUrlOverride")
         
         clearKiwiURLCacheButton = $("#clearKiwiURLCache")
         
         refreshURLresultsButton = $("#refreshURLresults")
         
-        @elsToUnbind.concat [refreshURLresultsButton, researchUrlOverrideButton, clearKiwiURLCacheButton]
+        customSearchOpen = $(@DOMselector + " .customSearchOpen")
+        
+        conversations_sortByPref = $(@DOMselector + " .conversations_sortByPref")
+        
+        @elsToUnbind.concat [
+          refreshURLresultsButton, researchUrlOverrideButton, clearKiwiURLCacheButton, customSearchOpen, 
+          conversations_sortByPref, showHidden
+        ]
+        
+        showHidden.bind 'click', (ev) =>
+          console.log "showHidden.bind 'click', (ev) -> "
+          console.debug ev
+          serviceName = $(ev.target).data('servicename')
+          $(@DOMselector + " .resultsBox__" + serviceName + " .hidden_listing").show(1200)
+          $(ev.target).remove()
+          
+        conversations_sortByPref.bind 'change', ->
+          
+          popupParcel.kiwi_userPreferences.sortByPref = conversations_sortByPref.val()
+          
+          parcel =
+            refreshView: 'conversations'
+            keyName: 'kiwi_userPreferences'
+            newValue: popupParcel.kiwi_userPreferences
+            localOrSync: 'sync'
+            
+            msg: 'kiwiPP_post_save_a_la_carte'
+          
+          sendParcel(parcel)
         
         if refreshURLresultsButton? and refreshURLresultsButton.length > 0
           refreshURLresultsButton.bind 'click', ->
@@ -403,20 +540,22 @@ class Conversations extends View
             parcel =
               msg: 'kiwiPP_researchUrlOverrideButton'
             sendParcel(parcel)
+        
+        if customSearchOpen? and customSearchOpen.length > 0
+          customSearchOpen.bind 'click', ->
+            $("#customSearchQueryInput").click()
     
-class UserPreferences extends View
+class UserPreferences extends SwitchView
   constructor: (@name) ->
     super @name, @__renderStates__
     
   init: (popupParcel) ->
     @unbindWidget()
-    
     @render(popupParcel)
   
   __renderStates__: =>
     __normal__: 
       paint: (popupParcel) =>
-        # viewName = 'conversations'
         
         console.log 'paint: adsfaeaewfawefawefawef(popupParcel) =># viewName = '
         
@@ -442,7 +581,7 @@ class UserPreferences extends View
         
         if autoOffAtUTCmilliTimestamp?
           researchModeExpirationString = '<br>Research Mode will turn off (expire) at: ' + formatTime(autoOffAtUTCmilliTimestamp)
-          researchModeExpirationString += '<br><button id="resetAutoOffTimer">Reset auto-off timer</button>'
+          researchModeExpirationString += '<br><button class="btn btn-mini btn-default" id="resetAutoOffTimer">Reset auto-off timer</button>'
         else  
           researchModeExpirationString = ''
         autoOffTimerType = popupParcel.kiwi_userPreferences.autoOffTimerType
@@ -524,21 +663,21 @@ class UserPreferences extends View
             console.log 'trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or'
           
           
-        servicesHtml += '<div class="serviceListing">
-          
-          add service! (tweet)
-          
-          </div>'
+        # servicesHtml += '<div class="serviceListing">
+            
+        #     add service! (tweet)
+            
+        #   </div>'
         
         $("#servicesInfoDrop").html(servicesHtml)
         
       bind: (popupParcel) =>
         
-        saveButtons = $(".userPreferencesSave")
+        saveButtons = $(@DOMselector + " .userPreferencesSave")
         
         saveButtons.attr('disabled','disabled')
         
-        autoTimerRadios = $("input:radio[name='researchAutoOffType']")
+        autoTimerRadios = $(@DOMselector + " input:radio[name='researchAutoOffType']")
         
         allInputs = $(@DOMselector + ' input')
         
@@ -692,7 +831,9 @@ class UserPreferences extends View
           
           sendParcel(parcel)
 
-class Credits extends View
+
+
+class Credits extends SwitchView
   constructor: (@name) ->
     super @name, @__renderStates__
     
@@ -701,49 +842,141 @@ class Credits extends View
     @render(popupParcel)
   
   __renderStates__: =>
-    normal: 
+    __normal__: 
       paint: (popupParcel) =>
-        console.log 'painting'
-        
+        console.log 'painting ' + @name
+      bind: (popupParcel) =>
+        console.log 'binding ' + @name
 
-Views =
+class Loading extends SwitchView
+  constructor: (@name) ->
+    super @name, @__renderStates__
+    
+  init: (popupParcel) ->
+    @unbindWidget()
+    @render(popupParcel)
+  
+  __renderStates__: =>
+    __normal__: 
+      paint: (popupParcel) =>
+        console.log 'painting ' + @name
+      bind: (popupParcel) =>
+        console.log 'binding ' + @name
+
+class KiwiSlice extends FixedView
+  constructor: (@name, uniqueSelectorPostfix) ->
+    super @name, @__renderStates__, uniqueSelectorPostfix
+    
+  init: (popupParcel, renderState = null) =>
+    console.log 'hehehehee init: (popupParcel, renderState = null) =>'
+    @unbindView()
+    
+    renderState = if renderState? then renderstate else "collapsed"
+    console.log ' renderState = if renderState? then renderstate else "collapsed" ' + renderState
+    
+    @render(popupParcel, renderState)
+  
+  __renderStates__: =>
+    collapsed: 
+      paint: (popupParcel, transition$el = null) =>
+        console.log 'painting ' + @name
+        
+        $(@DOMselector).html('<div style="position:fixed; bottom: -33px; right: -33px; "><img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>')
+        
+      bind: (popupParcel) =>
+        console.log 'binding ' + @name
+    
+    open:
+      paint: (popupParcel, transition = null) =>
+        console.log 'painting ' + @name
+        $(@DOMselector).html('<div style="position:fixed; bottom: 15px; right: 15px; "><img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>')
+      bind: (popupParcel) =>
+        console.log 'binding ' + @name
+  
+  __renderStateTransition__: =>
+    
+    open: 
+      
+      __to__: 'collapsed'
+      
+      ease: (popupParcel, $el) =>
+        
+        transitionObj =
+          popupParcel: popupParcel
+          $el: $el
+          fromState: 'open'
+        return transitionObj
+    
+    collapsed: 
+      
+      __to__: 'open'
+      
+      ease: (popupParcel, $el) =>
+        
+        transitionObj =
+          popupParcel: popupParcel
+          $el: $el
+          fromState: 'collapsed'
+          
+        return transitionObj   
+  
+fixedViews = 
+  kiwiSlice: new KiwiSlice 'kiwiSlice', 'FixedBottom'
+
+switchViews =
   conversations: new Conversations 'conversations'
   userPreferences: new UserPreferences 'userPreferences'
   credits: new Credits 'credits'
+  loading: new Loading 'loading'
 
 tailorResults = 
-  gnews: (serviceInfoObject, service_PreppedResults) ->
+  gnews: (serviceInfoObject, service_PreppedResults, kiwi_userPreferences) ->
     # preppedHTMLstring = ''
     # for listing, index in service_PreppedResults
     
     currentTime = Date.now()
     
-    preppedHTMLstring = "<br>" + serviceInfoObject.title + "<br>"
+    preppedHTMLstring = "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'><br>" + serviceInfoObject.title + " "
+      
+    if kiwi_userPreferences.sortByPref == 'attention'
+      selectedString_attention = 'selected'
+      selectedString_recency = ''
+    else
+      selectedString_attention = ''
+      selectedString_recency = 'selected'
+      
+    preppedHTMLstring += '<div style="float:right;"><a class="customSearchOpen"> modify search</a>&nbsp;&nbsp; sorted by: 
+        <select class="conversations_sortByPref">
+          <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option>
+          <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option>
+        </select> </div><br>'
+      
     if service_PreppedResults? and service_PreppedResults.length > 0
       preppedHTMLstring += "
         Searched for: " + service_PreppedResults[0].kiwi_searchedFor + "<br>"
     
-    service_PreppedResults = _.sortBy(service_PreppedResults, 'clusterUrl')
-    service_PreppedResults.reverse()
-    
-    
-    # clusterUrl
-    # publisher
-    # content
-    # publishedDate
-    # unescapedUrl
-    # titleNoFormatting
+    if kiwi_userPreferences.sortByPref is 'attention'
+      service_PreppedResults = _.sortBy(service_PreppedResults, 'clusterUrl')
+      service_PreppedResults.reverse()
+    else if kiwi_userPreferences.sortByPref is 'recency'
+      service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_created_at')
+      service_PreppedResults.reverse()
     
     console.log 'console.debug serviceResults.service_PreppedResults'
     console.debug service_PreppedResults
     
+    
+    
+    
+      
     for listing, index in service_PreppedResults
       
+      
+      listingClass = if (index > 10 and service_PreppedResults.length > 14) then ' hidden_listing' else ''
+      
       recentTag = if (currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4) then "<span class='recentListing'>Recent: </span>" else ""
-        
       
-      
-      preppedHTMLstring += '<div class="listing" style="position:relative;">' + recentTag + '
+      preppedHTMLstring += '<div class="listing ' + listingClass + '" style="position:relative;">' + recentTag + '
         <a class="listingTitle" target="_blank" href="' + listing.unescapedUrl + '">
           ' + listing.titleNoFormatting + '<br>'
       
@@ -754,19 +987,52 @@ tailorResults =
       if listing.clusterUrl != ''
         preppedHTMLstring += '<a target="_blank" href="' + listing.clusterUrl + '"> Google News cluster </a>'
       preppedHTMLstring += '</a>
-        </div><br>'
+        </div>'
         
-    
+    preppedHTMLstring += "</div>"
     return preppedHTMLstring
     
-  hackerNews: (serviceInfoObject, service_PreppedResults) ->
-    return tailorRedditAndHNresults_returnHtml(serviceInfoObject, service_PreppedResults)
+  hackerNews: (serviceInfoObject, service_PreppedResults, kiwi_userPreferences) ->
+    return tailorRedditAndHNresults_returnHtml(serviceInfoObject, service_PreppedResults, kiwi_userPreferences)
     
-  reddit: (serviceInfoObject, service_PreppedResults) ->
-    return tailorRedditAndHNresults_returnHtml(serviceInfoObject, service_PreppedResults)
+  reddit: (serviceInfoObject, service_PreppedResults, kiwi_userPreferences) ->
+    return tailorRedditAndHNresults_returnHtml(serviceInfoObject, service_PreppedResults, kiwi_userPreferences)
     
+
+_tailorHNcomment = (listing, serviceInfoObject, listingClass) ->
+  currentTime = Date.now()
+  commentHtml = ""
+  
+  # story_text
+  # comment_text
+  # story_id
+  # story_title
+  # story_url
+  
+  recentTag = if (currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4) then "<span class='recentListing'>Recent: </span>" else ""
+  
+  commentHtml += '<div class="listing ' + listingClass + ' " style="position:relative;">' + recentTag
+  
+  if listing.over_18? and listing.over_18 is true
+    commentHtml += '<span class="nsfw">NSFW</span>For story: ' + listing.story_title + '<br>'
+  else
+    commentHtml += "For story: <a target='_blank' href='" + serviceInfoObject.permalinkBase + listing.story_id + "'>" + listing.story_title + '</a><br>'
+  
+  _time = formatTime(listing.kiwi_created_at)
+  
+  commentHtml += 'at ' + _time + ',
+    <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '">' + listing.author + '</a> recieved ' + listing.kiwi_score + ' upvotes, by saying: 
     
-tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults) ->
+    ( <a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '">
+      comment permalink 
+    </a> , <a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.story_id + '"> story permalink </a>
+     )<br><div class="commentBox">
+    ' + listing.comment_text + '
+    </div></div>'
+
+  return commentHtml
+  
+tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults, kiwi_userPreferences) ->
   preppedHTMLstring = ''
   
   currentTime = Date.now()
@@ -778,56 +1044,94 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
   
   fuzzyMatchBool = false
   
-  preppedHTMLstring += "<br>" + serviceInfoObject.title + "<br>"
+  preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "''><br>" + serviceInfoObject.title
   
-  service_PreppedResults = _.sortBy(service_PreppedResults, 'num_comments')
-  service_PreppedResults.reverse()
+  if kiwi_userPreferences.sortByPref == 'attention'
+    selectedString_attention = 'selected'
+    selectedString_recency = ''
+  else
+    selectedString_attention = ''
+    selectedString_recency = 'selected'
+    
+  preppedHTMLstring += '<div style="float:right;"> &nbsp;&nbsp sorted by: <select class="conversations_sortByPref">
+        <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option>
+        <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option>
+      </select></div><br>'
+  
+  if service_PreppedResults.length < 1
+    preppedHTMLstring += ' no results <br>'
+    return preppedHTMLstring
+  
+  else if !service_PreppedResults[0].comment_text? and kiwi_userPreferences.sortByPref is 'attention'
+    
+    service_PreppedResults = _.sortBy(service_PreppedResults, 'num_comments')
+    service_PreppedResults.reverse()
+  else if kiwi_userPreferences.sortByPref is 'attention'
+    service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_score')
+    service_PreppedResults.reverse()
+  else if kiwi_userPreferences.sortByPref is 'recency'
+    service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_created_at')
+    service_PreppedResults.reverse()
+  
   
   for listing, index in service_PreppedResults
-    
-    recentTag = if (currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4) then "<span class='recentListing'>Recent: </span>" else ""
-    if serviceInfoObject.name == 'hackerNews'
-      if !listing.title? or listing.title == ''
-        console.log 'if !listing.title?'
-        console.debug listing
-      else
-        console.log 'console.log listing.title'
-        console.log listing.title
-    
-    if listing.kiwi_exact_match
-      preppedHTMLstring += '<div class="listing" style="position:relative;">' + recentTag + '
-        <a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '">'
+    listingClass = if (index > 10 and service_PreppedResults.length > 14) then ' hidden_listing ' else ''
+    if listing.comment_text?
       
-      
-      if listing.over_18? and listing.over_18 is true
-        preppedHTMLstring += '<span class="nsfw">NSFW</span>' + listing.title + '<br>'
-      else
-        preppedHTMLstring += listing.title + '<br>'
-      
-      _time = formatTime(listing.kiwi_created_at)
-      
-      preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</a>'
-      
-      if listing.subreddit?
-        preppedHTMLstring +=  '<br><span> 
-          <a target="_blank" href="' + serviceInfoObject.permalinkBase + '/r/' + listing.subreddit + '">
-          subreddit: ' + listing.subreddit + '</a></span>'
-      
-      preppedHTMLstring += '<div style="float:right;">
-        <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author  + '</a>
-        </div></div><br>'
+      preppedHTMLstring += _tailorHNcomment(listing, serviceInfoObject, listingClass)
       
     else
-      fuzzyMatchBool = true
+      recentTag = if (currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4) then "<span class='recentListing'>Recent: </span>" else ""
+      
+      if listing.kiwi_exact_match
+        preppedHTMLstring += '<div class="listing ' + listingClass + '" style="position:relative;">' + recentTag + '
+          <a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '">'
+        
+        
+        if listing.over_18? and listing.over_18 is true
+          preppedHTMLstring += '<span class="nsfw">NSFW</span>' + listing.title + '<br>'
+        else
+          preppedHTMLstring += listing.title + '<br>'
+        
+        _time = formatTime(listing.kiwi_created_at)
+        
+        preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</a>'
+        
+        if listing.subreddit?
+          preppedHTMLstring +=  '<br><span> 
+            <a target="_blank" href="' + serviceInfoObject.permalinkBase + '/r/' + listing.subreddit + '">
+            subreddit: ' + listing.subreddit + '</a></span>'
+        
+        preppedHTMLstring += '<div style="float:right;">
+          <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author  + '</a>
+          </div><br><br></div>'
+        
+      else
+        fuzzyMatchBool = true
   
   if fuzzyMatchBool
-    preppedHTMLstring += '<br><div class="showFuzzyMatches" style="position:relative;"> Show fuzzy matches </div><br><span class="fuzzyMatches">'
+    
+    numberOfExactMatches = _.reduce(service_PreppedResults, (memo, obj) -> 
+        if obj.kiwi_exact_match
+          memo++
+          return memo
+        else
+          memo
+    )
+    if (service_PreppedResults.length - numberOfExactMatches) > 10 and service_PreppedResults.length > 14
+      listingClass = ' hidden_listing ' 
+    else
+      listingClass = ''
+      
+    # listingClass = if nonFuzzyItemCounter > 10 then ' hidden_listing ' else ''
+    preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;"><br> fuzzy matches: <br></div>
+      <span class="fuzzyMatches">'
+    console.log 'fuzzy matches 12312312 ' + serviceInfoObject.name
     
     for listing, index in service_PreppedResults
-      
-      
+      listingClass = if (index > 10 and service_PreppedResults.length > 14) then ' hidden_listing ' else ''
       if !listing.kiwi_exact_match
-        preppedHTMLstring += '<div class="listing">
+        preppedHTMLstring += '<div class="listing ' + listingClass + '">
           <a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '">
           for Url: <span class="altURL">' + listing.url + '<br>'
         
@@ -844,22 +1148,18 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
             subreddit: ' + listing.subreddit + '</a></span>
             <div style="float:right;">
               <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author  + '</a></div>'
-        preppedHTMLstring += '</div><br>'
+        preppedHTMLstring += '</div>'
         
     
     preppedHTMLstring += "</span>" 
-  
+  preppedHTMLstring += "</div>"
   return preppedHTMLstring
-
-
-
-
 
 bindGoToViewButtons = (buttonEls, viewName, viewData) ->
   for el in buttonEls
     $(el).bind('click', (ev) ->
       console.log 'clicked ' + viewName
-      Views[viewName].render(viewData)
+      switchViews[viewName].render(viewData)
     )
 
 

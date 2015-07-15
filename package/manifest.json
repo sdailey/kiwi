@@ -4,7 +4,7 @@
   "name": "Kiwi Conversations",
   "short_name": "Kiwi Conversations",
   "description": "Kiwi Conversations searches community sites and finds forum comment threads about the url you're visiting.",
-  "version": "0.9.66",
+  "version": "0.9.69",
 
   "permissions": [
     "tabs",
@@ -27,7 +27,7 @@
     "js": ["vendor/jquery-2.1.4.min.js", "popup.js", "vendor/Underscore1-8-3.js",
       "vendor/bootstrap-3.3.5-dist/js/bootstrap.min.js"
     ],
-    "matches": ["https://hn.algolia.com/*","https://www.reddit.com/submit.json*",
+    "matches": ["https://hn.algolia.com/*","https://www.reddit.com/submit.json*","https://www.reddit.com/api/*",
       "https://news.ycombinator.com/*","http://news.ycombinator.com/*"
     ],
     "run_at": "document_end"

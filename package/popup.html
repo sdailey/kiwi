@@ -5,9 +5,9 @@
     
     <link rel="stylesheet" href="popup.css"></link>
     
+    <link rel="stylesheet" href="vendor/bootstrap-3.3.5-dist/css/bootstrap.min.css"></link>
     <link rel="stylesheet" href="vendor/bootstrap-3.3.5-dist/css/bootstrap-theme.min.css"></link>
     
-    <link rel="stylesheet" href="vendor/bootstrap-3.3.5-dist/css/bootstrap.min.css"></link>
     
     <script src="vendor/jquery-2.1.4.min.js" ></script>
     <script src="vendor/Underscore1-8-3.js"></script>
@@ -19,8 +19,15 @@
         font-family: 'Lucida Grande', 'Lucida Sans Unicode', Helvetica, Arial, Verdana, sans-serif;
         min-width: 450px;
         overflow-x: hidden;
-        padding: 20px;
+        margin-top: 8px;
+        
       }
+      .commentBox {
+        padding: 5px;
+        border-style: solid;
+        border-color: rgb(198, 242, 198);
+      }
+      
       .nsfw {
         color: red;
       }
@@ -30,8 +37,11 @@
         border-style: solid;
         margin: 6px;
         padding: 4px;
+        margin-bottom: 25px;
       }
-      
+      .hidden_listing {
+        display: hidden;
+      }
       .servicesToSearch {
         border-color: rgb(193, 229, 193);
         border-width: 1px;
@@ -50,6 +60,44 @@
         color: rgb(229, 21, 21);
       }
       
+      #blockbar {
+        width: 500px;
+        position: fixed; 
+        top: -5px;
+        padding-top:0px; 
+        background-color: white; 
+        text-align: center; 
+        opacity:1; 
+        z-index:3; 
+        height: 55px;
+      }
+      button.btn {
+        font-size: .8em;
+      }
+      .topSearchBar {
+        width: 100%;
+        position: fixed; 
+        padding-left:20px;
+        padding-right:20px;
+        padding-top:16px; 
+        background-color: white; 
+        text-align: center; 
+        opacity:1; 
+        z-index:4; 
+        min-height: 64px;
+        border-bottom-style:solid;
+        border-bottom-width:1px;
+        border-bottom-color:grey;
+      }
+      
+      
+      .topSearchBar .queryInputOpen {
+          width: 275px;
+          position: relative;
+          height: 29px;
+          top: 1px;
+          margin-right: 18px;
+      }
       
       .upDownButtons {
         padding-right: 4px;
@@ -76,52 +124,51 @@
   </head>
   
   <body style="height: 580px; width: 460px;">
-    
-    <div id="conversations_View">
+    <div id="loading_View" style="display:none;">
+      <br>
+      loading...
+      <br>
+    </div>
+    <div id="conversations_View" style="display:none;">
+      <div id="blockbar"></div>
       
       <div id="customSearch_Widget"></div>
-      
-      <div class="actionButtons">
-        
-        <span id="previousSearchLink"></span>
-        <span id="researchModeDisabledButtons"></span>
-        
-        <br>
-        
-        <div style="width:100%; background-color:white;">
+      <div style="margin-left: 20px; margin-right: 20px;"> <!-- padding-top: 60px; -->
+        <div class="actionButtons">
+          <span id="previousSearchLink"></span>
+          <span id="researchModeDisabledButtons"></span>
           
-          <button style="float:left;" class="goTo_creditsView"> credits </button> &nbsp;&nbsp; 
+          <br>
           
-          <br> 
+          <div style="width:100%; background-color:white;">
+            
+            <button type="button" class="goTo_creditsView btn btn-mini btn-default"> credits </button> 
+            
+            
+            <button class="btn btn-mini btn-default" style="" class=""> email newsletter </button> 
+            <button class="btn btn-mini btn-default" id="clearKiwiURLCache"> clear URL cache </button>
+            <button class="btn btn-mini btn-default" id="refreshURLresults">refresh URL results</button> <br>
+            
+          </div>
           
-          <br> <button style="" class=""> email newsletter </button> 
           
         </div>
         
         <br>
+        Results:<br>
         
-        <button id="clearKiwiURLCache"> clear URLCache </button>
-        
-        <br> 
-        
-        <button id="refreshURLresults">Refresh</button> <br>
+        <!-- ordered according to user prefs -->
+        <span id="resultsByService"></span>
         
         <br>
         
-      </div>
-      
-      <br>
-      <br>
-    Results:<br>
-      
-      <!-- ordered according to user prefs -->
-      <span id="resultsByService"></span>
-      
-      <br>
-      
-      <div id="alertsDrop">
+        <div id="alertsDrop"></div>
+        
+        
         
       </div>
+          
+      
       
       
     </div>
@@ -131,7 +178,7 @@
       
       <div id="menuBar_preferences">
         <br>
-        <button class="goTo_conversationsView"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> View Conversations for this Url</button>&nbsp; <button style="" class="goTo_creditsView"> credits </button> <br>
+        <button class="btn btn-mini btn-default goTo_conversationsView"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> View Conversations for this Url</button>&nbsp; <button style="" class="btn btn-mini btn-defaultr goTo_creditsView"> credits </button> <br>
       </div>
       <br>
       <div id="autoOffTimer" ></div>
@@ -143,14 +190,14 @@
       
       <br><br>
       
-      <button class="userPreferencesSave"> save preferences </button> <span class="userErrMsg"></span>
+      <button class="btn btn-mini btn-default userPreferencesSave"> save preferences </button> <span class="userErrMsg"></span>
       
       <br><br>  
       
       Services: <br><span id="servicesInfoDrop"> </span>
         
       
-      <button class="userPreferencesSave"> save preferences </button> <span class="userErrMsg"></span>
+      <button class="btn btn-mini btn-default userPreferencesSave"> save preferences </button> <span class="userErrMsg"></span>
       
     </div>
     
@@ -158,9 +205,9 @@
       <br>
       credits
       <br><br>
-      <button class="goTo_conversationsView">View Conversations for this Url</button> 
+      <button class="btn btn-mini btn-default goTo_conversationsView">View Conversations for this Url</button> 
         
-      <button class="goTo_userPreferencesView">View User Preferences</button> <br>
+      <button class="btn btn-mini btn-default goTo_userPreferencesView">View User Preferences</button> <br>
       
       <br>
       Software provided as-is <br>
@@ -168,7 +215,7 @@
       http://glyphicons.com/
     </div>
     
-    
+    <div id="kiwiSlice_ViewFixedBottom"> </div>
     <!-- <div id='alertsView' style='display:none;'>
       alertsView
       <br>
@@ -179,7 +226,8 @@
     </div>
      -->
     
-      
+    
+     
   </body>
   
 </html>

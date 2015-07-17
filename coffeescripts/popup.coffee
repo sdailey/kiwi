@@ -89,8 +89,8 @@ class CustomSearch extends Widget
           '
           
         if popupParcel.kiwi_customSearchResults.queryString? and popupParcel.kiwi_customSearchResults.queryString != ''
-          openedCustomSearchHTML += "<br><br><a id='openPreviousSearch'>check previous for '" + popupParcel.kiwi_customSearchResults.queryString + "'
-            </a> <a id='clearPreviousSearch'>clear</a><br><br>"
+          openedCustomSearchHTML += "<br><br><a id='openPreviousSearch'>see custom results for '" + popupParcel.kiwi_customSearchResults.queryString + "'
+            </a> &nbsp;&nbsp;&nbsp;&nbsp; <a id='clearPreviousSearch'>clear</a><br><br>"
         openedCustomSearchHTML += "</div>
           <div class='notFixed'></div>"
         $(@DOMselector).html(openedCustomSearchHTML)
@@ -119,15 +119,13 @@ class CustomSearch extends Widget
         
         @elsToUnbind.concat [inputSearchQueryInput, previousSearchLink, clearPreviousSearch]
         
-        if previousSearchLink? and previousSearchLink.length > 0
-          previousSearchLink.bind 'click', ->
-            $("#customSearchQueryInput").click()
+        previousSearchLink.bind 'click', ->
+          $("#customSearchQueryInput").click()
         
-        if clearPreviousSearch? and clearPreviousSearch.length > 0
-          clearPreviousSearch.bind 'click', ->
-            parcel =
-              msg: 'kiwiPP_refreshSearchQuery'
-            sendParcel(parcel)
+        clearPreviousSearch.bind 'click', ->
+          parcel =
+            msg: 'kiwiPP_refreshSearchQuery'
+          sendParcel(parcel)
             
         inputSearchQueryInput.bind 'click', =>
           console.log '@widgetOpenBool = true'
@@ -140,7 +138,8 @@ class CustomSearch extends Widget
       paint: (popupParcel) =>
         console.log 'popupParcel.kiwi_servicesInfo.length'
         console.log popupParcel.kiwi_servicesInfo.length
-        cellWidth = 85/(popupParcel.kiwi_servicesInfo.length)
+        
+        
         
         queryString = if popupParcel.kiwi_customSearchResults.queryString? then popupParcel.kiwi_customSearchResults.queryString else ''
         
@@ -150,62 +149,85 @@ class CustomSearch extends Widget
             <button style="" class="goTo_userPreferencesView btn btn-mini btn-default"> Options 
             <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button>  
             <br><br>
-        <table style="width:100%;"><tbody><tr style="vertical-align:top;">'
+          <div class="evenlySpacedContainer">'
         
         for serviceInfoObject in popupParcel.kiwi_servicesInfo
           
+          openedCustomSearchHTML += '<div>'
           
-          if serviceInfoObject.active is 'off' 
-            serviceDisabledAttr = ' disabled title="Service must be active, can be changed in options." ' 
+          console.log 'asdfasdf ' + serviceInfoObject.name
+          console.debug serviceInfoObject
+          
+          if serviceInfoObject.active == 'off' 
+            serviceDisabledAttr = ' disabled title="Service must be active, can be changed in options." '
           else 
-            serviceDisabledAttr = ' checked '
+            serviceDisabledAttr = ' '
             
-          openedCustomSearchHTML += '<td class="servicesToSearch" style="width:' + cellWidth + '%; position:relative; text-align:center;">
-            <label class="customSearchServicePref" >&nbsp;&nbsp;' + serviceInfoObject.title + '&nbsp; <input type="checkbox" 
-                ' + serviceDisabledAttr + ' value="' + serviceInfoObject.name + '" />
-              </label><br>'
+            
+          if popupParcel.kiwi_customSearchResults.servicesSearchesRequested? and popupParcel.kiwi_customSearchResults.servicesSearchesRequested[serviceInfoObject.name]?
+            activeClass = ' active '
+            ariaPressedState = 'true'
+          else if !popupParcel.kiwi_customSearchResults.servicesSearchesRequested?
+            activeClass = if serviceInfoObject.active is 'off' then ' ' else ' active '
+            ariaPressedState = if serviceInfoObject.active is 'off' then 'false' else 'true'
+          else
+            activeClass = ' '
+            ariaPressedState = 'false'
           
-          for tagName, tagObject of serviceInfoObject.customSearchTags
+          if serviceInfoObject.customSearchTags? and Object.keys(serviceInfoObject.customSearchTags).length > 0
+            openedCustomSearchHTML += '<div class="btn-group">
+              <button data-toggle="button" aria-pressed="' + ariaPressedState + '" autocomplete="off" ' + serviceDisabledAttr + ' 
+                class="servicesToSearch btn btn-default btn-mini dropdownLabel ' + activeClass + '" data-serviceName="' + serviceInfoObject.name + '">
+                  ' + serviceInfoObject.title + '
+              </button>
+              <button ' + serviceDisabledAttr + ' data-toggle="dropdown" class="btn btn-default dropdown-toggle ' + activeClass + ' 
+                 dropDownPrefs_' + serviceInfoObject.name + '" data-placeholder="false"><span class="caret"></span></button>
+              <ul class="dropdown-menu">'
             
-            if popupParcel.kiwi_customSearchResults.servicesSearchesRequested? and popupParcel.kiwi_customSearchResults.servicesSearchesRequested[serviceInfoObject.name]?
-              if popupParcel.kiwi_customSearchResults.servicesSearchesRequested[serviceInfoObject.name].customSearchTags[tagName]?
-                tagActiveChecked = ' checked '
-              else
-                tagActiveChecked = ''
-            else
-              tagActiveChecked = if tagObject.include is true then ' checked ' else ''
-            
-            tagDisabledAttr = if serviceInfoObject.active is 'off' then ' disabled title="Service must be active, can be changed in options." ' else ''
-            openedCustomSearchHTML += '<label style="font-weight: normal; font-size: .9em;">' + tagObject.title + ': &nbsp; 
-              <input class="tagPref tagPref_' + serviceInfoObject.name + '" type="checkbox" 
-                ' + tagActiveChecked + tagDisabledAttr + ' value="' + tagName + '" />  
-                
-              </label>'
+            for tagName, tagObject of serviceInfoObject.customSearchTags
               
-          openedCustomSearchHTML += '</td>'
+              if popupParcel.kiwi_customSearchResults.servicesSearchesRequested? and popupParcel.kiwi_customSearchResults.servicesSearchesRequested[serviceInfoObject.name]?
+                if popupParcel.kiwi_customSearchResults.servicesSearchesRequested[serviceInfoObject.name].customSearchTags[tagName]?
+                  tagActiveChecked = ' checked '
+                else
+                  tagActiveChecked = ''
+              else
+                tagActiveChecked = if tagObject.include is true then ' checked ' else ''
+              
+              tagDisabledAttr = if serviceInfoObject.active is 'off' then ' disabled title="Service must be active, can be changed in options." ' else ''
+              
+              openedCustomSearchHTML += '<li><input ' + tagActiveChecked + tagDisabledAttr + ' type="checkbox" value="' + tagName + '" class="tagPref tagPref_' + serviceInfoObject.name + '" id="' + serviceInfoObject.name + tagName + '">
+                  <label for="' + serviceInfoObject.name + tagName + '">
+                     ' + tagObject.title + '
+                  </label></li>'
+                    
+            openedCustomSearchHTML += '</ul></div>'
+            
+          else
+            
+            openedCustomSearchHTML += '<button data-toggle="button" aria-pressed="' + ariaPressedState + '" autocomplete="off" 
+                type="button" class="servicesToSearch btn btn-mini btn-default  ' + activeClass + '" data-serviceName="' + serviceInfoObject.name + '">
+                  ' + serviceInfoObject.title + '
+              </button>'
+            
+          openedCustomSearchHTML += '</div>'
         
-        openedCustomSearchHTML += '<td style="width:15%;" id="close__' + @name + '"> &nbsp; close <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> </td>
-            </tr></tbody></table><br>
-          </div>
-          <div class="notFixed"></div>'
-        
-        
+        openedCustomSearchHTML += '<div> 
+            <button aria-pressed="false" autocomplete="off" type="button" class="btn btn-mini btn-default" 
+                id="close__' + @name + '"
+              >
+              close <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 
+            </button>
+          </div>  
+        </div>'
+        openedCustomSearchHTML += '</div>
+          <div class="notFixed"></div>
+          <div id="customSearchResults"></div>
+            '
+            
+        customSearchResultsHTML = ""
         if popupParcel.kiwi_customSearchResults? and popupParcel.kiwi_customSearchResults.queryString? and 
             popupParcel.kiwi_customSearchResults.queryString != ''
-          # if popupParcel.kiwi_userPreferences.sortByPref == 'attention'
-          #   selectedString_attention = 'selected'
-          #   selectedString_recency = ''
-          # else
-          #   selectedString_attention = ''
-          #   selectedString_recency = 'selected'
-          
-          # openedCustomSearchHTML += '<div id="customSearchResultsDrop">
-          #   <div style="float:right;"> searched for: <strong>' + popupParcel.kiwi_customSearchResults.queryString + '</strong> &nbsp; 
-          #   sorted by: 
-          #     <select id="customSearch_sortByPref">
-          #       <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option>
-          #       <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option>
-          #     </select></div>'
             
           for serviceInfoObject in popupParcel.kiwi_servicesInfo
             
@@ -213,23 +235,26 @@ class CustomSearch extends Widget
               
               service_PreppedResults = popupParcel.kiwi_customSearchResults.servicesSearched[serviceInfoObject.name].results
               
-              openedCustomSearchHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences)
-              
-              
+              customSearchResultsHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences)
               
               if service_PreppedResults.length > 14
-                openedCustomSearchHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>'
+                customSearchResultsHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>'
             else
-              openedCustomSearchHTML += '<br>No results for ' + serviceInfoObject.name + '<br>'
+              customSearchResultsHTML += '<br>No results for ' + serviceInfoObject.name + '<br>'
             
-          openedCustomSearchHTML += '</div>'
+          # customSearchResultsHTML += '</div>'
           
         else
-          openedCustomSearchHTML += '<div id="customSearchResultsDrop">No results to show... make a search! :) </div><br>'
+          customSearchResultsHTML += '<div id="customSearchResultsDrop"><br>No results to show... make a search! :) </div><br>'
+        
         
         
         $(@DOMselector).html(openedCustomSearchHTML)
+        
+        $(@DOMselector + " #customSearchResults").html(customSearchResultsHTML)
+        
         $(@DOMselector + " .hidden_listing").hide()
+        
         duplicateFixedHeight = =>
           fixedElHeight = $(@DOMselector + " .topSearchBar").outerHeight()
           fixedElTableHeight = $(@DOMselector + " .topSearchBar table").outerHeight()
@@ -246,21 +271,21 @@ class CustomSearch extends Widget
       
       bind: (popupParcel) =>
         
-        
         customSearchQueryInput = $(@DOMselector + " #customSearchQueryInput")
         customSearchQuerySubmit = $(@DOMselector + " #customSearchQuerySubmit")
         closeWidget = $(@DOMselector + ' #close__' + @name)
         customSearch_sortByPref = $(@DOMselector + " .conversations_sortByPref")
-        elsServicesActivePrefs = $(@DOMselector + " .servicesToSearch .customSearchServicePref input")
+        
+        elsServicesButtons = $(@DOMselector + " button.servicesToSearch ")
+        
+        elsServicesActivePrefs = $(@DOMselector + " .customSearchServicePref input")
         
         showHidden = $(@DOMselector + " .showHidden")
         
         @elsToUnbind.concat [
-          customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesActivePrefs, 
+          customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesButtons, 
           customSearch_sortByPref, showHidden
         ]
-        
-        
         
         showHidden.bind 'click', (ev) =>
           console.log "showHidden.bind 'click', (ev) ->"
@@ -271,14 +296,24 @@ class CustomSearch extends Widget
           $(@DOMselector + " .resultsBox__" + serviceName + " .hidden_listing").show(1200)
           $(ev.target).remove()
           
-        elsServicesActivePrefs.bind('change', (ev) =>
-            serviceName = ev.target.value
-            console.log 'ev.target.checked ' + (ev.target.checked == false)
-            if ev.target.checked == false
-              console.log 'if ev.target.checked == "false" ' + serviceName
-              $(@DOMselector + " input.tagPref_" + serviceName ).attr('disabled','disabled')
-            else
-              $(@DOMselector + " input.tagPref_" + serviceName ).removeAttr('disabled')
+        elsServicesButtons.bind('click', (ev) =>
+            
+            if $(ev.target).hasClass("dropdownLabel")
+              serviceName = $(ev.target).attr('data-serviceName')
+              console.log serviceName
+              console.debug $(ev.target).attr('aria-pressed')
+              ariaPressed = $(ev.target).attr('aria-pressed')
+              
+              if ariaPressed == 'true'
+                $('button.dropDownPrefs_' + serviceName).removeClass('active')
+                console.log 'if ev.target.checked == "false" ' + serviceName
+                $(@DOMselector + " input.tagPref_" + serviceName ).attr('disabled','disabled')
+              else
+                $('button.dropDownPrefs_' + serviceName).addClass('active')
+                console.log $(ev.target).attr('aria-pressed') + "asdfasdf"
+                $(@DOMselector + " input.tagPref_" + serviceName ).removeAttr('disabled')
+                
+            $(ev.target).blur()
           )
         
         customSearch_sortByPref.bind 'change', ->
@@ -299,12 +334,16 @@ class CustomSearch extends Widget
           
           queryString = customSearchQueryInput.val()
           
-          elsServicesToSearch = $(@DOMselector + " .servicesToSearch .customSearchServicePref input:checked")
+          elsServicesToSearch = $(@DOMselector + ' button.servicesToSearch[aria-pressed="true"]')
+          
+          # ariaPressed = $(ev.target).attr('aria-pressed')
+          # if ariaPressed == 'true'
           
           servicesToSearch = {}
           
           for el in elsServicesToSearch
-            serviceName = $(el).val()
+            serviceName = $(el).attr('data-serviceName')
+            
             servicesToSearch[serviceName] = {}
             servicesToSearch[serviceName].customSearchTags = {}
             
@@ -376,7 +415,7 @@ class View # basic building block
   render: (popupParcel, renderState = "__normal__") =>
     
     @unbindView(@name)
-    if !render? and !@renderStates.__normal__?
+    if !renderState? and !@renderStates.__normal__?
       console.log 'ERROR: must declare renderState for view ' + @name + ' since __normal__ undefined'
       
     console.log 'console.debug renderState ' + renderState
@@ -487,20 +526,18 @@ class Conversations extends SwitchView
         
         showHidden = $(@DOMselector + " .showHidden")
         
-        researchUrlOverrideButton = $("#researchUrlOverride")
-        
-        clearKiwiURLCacheButton = $("#clearKiwiURLCache")
-        
-        refreshURLresultsButton = $("#refreshURLresults")
-        
-        customSearchOpen = $(@DOMselector + " .customSearchOpen")
+        researchUrlOverrideButton = $(@DOMselector + " #researchUrlOverride")
         
         conversations_sortByPref = $(@DOMselector + " .conversations_sortByPref")
         
         @elsToUnbind.concat [
-          refreshURLresultsButton, researchUrlOverrideButton, clearKiwiURLCacheButton, customSearchOpen, 
-          conversations_sortByPref, showHidden
+          conversations_sortByPref, showHidden, researchUrlOverrideButton
         ]
+        
+        researchUrlOverrideButton.bind 'click', ->
+          parcel =
+            msg: 'kiwiPP_researchUrlOverrideButton'
+          sendParcel(parcel)
         
         showHidden.bind 'click', (ev) =>
           console.log "showHidden.bind 'click', (ev) -> "
@@ -523,27 +560,6 @@ class Conversations extends SwitchView
           
           sendParcel(parcel)
         
-        if refreshURLresultsButton? and refreshURLresultsButton.length > 0
-          refreshURLresultsButton.bind 'click', ->
-            parcel =
-              msg: 'kiwiPP_refreshURLresults'
-            sendParcel(parcel)
-        
-        if clearKiwiURLCacheButton? and clearKiwiURLCacheButton.length > 0
-          clearKiwiURLCacheButton.bind 'click', ->
-            parcel =
-              msg: 'kiwiPP_clearAllURLresults'
-            sendParcel(parcel)
-        
-        if researchUrlOverrideButton? and researchUrlOverrideButton.length > 0
-          researchUrlOverrideButton.bind 'click', ->
-            parcel =
-              msg: 'kiwiPP_researchUrlOverrideButton'
-            sendParcel(parcel)
-        
-        if customSearchOpen? and customSearchOpen.length > 0
-          customSearchOpen.bind 'click', ->
-            $("#customSearchQueryInput").click()
     
 class UserPreferences extends SwitchView
   constructor: (@name) ->
@@ -868,59 +884,146 @@ class KiwiSlice extends FixedView
     super @name, @__renderStates__, uniqueSelectorPostfix
     
   init: (popupParcel, renderState = null) =>
+    @renderStateTransitions = @__renderStateTransitions__()
+    
     console.log 'hehehehee init: (popupParcel, renderState = null) =>'
     @unbindView()
     
     renderState = if renderState? then renderstate else "collapsed"
     console.log ' renderState = if renderState? then renderstate else "collapsed" ' + renderState
-    
-    @render(popupParcel, renderState)
+    @render(popupParcel, 'collapsed')
   
+  render: (popupParcel, renderState, fromState = null) =>
+    console.log 'in render for kiwi'
+    __renderStates__callback = (popupParcel, renderState) =>
+      super popupParcel, renderState
+    
+    if fromState? and @renderStateTransitions[fromState + "__to__" + renderState]?
+      console.log 'yep, has renderstate'
+      @renderStateTransitions[fromState + "__to__" + renderState](popupParcel, renderState, __renderStates__callback)
+    else
+      super popupParcel, renderState
+    
   __renderStates__: =>
     collapsed: 
-      paint: (popupParcel, transition$el = null) =>
-        console.log 'painting ' + @name
+      paint: (popupParcel) =>
+        kiwiSliceHTML = '<div id="sliceActivateTransition" style="position:fixed; bottom: -33px; right: -33px; ">
+            <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> 
+          </div>'
         
-        $(@DOMselector).html('<div style="position:fixed; bottom: -33px; right: -33px; "><img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>')
+        $(@DOMselector).html(kiwiSliceHTML)
         
       bind: (popupParcel) =>
-        console.log 'binding ' + @name
-    
+        
+        elActivateTransition = $(@DOMselector + " #sliceActivateTransition")
+        
+        @elsToUnbind.concat [elActivateTransition]
+        
+        elActivateTransition.bind 'mouseover', (ev) =>
+          elActivateTransition.addClass('rotateClockwiseFull')
+        
+        elActivateTransition.bind 'mouseout', (ev) =>
+          elActivateTransition.removeClass('rotateClockwiseFull')
+          
+        elActivateTransition.bind 'click', (ev) =>
+          elActivateTransition.removeClass('rotateClockwiseFull')
+          @render(popupParcel,'open', 'collapsed')
+        
     open:
-      paint: (popupParcel, transition = null) =>
+      
+      paint: (popupParcel) =>
         console.log 'painting ' + @name
-        $(@DOMselector).html('<div style="position:fixed; bottom: 15px; right: 15px; "><img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>')
+        kiwiSliceHTML = '<div id="transition_open_showMe" style="position:fixed;   
+          bottom: 26px;
+          right: 64px;
+          padding: 7px;
+          padding-right: 26px;
+          opacity: 0;
+          box-shadow: rgb(195, 232, 148) 0px 0px 0px 1px inset;
+          border: 1px solid rgba(20, 86, 15, 0.35);
+          border-radius: 4px;
+          background-color: white;
+          ">
+          <button type="button" class="goTo_creditsView btn btn-mini btn-default">credits</button> 
+            <button class="btn btn-mini btn-default" style="" class="">newsletter</button> 
+            <button class="btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button>
+            <button class="btn btn-mini btn-default" id="refreshURLresults">refresh</button>
+          </div>
+          <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; ">
+            <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> 
+          </div>'
+        
+        $(@DOMselector).html(kiwiSliceHTML)
+        console.log kiwiSliceHTML
+        setTimeout =>
+            $(@DOMselector + " #transition_open_showMe").animate({'opacity':1}, 200)
+          , 200
+          
+        
       bind: (popupParcel) =>
         console.log 'binding ' + @name
-  
+        elActivateTransition = $(@DOMselector + " #sliceActivateTransition")
+          
+        clearKiwiURLCacheButton = $(@DOMselector + " #clearKiwiURLCache")
+        
+        refreshURLresultsButton = $(@DOMselector + " #refreshURLresults")
+        
+        customSearchOpen = $(@DOMselector + " .customSearchOpen")
+        
+        @elsToUnbind.concat [elActivateTransition, refreshURLresultsButton, clearKiwiURLCacheButton]
+        
+        refreshURLresultsButton.bind 'click', ->
+          parcel =
+            msg: 'kiwiPP_refreshURLresults'
+          sendParcel(parcel)
+        
+        $('body').mouseup((e) => 
+          console.log 'test test test'
+          container = $(@DOMselector)
+          if (!container.is(e.target) && container.has(e.target).length == 0)
+            $('body').unbind 'mouseup'
+            @render(popupParcel,'collapsed', 'open')   
+        )
+          
+        
+        elActivateTransition.bind 'click', (ev) =>
+          @render(popupParcel,'collapsed', 'open')
+        
+        clearKiwiURLCacheButton.bind 'click', ->
+          parcel =
+            msg: 'kiwiPP_clearAllURLresults'
+          sendParcel(parcel)
+        
+        customSearchOpen.bind 'click', ->
+          $("#customSearchQueryInput").click()
   
   # \/ \/ \/ THIS IS A WORK IN PROGRESS \/ \/ \/
-  __renderStateTransition__: =>
+  __renderStateTransitions__: =>
     
-    open: 
+    'open__to__collapsed': (popupParcel, renderState, __renderStates__callback) =>
       
-      __to__: 'collapsed'
+      $(@DOMselector + " #transition_open_showMe").animate({'opacity':0}, 300)
       
-      ease: (popupParcel, $el) =>
-        
-        transitionObj =
-          popupParcel: popupParcel
-          $el: $el
-          fromState: 'open'
-        return transitionObj
+      $(@DOMselector + " #sliceActivateTransition").addClass('rotateClockwise')
+      $(@DOMselector + " #sliceActivateTransition").animate({"bottom": '-33px', "right": "-33px"}, {
+        duration: 500,
+        complete: ->
+          __renderStates__callback(popupParcel, renderState)
+      })
+      
+      
+      # return transitionObj
     
-    collapsed: 
+    'collapsed__to__open': (popupParcel, renderState, __renderStates__callback) =>
+      console.log "'collapsed__to__open': (popupParcel, renderState, __renderStates__callback) =>"
+      $(@DOMselector + " #sliceActivateTransition").addClass('rotateCounterClockwise')
+      $(@DOMselector + " #sliceActivateTransition").animate({"bottom": '15px', "right": "15px"}, {
+        duration: 500,
+        complete: ->
+          console.log 'we are done with animation'
+          __renderStates__callback(popupParcel, renderState)
+      })
       
-      __to__: 'open'
-      
-      ease: (popupParcel, $el) =>
-        
-        transitionObj =
-          popupParcel: popupParcel
-          $el: $el
-          fromState: 'collapsed'
-          
-        return transitionObj   
   
 fixedViews = 
   kiwiSlice: new KiwiSlice 'kiwiSlice', 'FixedBottom'

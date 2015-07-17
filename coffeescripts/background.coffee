@@ -318,15 +318,15 @@ defaultServicesInfo = [
     customSearchTags__convention: {'string':'&tags=','delimeter':','}
     customSearchTags:
       story:
-        title: "only stories"
+        title: "stories"
         string: "story"
         include: true
       commentPolls:
-        title: "only comments or polls"
+        title: "comments or polls"
         string:"(comment,poll,pollopt)"
         include: false
       showHnAskHn:
-        title: "only Show HN or Ask HN"
+        title: "Show HN or Ask HN"
         string:"(show_hn,ask_hn)"
         include: false
         
@@ -472,9 +472,9 @@ chrome.extension.onConnect.addListener((port) ->
           if dataFromPopup.customSearchRequest? and dataFromPopup.customSearchRequest.queryString? and
               dataFromPopup.customSearchRequest.queryString != ''
             
-            if kiwi_customSearchResults? and kiwi_customSearchResults.queryString? and
-                kiwi_customSearchResults.queryString == dataFromPopup.customSearchRequest.queryString
-              return 0
+            # if kiwi_customSearchResults? and kiwi_customSearchResults.queryString? and
+            #     kiwi_customSearchResults.queryString == dataFromPopup.customSearchRequest.queryString
+            #   return 0
             console.log 'when kiwiPP_post_customSearch2'
             
             chrome.storage.sync.get(null, (allItemsInSyncedStorage) -> 

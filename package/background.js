@@ -230,17 +230,17 @@
       },
       customSearchTags: {
         story: {
-          title: "only stories",
+          title: "stories",
           string: "story",
           include: true
         },
         commentPolls: {
-          title: "only comments or polls",
+          title: "comments or polls",
           string: "(comment,poll,pollopt)",
           include: false
         },
         showHnAskHn: {
-          title: "only Show HN or Ask HN",
+          title: "Show HN or Ask HN",
           string: "(show_hn,ask_hn)",
           include: false
         }
@@ -336,9 +336,6 @@
             console.log('when kiwiPP_post_customSearch1');
             console.debug(dataFromPopup);
             if ((dataFromPopup.customSearchRequest != null) && (dataFromPopup.customSearchRequest.queryString != null) && dataFromPopup.customSearchRequest.queryString !== '') {
-              if ((kiwi_customSearchResults != null) && (kiwi_customSearchResults.queryString != null) && kiwi_customSearchResults.queryString === dataFromPopup.customSearchRequest.queryString) {
-                return 0;
-              }
               console.log('when kiwiPP_post_customSearch2');
               return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
                 var serviceInfoObject, _i, _len, _ref, _results;

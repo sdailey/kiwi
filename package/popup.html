@@ -7,10 +7,13 @@
     
     <link rel="stylesheet" href="vendor/bootstrap-3.3.5-dist/css/bootstrap.min.css"></link>
     <link rel="stylesheet" href="vendor/bootstrap-3.3.5-dist/css/bootstrap-theme.min.css"></link>
+    <link rel="stylesheet" href="vendor/behigh-bootstrap_dropdown_enhancement/css/dropdowns-enhancement.min.css"></link>
     
     
     <script src="vendor/jquery-2.1.4.min.js" ></script>
     <script src="vendor/Underscore1-8-3.js"></script>
+    <script src="vendor/bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
+    <script src="vendor/behigh-bootstrap_dropdown_enhancement/js/dropdowns-enhancement.js"></script>
     
     <script src="popup.js"></script>
     
@@ -43,11 +46,17 @@
         display: hidden;
       }
       .servicesToSearch {
-        border-color: rgb(193, 229, 193);
-        border-width: 1px;
-        border-style: solid;
+        
       }
-      
+      .evenlySpacedContainer {
+        display: flex;
+        justify-content: space-between;
+      }
+      .evenlySpacedContainer button.active {
+        color: #333;
+        background-color: #F0F0F0;
+        border-color: #8c8c8c;
+      }
       .serviceListing {
         border-color: green;
         border-width: 1px;
@@ -119,6 +128,129 @@
         padding-bottom:10px;
       }
       
+      /*.rotateClockwise {*/
+        
+      .rotateClockwise {
+          -webkit-animation-name: spinC;
+          -webkit-animation-duration: 500ms;
+          -webkit-animation-iteration-count: infinite;
+          -webkit-animation-timing-function: linear;
+          -moz-animation-name: spinC;
+          -moz-animation-duration: 500ms;
+          -moz-animation-iteration-count: infinite;
+          -moz-animation-timing-function: linear;
+          -ms-animation-name: spinC;
+          -ms-animation-duration: 500ms;
+          -ms-animation-iteration-count: infinite;
+          -ms-animation-timing-function: linear;
+          
+          animation-name: spinC;
+          animation-duration: 500ms;
+          animation-iteration-count: infinite;
+          animation-timing-function: linear;
+      }
+      
+      .rotateCounterClockwise {
+          -webkit-animation-name: spinCC;
+          -webkit-animation-duration: 500ms;
+          -webkit-animation-iteration-count: infinite;
+          -webkit-animation-timing-function: linear;
+          -moz-animation-name: spinCC;
+          -moz-animation-duration: 500ms;
+          -moz-animation-iteration-count: infinite;
+          -moz-animation-timing-function: linear;
+          -ms-animation-name: spinCC;
+          -ms-animation-duration: 500ms;
+          -ms-animation-iteration-count: infinite;
+          -ms-animation-timing-function: linear;
+          
+          animation-name: spinCC;
+          animation-duration: 500ms;
+          animation-iteration-count: infinite;
+          animation-timing-function: linear;
+      }
+      
+      @-ms-keyframes spinCC {
+          from { -ms-transform: rotate(280deg); }
+          to { -ms-transform: rotate(0deg); }
+      }
+      @-moz-keyframes spinCC {
+          from { -moz-transform: rotate(280deg); }
+          to { -moz-transform: rotate(0deg); }
+      }
+      @-webkit-keyframes spinCC {
+          from { -webkit-transform: rotate(280deg); }
+          to { -webkit-transform: rotate(0deg); }
+      }
+      @keyframes spinCC {
+          from {
+              transform:rotate(280deg);
+          }
+          to {
+              transform:rotate(0deg);
+          }
+      }
+      
+      @-ms-keyframes spinC {
+          from { -ms-transform: rotate(0deg); }
+          to { -ms-transform: rotate(280deg); }
+      }
+      @-moz-keyframes spinC {
+          from { -moz-transform: rotate(0deg); }
+          to { -moz-transform: rotate(280deg); }
+      }
+      @-webkit-keyframes spinC {
+          from { -webkit-transform: rotate(0deg); }
+          to { -webkit-transform: rotate(280deg); }
+      }
+      @keyframes spinC {
+          from {
+              transform:rotate(0deg);
+          }
+          to {
+              transform:rotate(280deg);
+          }
+      }
+      
+      .rotateClockwiseFull {
+          -webkit-animation-name: spinCF;
+          -webkit-animation-duration: 2000ms;
+          -webkit-animation-iteration-count: infinite;
+          -webkit-animation-timing-function: linear;
+          -moz-animation-name: spinCF;
+          -moz-animation-duration: 2000ms;
+          -moz-animation-iteration-count: infinite;
+          -moz-animation-timing-function: linear;
+          -ms-animation-name: spinCF;
+          -ms-animation-duration: 2000ms;
+          -ms-animation-iteration-count: infinite;
+          -ms-animation-timing-function: linear;
+          
+          animation-name: spinCF;
+          animation-duration: 2000ms;
+          animation-iteration-count: infinite;
+          animation-timing-function: linear;
+      }
+      @-ms-keyframes spinCF {
+          from { -ms-transform: rotate(0deg); }
+          to { -ms-transform: rotate(360deg); }
+      }
+      @-moz-keyframes spinCF {
+          from { -moz-transform: rotate(0deg); }
+          to { -moz-transform: rotate(360deg); }
+      }
+      @-webkit-keyframes spinCF {
+          from { -webkit-transform: rotate(0deg); }
+          to { -webkit-transform: rotate(360deg); }
+      }
+      @keyframes spinCF {
+          from {
+              transform:rotate(0deg);
+          }
+          to {
+              transform:rotate(360deg);
+          }
+      }
     </style>
     
   </head>
@@ -135,23 +267,47 @@
       <div id="customSearch_Widget"></div>
       <div style="margin-left: 20px; margin-right: 20px;"> <!-- padding-top: 60px; -->
         <div class="actionButtons">
-          <span id="previousSearchLink"></span>
-          <span id="researchModeDisabledButtons"></span>
+        
+          <!-- <div class="dropdown">
+            <button class="btn btn-mini btn-default" id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Dropdown trigger
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dLabel">
+              <li>
+                <a href="#">Action</a>
+              </li>
+            </ul>
+          </div>
+        
+          <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-success">
+              <input type="checkbox" autocomplete="off" checked> Checkbox 1 (pre-checked)
+            </label>
+            <label class="btn btn-success">
+              <input type="checkbox" autocomplete="off"> Checkbox 2
+            </label>
+            <label class="btn btn-success">
+              <input type="checkbox" autocomplete="off"> Checkbox 3
+            </label>
+          </div> -->
           
-          <br>
-          
-          <div style="width:100%; background-color:white;">
-            
-            <button type="button" class="goTo_creditsView btn btn-mini btn-default"> credits </button> 
-            
-            
-            <button class="btn btn-mini btn-default" style="" class=""> email newsletter </button> 
-            <button class="btn btn-mini btn-default" id="clearKiwiURLCache"> clear URL cache </button>
-            <button class="btn btn-mini btn-default" id="refreshURLresults">refresh URL results</button> <br>
-            
+          <!-- 
+          <div class="btn-group">
+            <button class="btn btn-success btn-mini active">Hacker News</button>
+            <button data-toggle="dropdown" class="btn btn-success dropdown-toggle active" data-placeholder="false"><span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><input type="checkbox" id="ID" name="NAME" value="VALUE"><label for="ID">Label</label></li>
+              </ul>
           </div>
           
+          <button type="button" class="btn btn-mini btn-success active"> Reddit </button> 
+          <button type="button" class="btn btn-mini btn-success active"> Google News </button> 
+           -->
           
+          <span id="previousSearchLink"></span>
+          <span id="researchModeDisabledButtons"></span>
+            
         </div>
         
         <br>
@@ -204,7 +360,9 @@
     <div id='credits_View' style='display:none;'>
       <br>
       credits
-      <br><br>
+      <br>
+      http://behigh.github.io/bootstrap_dropdowns_enhancement/
+      <br>
       <button class="btn btn-mini btn-default goTo_conversationsView">View Conversations for this Url</button> 
         
       <button class="btn btn-mini btn-default goTo_userPreferencesView">View User Preferences</button> <br>

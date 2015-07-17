@@ -116,7 +116,7 @@
               var duplicateFixedHeight, openedCustomSearchHTML;
               openedCustomSearchHTML = '<div class="topSearchBar"> <input class="queryInputOpen" id="customSearchQueryInput" type="text" placeholder=" combined search" /> <button class="btn btn-mini btn-default goTo_userPreferencesView">User Options <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button>';
               if ((popupParcel.kiwi_customSearchResults.queryString != null) && popupParcel.kiwi_customSearchResults.queryString !== '') {
-                openedCustomSearchHTML += "<br><br><a id='openPreviousSearch'>check previous for '" + popupParcel.kiwi_customSearchResults.queryString + "' </a> <a id='clearPreviousSearch'>clear</a><br><br>";
+                openedCustomSearchHTML += "<br><br><a id='openPreviousSearch'>see custom results for '" + popupParcel.kiwi_customSearchResults.queryString + "' </a> &nbsp;&nbsp;&nbsp;&nbsp; <a id='clearPreviousSearch'>clear</a><br><br>";
               }
               openedCustomSearchHTML += "</div> <div class='notFixed'></div>";
               $(_this.DOMselector).html(openedCustomSearchHTML);
@@ -147,20 +147,16 @@
               previousSearchLink = $("#openPreviousSearch");
               clearPreviousSearch = $("#clearPreviousSearch");
               _this.elsToUnbind.concat([inputSearchQueryInput, previousSearchLink, clearPreviousSearch]);
-              if ((previousSearchLink != null) && previousSearchLink.length > 0) {
-                previousSearchLink.bind('click', function() {
-                  return $("#customSearchQueryInput").click();
-                });
-              }
-              if ((clearPreviousSearch != null) && clearPreviousSearch.length > 0) {
-                clearPreviousSearch.bind('click', function() {
-                  var parcel;
-                  parcel = {
-                    msg: 'kiwiPP_refreshSearchQuery'
-                  };
-                  return sendParcel(parcel);
-                });
-              }
+              previousSearchLink.bind('click', function() {
+                return $("#customSearchQueryInput").click();
+              });
+              clearPreviousSearch.bind('click', function() {
+                var parcel;
+                parcel = {
+                  msg: 'kiwiPP_refreshSearchQuery'
+                };
+                return sendParcel(parcel);
+              });
               return inputSearchQueryInput.bind('click', function() {
                 console.log('@widgetOpenBool = true');
                 _this.widgetOpenBool = true;
@@ -172,58 +168,77 @@
         opened: {
           paint: (function(_this) {
             return function(popupParcel) {
-              var cellWidth, duplicateFixedHeight, openedCustomSearchHTML, queryString, serviceDisabledAttr, serviceInfoObject, service_PreppedResults, tagActiveChecked, tagDisabledAttr, tagName, tagObject, _i, _j, _len, _len1, _ref, _ref1, _ref2;
+              var activeClass, ariaPressedState, customSearchResultsHTML, duplicateFixedHeight, openedCustomSearchHTML, queryString, serviceDisabledAttr, serviceInfoObject, service_PreppedResults, tagActiveChecked, tagDisabledAttr, tagName, tagObject, _i, _j, _len, _len1, _ref, _ref1, _ref2;
               console.log('popupParcel.kiwi_servicesInfo.length');
               console.log(popupParcel.kiwi_servicesInfo.length);
-              cellWidth = 85 / popupParcel.kiwi_servicesInfo.length;
               queryString = popupParcel.kiwi_customSearchResults.queryString != null ? popupParcel.kiwi_customSearchResults.queryString : '';
-              openedCustomSearchHTML = '<div class="topSearchBar"> <input id="customSearchQueryInput" value="' + queryString + '" type="text" placeholder=" combined search" style="width:234px; margin-right: 10px;" /> <button  class="btn btn-mini btn-default" id="customSearchQuerySubmit" style="margin-right: 10px;">Submit</button> <button style="" class="goTo_userPreferencesView btn btn-mini btn-default"> Options <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> <br><br> <table style="width:100%;"><tbody><tr style="vertical-align:top;">';
+              openedCustomSearchHTML = '<div class="topSearchBar"> <input id="customSearchQueryInput" value="' + queryString + '" type="text" placeholder=" combined search" style="width:234px; margin-right: 10px;" /> <button  class="btn btn-mini btn-default" id="customSearchQuerySubmit" style="margin-right: 10px;">Submit</button> <button style="" class="goTo_userPreferencesView btn btn-mini btn-default"> Options <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> <br><br> <div class="evenlySpacedContainer">';
               _ref = popupParcel.kiwi_servicesInfo;
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 serviceInfoObject = _ref[_i];
+                openedCustomSearchHTML += '<div>';
+                console.log('asdfasdf ' + serviceInfoObject.name);
+                console.debug(serviceInfoObject);
                 if (serviceInfoObject.active === 'off') {
                   serviceDisabledAttr = ' disabled title="Service must be active, can be changed in options." ';
                 } else {
-                  serviceDisabledAttr = ' checked ';
+                  serviceDisabledAttr = ' ';
                 }
-                openedCustomSearchHTML += '<td class="servicesToSearch" style="width:' + cellWidth + '%; position:relative; text-align:center;"> <label class="customSearchServicePref" >&nbsp;&nbsp;' + serviceInfoObject.title + '&nbsp; <input type="checkbox"' + serviceDisabledAttr + ' value="' + serviceInfoObject.name + '" /> </label><br>';
-                _ref1 = serviceInfoObject.customSearchTags;
-                for (tagName in _ref1) {
-                  tagObject = _ref1[tagName];
-                  if ((popupParcel.kiwi_customSearchResults.servicesSearchesRequested != null) && (popupParcel.kiwi_customSearchResults.servicesSearchesRequested[serviceInfoObject.name] != null)) {
-                    if (popupParcel.kiwi_customSearchResults.servicesSearchesRequested[serviceInfoObject.name].customSearchTags[tagName] != null) {
-                      tagActiveChecked = ' checked ';
+                if ((popupParcel.kiwi_customSearchResults.servicesSearchesRequested != null) && (popupParcel.kiwi_customSearchResults.servicesSearchesRequested[serviceInfoObject.name] != null)) {
+                  activeClass = ' active ';
+                  ariaPressedState = 'true';
+                } else if (popupParcel.kiwi_customSearchResults.servicesSearchesRequested == null) {
+                  activeClass = serviceInfoObject.active === 'off' ? ' ' : ' active ';
+                  ariaPressedState = serviceInfoObject.active === 'off' ? 'false' : 'true';
+                } else {
+                  activeClass = ' ';
+                  ariaPressedState = 'false';
+                }
+                if ((serviceInfoObject.customSearchTags != null) && Object.keys(serviceInfoObject.customSearchTags).length > 0) {
+                  openedCustomSearchHTML += '<div class="btn-group"> <button data-toggle="button" aria-pressed="' + ariaPressedState + '" autocomplete="off" ' + serviceDisabledAttr + 'class="servicesToSearch btn btn-default btn-mini dropdownLabel ' + activeClass + '" data-serviceName="' + serviceInfoObject.name + '">' + serviceInfoObject.title + '</button> <button ' + serviceDisabledAttr + ' data-toggle="dropdown" class="btn btn-default dropdown-toggle ' + activeClass + 'dropDownPrefs_' + serviceInfoObject.name + '" data-placeholder="false"><span class="caret"></span></button> <ul class="dropdown-menu">';
+                  _ref1 = serviceInfoObject.customSearchTags;
+                  for (tagName in _ref1) {
+                    tagObject = _ref1[tagName];
+                    if ((popupParcel.kiwi_customSearchResults.servicesSearchesRequested != null) && (popupParcel.kiwi_customSearchResults.servicesSearchesRequested[serviceInfoObject.name] != null)) {
+                      if (popupParcel.kiwi_customSearchResults.servicesSearchesRequested[serviceInfoObject.name].customSearchTags[tagName] != null) {
+                        tagActiveChecked = ' checked ';
+                      } else {
+                        tagActiveChecked = '';
+                      }
                     } else {
-                      tagActiveChecked = '';
+                      tagActiveChecked = tagObject.include === true ? ' checked ' : '';
                     }
-                  } else {
-                    tagActiveChecked = tagObject.include === true ? ' checked ' : '';
+                    tagDisabledAttr = serviceInfoObject.active === 'off' ? ' disabled title="Service must be active, can be changed in options." ' : '';
+                    openedCustomSearchHTML += '<li><input ' + tagActiveChecked + tagDisabledAttr + ' type="checkbox" value="' + tagName + '" class="tagPref tagPref_' + serviceInfoObject.name + '" id="' + serviceInfoObject.name + tagName + '"> <label for="' + serviceInfoObject.name + tagName + '">' + tagObject.title + '</label></li>';
                   }
-                  tagDisabledAttr = serviceInfoObject.active === 'off' ? ' disabled title="Service must be active, can be changed in options." ' : '';
-                  openedCustomSearchHTML += '<label style="font-weight: normal; font-size: .9em;">' + tagObject.title + ': &nbsp; <input class="tagPref tagPref_' + serviceInfoObject.name + '" type="checkbox"' + tagActiveChecked + tagDisabledAttr + ' value="' + tagName + '" /> </label>';
+                  openedCustomSearchHTML += '</ul></div>';
+                } else {
+                  openedCustomSearchHTML += '<button data-toggle="button" aria-pressed="' + ariaPressedState + '" autocomplete="off" type="button" class="servicesToSearch btn btn-mini btn-default  ' + activeClass + '" data-serviceName="' + serviceInfoObject.name + '">' + serviceInfoObject.title + '</button>';
                 }
-                openedCustomSearchHTML += '</td>';
+                openedCustomSearchHTML += '</div>';
               }
-              openedCustomSearchHTML += '<td style="width:15%;" id="close__' + _this.name + '"> &nbsp; close <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> </td> </tr></tbody></table><br> </div> <div class="notFixed"></div>';
+              openedCustomSearchHTML += '<div> <button aria-pressed="false" autocomplete="off" type="button" class="btn btn-mini btn-default" id="close__' + _this.name + '" > close <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> </button> </div> </div>';
+              openedCustomSearchHTML += '</div> <div class="notFixed"></div> <div id="customSearchResults"></div>';
+              customSearchResultsHTML = "";
               if ((popupParcel.kiwi_customSearchResults != null) && (popupParcel.kiwi_customSearchResults.queryString != null) && popupParcel.kiwi_customSearchResults.queryString !== '') {
                 _ref2 = popupParcel.kiwi_servicesInfo;
                 for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
                   serviceInfoObject = _ref2[_j];
                   if (popupParcel.kiwi_customSearchResults.servicesSearched[serviceInfoObject.name] != null) {
                     service_PreppedResults = popupParcel.kiwi_customSearchResults.servicesSearched[serviceInfoObject.name].results;
-                    openedCustomSearchHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences);
+                    customSearchResultsHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences);
                     if (service_PreppedResults.length > 14) {
-                      openedCustomSearchHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>';
+                      customSearchResultsHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>';
                     }
                   } else {
-                    openedCustomSearchHTML += '<br>No results for ' + serviceInfoObject.name + '<br>';
+                    customSearchResultsHTML += '<br>No results for ' + serviceInfoObject.name + '<br>';
                   }
                 }
-                openedCustomSearchHTML += '</div>';
               } else {
-                openedCustomSearchHTML += '<div id="customSearchResultsDrop">No results to show... make a search! :) </div><br>';
+                customSearchResultsHTML += '<div id="customSearchResultsDrop"><br>No results to show... make a search! :) </div><br>';
               }
               $(_this.DOMselector).html(openedCustomSearchHTML);
+              $(_this.DOMselector + " #customSearchResults").html(customSearchResultsHTML);
               $(_this.DOMselector + " .hidden_listing").hide();
               duplicateFixedHeight = function() {
                 var fixedElHeight, fixedElTableHeight;
@@ -246,14 +261,15 @@
           })(this),
           bind: (function(_this) {
             return function(popupParcel) {
-              var closeWidget, customSearchQueryInput, customSearchQuerySubmit, customSearch_sortByPref, elsServicesActivePrefs, sendSearch, showHidden;
+              var closeWidget, customSearchQueryInput, customSearchQuerySubmit, customSearch_sortByPref, elsServicesActivePrefs, elsServicesButtons, sendSearch, showHidden;
               customSearchQueryInput = $(_this.DOMselector + " #customSearchQueryInput");
               customSearchQuerySubmit = $(_this.DOMselector + " #customSearchQuerySubmit");
               closeWidget = $(_this.DOMselector + ' #close__' + _this.name);
               customSearch_sortByPref = $(_this.DOMselector + " .conversations_sortByPref");
-              elsServicesActivePrefs = $(_this.DOMselector + " .servicesToSearch .customSearchServicePref input");
+              elsServicesButtons = $(_this.DOMselector + " button.servicesToSearch ");
+              elsServicesActivePrefs = $(_this.DOMselector + " .customSearchServicePref input");
               showHidden = $(_this.DOMselector + " .showHidden");
-              _this.elsToUnbind.concat([customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesActivePrefs, customSearch_sortByPref, showHidden]);
+              _this.elsToUnbind.concat([customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesButtons, customSearch_sortByPref, showHidden]);
               showHidden.bind('click', function(ev) {
                 var serviceName;
                 console.log("showHidden.bind 'click', (ev) ->");
@@ -263,16 +279,24 @@
                 $(_this.DOMselector + " .resultsBox__" + serviceName + " .hidden_listing").show(1200);
                 return $(ev.target).remove();
               });
-              elsServicesActivePrefs.bind('change', function(ev) {
-                var serviceName;
-                serviceName = ev.target.value;
-                console.log('ev.target.checked ' + (ev.target.checked === false));
-                if (ev.target.checked === false) {
-                  console.log('if ev.target.checked == "false" ' + serviceName);
-                  return $(_this.DOMselector + " input.tagPref_" + serviceName).attr('disabled', 'disabled');
-                } else {
-                  return $(_this.DOMselector + " input.tagPref_" + serviceName).removeAttr('disabled');
+              elsServicesButtons.bind('click', function(ev) {
+                var ariaPressed, serviceName;
+                if ($(ev.target).hasClass("dropdownLabel")) {
+                  serviceName = $(ev.target).attr('data-serviceName');
+                  console.log(serviceName);
+                  console.debug($(ev.target).attr('aria-pressed'));
+                  ariaPressed = $(ev.target).attr('aria-pressed');
+                  if (ariaPressed === 'true') {
+                    $('button.dropDownPrefs_' + serviceName).removeClass('active');
+                    console.log('if ev.target.checked == "false" ' + serviceName);
+                    $(_this.DOMselector + " input.tagPref_" + serviceName).attr('disabled', 'disabled');
+                  } else {
+                    $('button.dropDownPrefs_' + serviceName).addClass('active');
+                    console.log($(ev.target).attr('aria-pressed') + "asdfasdf");
+                    $(_this.DOMselector + " input.tagPref_" + serviceName).removeAttr('disabled');
+                  }
                 }
+                return $(ev.target).blur();
               });
               customSearch_sortByPref.bind('change', function() {
                 var parcel;
@@ -289,11 +313,11 @@
               sendSearch = function() {
                 var el, elTagPref, elTagPrefs, elsServicesToSearch, parcel, queryString, serviceName, servicesToSearch, tagName, _i, _j, _len, _len1;
                 queryString = customSearchQueryInput.val();
-                elsServicesToSearch = $(_this.DOMselector + " .servicesToSearch .customSearchServicePref input:checked");
+                elsServicesToSearch = $(_this.DOMselector + ' button.servicesToSearch[aria-pressed="true"]');
                 servicesToSearch = {};
                 for (_i = 0, _len = elsServicesToSearch.length; _i < _len; _i++) {
                   el = elsServicesToSearch[_i];
-                  serviceName = $(el).val();
+                  serviceName = $(el).attr('data-serviceName');
                   servicesToSearch[serviceName] = {};
                   servicesToSearch[serviceName].customSearchTags = {};
                   elTagPrefs = $(_this.DOMselector + " input.tagPref_" + serviceName + ":checked");
@@ -387,7 +411,7 @@
         renderState = "__normal__";
       }
       this.unbindView(this.name);
-      if ((typeof render === "undefined" || render === null) && (this.renderStates.__normal__ == null)) {
+      if ((renderState == null) && (this.renderStates.__normal__ == null)) {
         console.log('ERROR: must declare renderState for view ' + this.name + ' since __normal__ undefined');
       }
       console.log('console.debug renderState ' + renderState);
@@ -527,14 +551,18 @@
           })(this),
           bind: (function(_this) {
             return function(popupParcel) {
-              var clearKiwiURLCacheButton, conversations_sortByPref, customSearchOpen, refreshURLresultsButton, researchUrlOverrideButton, showHidden;
+              var conversations_sortByPref, researchUrlOverrideButton, showHidden;
               showHidden = $(_this.DOMselector + " .showHidden");
-              researchUrlOverrideButton = $("#researchUrlOverride");
-              clearKiwiURLCacheButton = $("#clearKiwiURLCache");
-              refreshURLresultsButton = $("#refreshURLresults");
-              customSearchOpen = $(_this.DOMselector + " .customSearchOpen");
+              researchUrlOverrideButton = $(_this.DOMselector + " #researchUrlOverride");
               conversations_sortByPref = $(_this.DOMselector + " .conversations_sortByPref");
-              _this.elsToUnbind.concat([refreshURLresultsButton, researchUrlOverrideButton, clearKiwiURLCacheButton, customSearchOpen, conversations_sortByPref, showHidden]);
+              _this.elsToUnbind.concat([conversations_sortByPref, showHidden, researchUrlOverrideButton]);
+              researchUrlOverrideButton.bind('click', function() {
+                var parcel;
+                parcel = {
+                  msg: 'kiwiPP_researchUrlOverrideButton'
+                };
+                return sendParcel(parcel);
+              });
               showHidden.bind('click', function(ev) {
                 var serviceName;
                 console.log("showHidden.bind 'click', (ev) -> ");
@@ -543,7 +571,7 @@
                 $(_this.DOMselector + " .resultsBox__" + serviceName + " .hidden_listing").show(1200);
                 return $(ev.target).remove();
               });
-              conversations_sortByPref.bind('change', function() {
+              return conversations_sortByPref.bind('change', function() {
                 var parcel;
                 popupParcel.kiwi_userPreferences.sortByPref = conversations_sortByPref.val();
                 parcel = {
@@ -555,38 +583,6 @@
                 };
                 return sendParcel(parcel);
               });
-              if ((refreshURLresultsButton != null) && refreshURLresultsButton.length > 0) {
-                refreshURLresultsButton.bind('click', function() {
-                  var parcel;
-                  parcel = {
-                    msg: 'kiwiPP_refreshURLresults'
-                  };
-                  return sendParcel(parcel);
-                });
-              }
-              if ((clearKiwiURLCacheButton != null) && clearKiwiURLCacheButton.length > 0) {
-                clearKiwiURLCacheButton.bind('click', function() {
-                  var parcel;
-                  parcel = {
-                    msg: 'kiwiPP_clearAllURLresults'
-                  };
-                  return sendParcel(parcel);
-                });
-              }
-              if ((researchUrlOverrideButton != null) && researchUrlOverrideButton.length > 0) {
-                researchUrlOverrideButton.bind('click', function() {
-                  var parcel;
-                  parcel = {
-                    msg: 'kiwiPP_researchUrlOverrideButton'
-                  };
-                  return sendParcel(parcel);
-                });
-              }
-              if ((customSearchOpen != null) && customSearchOpen.length > 0) {
-                return customSearchOpen.bind('click', function() {
-                  return $("#customSearchQueryInput").click();
-                });
-              }
             };
           })(this)
         }
@@ -929,8 +925,9 @@
 
     function KiwiSlice(_at_name, uniqueSelectorPostfix) {
       this.name = _at_name;
-      this.__renderStateTransition__ = __bind(this.__renderStateTransition__, this);
+      this.__renderStateTransitions__ = __bind(this.__renderStateTransitions__, this);
       this.__renderStates__ = __bind(this.__renderStates__, this);
+      this.render = __bind(this.render, this);
       this.init = __bind(this.init, this);
       KiwiSlice.__super__.constructor.call(this, this.name, this.__renderStates__, uniqueSelectorPostfix);
     }
@@ -939,80 +936,155 @@
       if (renderState == null) {
         renderState = null;
       }
+      this.renderStateTransitions = this.__renderStateTransitions__();
       console.log('hehehehee init: (popupParcel, renderState = null) =>');
       this.unbindView();
       renderState = renderState != null ? renderstate : "collapsed";
       console.log(' renderState = if renderState? then renderstate else "collapsed" ' + renderState);
-      return this.render(popupParcel, renderState);
+      return this.render(popupParcel, 'collapsed');
+    };
+
+    KiwiSlice.prototype.render = function(popupParcel, renderState, fromState) {
+      var __renderStates__callback;
+      if (fromState == null) {
+        fromState = null;
+      }
+      console.log('in render for kiwi');
+      __renderStates__callback = (function(_this) {
+        return function(popupParcel, renderState) {
+          return KiwiSlice.__super__.render.call(_this, popupParcel, renderState);
+        };
+      })(this);
+      if ((fromState != null) && (this.renderStateTransitions[fromState + "__to__" + renderState] != null)) {
+        console.log('yep, has renderstate');
+        return this.renderStateTransitions[fromState + "__to__" + renderState](popupParcel, renderState, __renderStates__callback);
+      } else {
+        return KiwiSlice.__super__.render.call(this, popupParcel, renderState);
+      }
     };
 
     KiwiSlice.prototype.__renderStates__ = function() {
       return {
         collapsed: {
           paint: (function(_this) {
-            return function(popupParcel, transition$el) {
-              if (transition$el == null) {
-                transition$el = null;
-              }
-              console.log('painting ' + _this.name);
-              return $(_this.DOMselector).html('<div style="position:fixed; bottom: -33px; right: -33px; "><img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>');
+            return function(popupParcel) {
+              var kiwiSliceHTML;
+              kiwiSliceHTML = '<div id="sliceActivateTransition" style="position:fixed; bottom: -33px; right: -33px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
+              return $(_this.DOMselector).html(kiwiSliceHTML);
             };
           })(this),
           bind: (function(_this) {
             return function(popupParcel) {
-              return console.log('binding ' + _this.name);
+              var elActivateTransition;
+              elActivateTransition = $(_this.DOMselector + " #sliceActivateTransition");
+              _this.elsToUnbind.concat([elActivateTransition]);
+              elActivateTransition.bind('mouseover', function(ev) {
+                return elActivateTransition.addClass('rotateClockwiseFull');
+              });
+              elActivateTransition.bind('mouseout', function(ev) {
+                return elActivateTransition.removeClass('rotateClockwiseFull');
+              });
+              return elActivateTransition.bind('click', function(ev) {
+                elActivateTransition.removeClass('rotateClockwiseFull');
+                return _this.render(popupParcel, 'open', 'collapsed');
+              });
             };
           })(this)
         },
         open: {
           paint: (function(_this) {
-            return function(popupParcel, transition) {
-              if (transition == null) {
-                transition = null;
-              }
+            return function(popupParcel) {
+              var kiwiSliceHTML;
               console.log('painting ' + _this.name);
-              return $(_this.DOMselector).html('<div style="position:fixed; bottom: 15px; right: 15px; "><img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>');
+              kiwiSliceHTML = '<div id="transition_open_showMe" style="position:fixed; bottom: 26px; right: 64px; padding: 7px; padding-right: 26px; opacity: 0; box-shadow: rgb(195, 232, 148) 0px 0px 0px 1px inset; border: 1px solid rgba(20, 86, 15, 0.35); border-radius: 4px; background-color: white; "> <button type="button" class="goTo_creditsView btn btn-mini btn-default">credits</button> <button class="btn btn-mini btn-default" style="" class="">newsletter</button> <button class="btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button> <button class="btn btn-mini btn-default" id="refreshURLresults">refresh</button> </div> <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
+              $(_this.DOMselector).html(kiwiSliceHTML);
+              console.log(kiwiSliceHTML);
+              return setTimeout(function() {
+                return $(_this.DOMselector + " #transition_open_showMe").animate({
+                  'opacity': 1
+                }, 200);
+              }, 200);
             };
           })(this),
           bind: (function(_this) {
             return function(popupParcel) {
-              return console.log('binding ' + _this.name);
+              var clearKiwiURLCacheButton, customSearchOpen, elActivateTransition, refreshURLresultsButton;
+              console.log('binding ' + _this.name);
+              elActivateTransition = $(_this.DOMselector + " #sliceActivateTransition");
+              clearKiwiURLCacheButton = $(_this.DOMselector + " #clearKiwiURLCache");
+              refreshURLresultsButton = $(_this.DOMselector + " #refreshURLresults");
+              customSearchOpen = $(_this.DOMselector + " .customSearchOpen");
+              _this.elsToUnbind.concat([elActivateTransition, refreshURLresultsButton, clearKiwiURLCacheButton]);
+              refreshURLresultsButton.bind('click', function() {
+                var parcel;
+                parcel = {
+                  msg: 'kiwiPP_refreshURLresults'
+                };
+                return sendParcel(parcel);
+              });
+              $('body').mouseup(function(e) {
+                var container;
+                console.log('test test test');
+                container = $(_this.DOMselector);
+                if (!container.is(e.target) && container.has(e.target).length === 0) {
+                  $('body').unbind('mouseup');
+                  return _this.render(popupParcel, 'collapsed', 'open');
+                }
+              });
+              elActivateTransition.bind('click', function(ev) {
+                return _this.render(popupParcel, 'collapsed', 'open');
+              });
+              clearKiwiURLCacheButton.bind('click', function() {
+                var parcel;
+                parcel = {
+                  msg: 'kiwiPP_clearAllURLresults'
+                };
+                return sendParcel(parcel);
+              });
+              return customSearchOpen.bind('click', function() {
+                return $("#customSearchQueryInput").click();
+              });
             };
           })(this)
         }
       };
     };
 
-    KiwiSlice.prototype.__renderStateTransition__ = function() {
+    KiwiSlice.prototype.__renderStateTransitions__ = function() {
       return {
-        open: {
-          __to__: 'collapsed',
-          ease: (function(_this) {
-            return function(popupParcel, $el) {
-              var transitionObj;
-              transitionObj = {
-                popupParcel: popupParcel,
-                $el: $el,
-                fromState: 'open'
-              };
-              return transitionObj;
-            };
-          })(this)
-        },
-        collapsed: {
-          __to__: 'open',
-          ease: (function(_this) {
-            return function(popupParcel, $el) {
-              var transitionObj;
-              transitionObj = {
-                popupParcel: popupParcel,
-                $el: $el,
-                fromState: 'collapsed'
-              };
-              return transitionObj;
-            };
-          })(this)
-        }
+        'open__to__collapsed': (function(_this) {
+          return function(popupParcel, renderState, __renderStates__callback) {
+            $(_this.DOMselector + " #transition_open_showMe").animate({
+              'opacity': 0
+            }, 300);
+            $(_this.DOMselector + " #sliceActivateTransition").addClass('rotateClockwise');
+            return $(_this.DOMselector + " #sliceActivateTransition").animate({
+              "bottom": '-33px',
+              "right": "-33px"
+            }, {
+              duration: 500,
+              complete: function() {
+                return __renderStates__callback(popupParcel, renderState);
+              }
+            });
+          };
+        })(this),
+        'collapsed__to__open': (function(_this) {
+          return function(popupParcel, renderState, __renderStates__callback) {
+            console.log("'collapsed__to__open': (popupParcel, renderState, __renderStates__callback) =>");
+            $(_this.DOMselector + " #sliceActivateTransition").addClass('rotateCounterClockwise');
+            return $(_this.DOMselector + " #sliceActivateTransition").animate({
+              "bottom": '15px',
+              "right": "15px"
+            }, {
+              duration: 500,
+              complete: function() {
+                console.log('we are done with animation');
+                return __renderStates__callback(popupParcel, renderState);
+              }
+            });
+          };
+        })(this)
       };
     };
 

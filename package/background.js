@@ -277,8 +277,8 @@
       submitUrl: null,
       notableConditions: {
         numberOfRelatedItemsWithClusterURL: 2,
-        hoursSincePosted: 3,
-        numberOfStoriesFoundWithinTheHoursSincePostedLimit: 4
+        numberOfStoriesFoundWithinTheHoursSincePostedLimit: 4,
+        hoursSincePosted: 3
       },
       customSearchTags: {}
     }
@@ -1492,6 +1492,7 @@
 
   setAutoOffTimer = function(resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue, autoOffTimerType, researchModeOnOff) {
     var currentTime, new_autoOffAtUTCmilliTimestamp;
+    console.log('trying setAutoOffTimer 43234');
     if (resetTimerBool && (kiwi_autoOffClearInterval != null)) {
       console.log('clearing timout');
       clearTimeout(kiwi_autoOffClearInterval);

@@ -80,17 +80,17 @@ class CustomSearch extends Widget
       paint: (popupParcel) =>
         
         openedCustomSearchHTML = '
-          
-          <div class="topSearchBar">
-            
-            <input class="queryInputOpen" id="customSearchQueryInput" type="text" placeholder=" combined search" />
-            <button class="btn btn-mini btn-default goTo_userPreferencesView">User Options 
-            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> 
+          <div class="topSearchBar" style="padding-bottom: 14px;">
+            <div class="evenlySpacedContainer">
+              <input class="queryInputOpen" id="customSearchQueryInput" type="text" placeholder=" combined search" />
+              <button class="btn btn-mini btn-default goTo_userPreferencesView">User Options 
+              <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> 
+            </div>
           '
           
         if popupParcel.kiwi_customSearchResults.queryString? and popupParcel.kiwi_customSearchResults.queryString != ''
-          openedCustomSearchHTML += "<br><br><a id='openPreviousSearch'>see custom results for '" + popupParcel.kiwi_customSearchResults.queryString + "'
-            </a> &nbsp;&nbsp;&nbsp;&nbsp; <a id='clearPreviousSearch'>clear</a><br><br>"
+          openedCustomSearchHTML += "<div style='padding-top: 12px;'><a id='openPreviousSearch'>see custom results for '" + popupParcel.kiwi_customSearchResults.queryString + "'
+            </a> &nbsp;&nbsp;&nbsp;&nbsp; <a id='clearPreviousSearch'>clear</a></div>"
         openedCustomSearchHTML += "</div>
           <div class='notFixed'></div>"
         $(@DOMselector).html(openedCustomSearchHTML)
@@ -144,12 +144,14 @@ class CustomSearch extends Widget
         queryString = if popupParcel.kiwi_customSearchResults.queryString? then popupParcel.kiwi_customSearchResults.queryString else ''
         
         openedCustomSearchHTML = '<div class="topSearchBar">
+          <div class="evenlySpacedContainer">
             <input id="customSearchQueryInput" value="' + queryString + '" type="text" placeholder=" combined search" style="width:234px; margin-right: 10px;" />
             <button  class="btn btn-mini btn-default" id="customSearchQuerySubmit" style="margin-right: 10px;">Submit</button>
             <button style="" class="goTo_userPreferencesView btn btn-mini btn-default"> Options 
-            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button>  
-            <br><br>
-          <div class="evenlySpacedContainer">'
+            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> 
+          </div> 
+            <br>
+          <div class="evenlySpacedContainer" style="position: relative; top: -8px; margin-bottom: 3px;">'
         
         for serviceInfoObject in popupParcel.kiwi_servicesInfo
           
@@ -247,7 +249,7 @@ class CustomSearch extends Widget
         else
           customSearchResultsHTML += '<div id="customSearchResultsDrop"><br>No results to show... make a search! :) </div><br>'
         
-        
+        customSearchResultsHTML += "<br><div class='serviceResultsTitles serviceResultsHeaderBar'>Original results for the visited URL below:</div>"
         
         $(@DOMselector).html(openedCustomSearchHTML)
         
@@ -476,7 +478,9 @@ class Conversations extends SwitchView
         
         if popupParcel.urlBlocked == true or popupParcel.kiwi_userPreferences.researchModeOnOff == 'off' or (popupParcel.oldUrl? and popupParcel.oldUrl == true)
           
-          researchModeDisabledButtonsHTML += "<br><button class='btn btn-mini btn-default' id='researchUrlOverride'>Research this Url</button><br>"
+          researchModeDisabledButtonsHTML += "<br>
+            <div style='width:100%;text-align: center;'><button class='btn btn-success' style='font-size: 1.1em;display: inline-block;' id='researchUrlOverride'>Research this Url</button></div>
+          <br>"
           
         if popupParcel.kiwi_userPreferences.researchModeOnOff == 'off'
           
@@ -530,9 +534,14 @@ class Conversations extends SwitchView
         
         conversations_sortByPref = $(@DOMselector + " .conversations_sortByPref")
         
+        customSearchOpen = $(@DOMselector + " .customSearchOpen")
+        
         @elsToUnbind.concat [
-          conversations_sortByPref, showHidden, researchUrlOverrideButton
+          conversations_sortByPref, showHidden, researchUrlOverrideButton, customSearchOpen
         ]
+        
+        customSearchOpen.bind 'click', ->
+          $("#customSearchQueryInput").click()
         
         researchUrlOverrideButton.bind 'click', ->
           parcel =
@@ -573,13 +582,17 @@ class UserPreferences extends SwitchView
     __normal__: 
       paint: (popupParcel) =>
         
+        $(@DOMselector + " .userErrMsg").html('')
+        
         console.log 'paint: adsfaeaewfawefawefawef(popupParcel) =># viewName = '
         
         if preferencesOnlyPage is true
           $("#menuBar_preferences").hide()
         
         currentTime = Date.now()
-        if popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp? and popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp > currentTime
+        if popupParcel.kiwi_userPreferences.researchModeOnOff == "off"
+          $("#autoOffTimer").html("Research mode is off, so auto-off timer is not set")
+        else if popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp? and popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp > currentTime
           $("#autoOffTimer").html("Auto-Off timer expires at: " + formatTime(popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp) + "<br>")
         else if popupParcel.kiwi_userPreferences.researchModeOnOff == 'off' and popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp?
           $("#autoOffTimer").html("Auto-off timer last expired at: " + formatTime(popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp) + "<br>")
@@ -600,6 +613,7 @@ class UserPreferences extends SwitchView
           researchModeExpirationString += '<br><button class="btn btn-mini btn-default" id="resetAutoOffTimer">Reset auto-off timer</button>'
         else  
           researchModeExpirationString = ''
+          
         autoOffTimerType = popupParcel.kiwi_userPreferences.autoOffTimerType
         autoOffTimerValue = popupParcel.kiwi_userPreferences.autoOffTimerValue
         
@@ -616,10 +630,10 @@ class UserPreferences extends SwitchView
             off <input type="radio" name="research" value="off" ' + researchOffString + '>
           ' + researchModeExpirationString + '<br>  
         <br>Auto-Off in:
-         <br>&nbsp; &nbsp;<input type="radio" name="researchAutoOffType" ' + auto20 + ' value="20"> 20 min
-         <br>&nbsp; &nbsp;<input type="radio" name="researchAutoOffType" ' + auto60 + ' value="60"> 1 hr
-         <br>&nbsp; &nbsp;<input type="radio" name="researchAutoOffType" ' + autoAlways + ' value="always"> Always On
-         <br>&nbsp; &nbsp;<input type="radio" name="researchAutoOffType" ' + autoCustom + ' value="custom"> Custom
+         <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + auto20 + ' value="20"> 20 min</label>
+         <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + auto60 + ' value="60"> 1 hr</label>
+         <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + autoAlways + ' value="always"> Always On</label>
+         <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + autoCustom + ' value="custom"> Custom</label>
             &nbsp; &nbsp; <input id="autoCustomValue" type="text" value="' + autoCustomValue + '" size="4" disabled /> minutes'
         
         $("#researchModeDrop").html(researchModeHtml)
@@ -652,26 +666,27 @@ class UserPreferences extends SwitchView
                 status:
                   on <input type="radio" name="' + service.name + '_serviceStatus" value="on" ' + activeCheck + '> - 
                   off <input type="radio" name="' + service.name + '_serviceStatus" value="off" ' + notActiveCheck + '>
-                <br>Results are deemed notable (capitilizes badge letter) if:'
+                <br><br>Results are deemed notable (capitilizes badge letter) if:'
           
           if service.name == 'gnews'      
             console.log " if service.name == 'gnews'  servicesHtml "
             console.debug service
-            servicesHtml += '<br> it has <input id="' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit" type="text" size="4" value="' + service.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit + '"/> or related stories
-              <br> posted within  <input id="' + service.name + '_numberOfRelatedItemsWithClusterURL" type="text" size="4" value="' + service.notableConditions.numberOfRelatedItemsWithClusterURL + '"/> hours
+            servicesHtml += '<br><br> the topic has had <input id="' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit" type="text" size="4" value="' + service.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit + '"/> or more related stories published within the last <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> hours <br> 
+              <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div>
+              
+              number of News Clusters  <input id="' + service.name + '_numberOfRelatedItemsWithClusterURL" type="text" size="4" value="' + service.notableConditions.numberOfRelatedItemsWithClusterURL + '"/>
               </div>
               </td>
             </tr></tbody></table>
             </div>'
             console.log 'trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or'
           
-            
-          
           else
           
             servicesHtml +=  '<br> URL is an exact match, and:
-            <br> it has been <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting <br> - or - 
-            <br> it has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments
+            <br> it has been <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting <br>
+            <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div>
+            a post has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments
               </div>
               </td>
             </tr></tbody></table>
@@ -755,8 +770,9 @@ class UserPreferences extends SwitchView
             @elsToUnbind.push upButton
             _bindUp(upButton, index)
           
-        postError = (userErrMsg) ->
-          $(@DOMselector + " .userErrMsg").html(userErrMsg)
+        postError = (userErrMsg) =>
+          console.log 'trying to post error ' + userErrMsg
+          $(@DOMselector + " .userErrMsg").html("<br>" + userErrMsg)
           
         
         saveButtons.bind 'click', ->
@@ -790,8 +806,6 @@ class UserPreferences extends SwitchView
               active = $("input:radio[name='" + service.name + "_serviceStatus']:checked").val()
               if active != 'on' and active != 'off'
                 postError('active must be "on" or "off"'); return 0;
-              
-              
                 
               numberOfStoriesFoundWithinTheHoursSincePostedLimit = $('#' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit').val()
               if numberOfStoriesFoundWithinTheHoursSincePostedLimit == '' or isNaN(numberOfStoriesFoundWithinTheHoursSincePostedLimit)
@@ -805,7 +819,6 @@ class UserPreferences extends SwitchView
               active = $("input:radio[name='" + service.name + "_serviceStatus']:checked").val()
               if active != 'on' and active != 'off'
                 postError('active must be "on" or "off"'); return 0;
-              
                 
               hoursSincePosted = $('#' + service.name + '_hoursNotable').val()
               if hoursSincePosted == '' or isNaN(hoursSincePosted)
@@ -829,18 +842,31 @@ class UserPreferences extends SwitchView
             active = $("input:radio[name='" + service.name + "_serviceStatus']:checked").val()
             popupParcel.kiwi_servicesInfo[index].active = active
             
-            notableSound = $("input:radio[name='" + service.name + "_soundStatus']:checked").val()
-            popupParcel.kiwi_servicesInfo[index].notableSound = notableSound
+            # notableSound = $("input:radio[name='" + service.name + "_soundStatus']:checked").val()
+            # popupParcel.kiwi_servicesInfo[index].notableSound = notableSound
             
             hoursSincePosted = $('#' + service.name + '_hoursNotable').val()
+            console.log popupParcel.kiwi_servicesInfo[index].name
+            console.log "hoursSincePosted = $('#' + service.name + '_hoursNotable').val() " + hoursSincePosted
             popupParcel.kiwi_servicesInfo[index].notableConditions.hoursSincePosted = parseFloat(hoursSincePosted)
             
-            num_comments = $('#' + service.name + '_commentsNotable').val()
-            popupParcel.kiwi_servicesInfo[index].notableConditions.num_comments = parseInt(num_comments)
+            
+            if service.name == 'gnews'
+              
+              numberOfRelatedItemsWithClusterURL = $('#' + service.name + '_numberOfRelatedItemsWithClusterURL').val()
+              popupParcel.kiwi_servicesInfo[index].notableConditions.numberOfRelatedItemsWithClusterURL = parseInt(numberOfRelatedItemsWithClusterURL)
+              
+              numberOfStoriesFoundWithinTheHoursSincePostedLimit = $('#' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit').val()
+              popupParcel.kiwi_servicesInfo[index].notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit = parseInt(numberOfStoriesFoundWithinTheHoursSincePostedLimit)
+            else
+            
+              num_comments = $('#' + service.name + '_commentsNotable').val()
+              popupParcel.kiwi_servicesInfo[index].notableConditions.num_comments = parseInt(num_comments)
             
           popupParcel.view = 'userPreferences'
           console.log '4567'
-          parcel =
+          console.debug popupParcel
+          parcel = 
             refreshView: popupParcel.view
             newPopupParcel: popupParcel
             msg: 'kiwiPP_post_savePopupParcel'
@@ -933,21 +959,21 @@ class KiwiSlice extends FixedView
       
       paint: (popupParcel) =>
         console.log 'painting ' + @name
-        kiwiSliceHTML = '<div id="transition_open_showMe" style="position:fixed;   
-          bottom: 26px;
-          right: 64px;
-          padding: 7px;
-          padding-right: 26px;
-          opacity: 0;
-          box-shadow: rgb(195, 232, 148) 0px 0px 0px 1px inset;
-          border: 1px solid rgba(20, 86, 15, 0.35);
-          border-radius: 4px;
-          background-color: white;
-          ">
-          <button type="button" class="goTo_creditsView btn btn-mini btn-default">credits</button> 
-            <button class="btn btn-mini btn-default" style="" class="">newsletter</button> 
-            <button class="btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button>
-            <button class="btn btn-mini btn-default" id="refreshURLresults">refresh</button>
+        kiwiSliceHTML = '<div id="transition_open_showMe" style="  
+              position: fixed;
+              bottom: 24px;
+              right: 62px;
+              padding: 9px;
+              padding-right: 26px;
+              opacity: 1;
+              box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset;
+              border: 1px solid rgba(20, 86, 15, 0.87);
+              border-radius: 4px;
+              background-color: white;">
+            <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> 
+            <button class=" btn btn-mini btn-default" style="" class="">newsletter</button> 
+            <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button>
+            <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button>
           </div>
           <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; ">
             <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> 
@@ -955,9 +981,7 @@ class KiwiSlice extends FixedView
         
         $(@DOMselector).html(kiwiSliceHTML)
         console.log kiwiSliceHTML
-        setTimeout =>
-            $(@DOMselector + " #transition_open_showMe").animate({'opacity':1}, 200)
-          , 200
+        
           
         
       bind: (popupParcel) =>
@@ -967,8 +991,6 @@ class KiwiSlice extends FixedView
         clearKiwiURLCacheButton = $(@DOMselector + " #clearKiwiURLCache")
         
         refreshURLresultsButton = $(@DOMselector + " #refreshURLresults")
-        
-        customSearchOpen = $(@DOMselector + " .customSearchOpen")
         
         @elsToUnbind.concat [elActivateTransition, refreshURLresultsButton, clearKiwiURLCacheButton]
         
@@ -993,9 +1015,6 @@ class KiwiSlice extends FixedView
           parcel =
             msg: 'kiwiPP_clearAllURLresults'
           sendParcel(parcel)
-        
-        customSearchOpen.bind 'click', ->
-          $("#customSearchQueryInput").click()
   
   # \/ \/ \/ THIS IS A WORK IN PROGRESS \/ \/ \/
   __renderStateTransitions__: =>
@@ -1023,7 +1042,27 @@ class KiwiSlice extends FixedView
           console.log 'we are done with animation'
           __renderStates__callback(popupParcel, renderState)
       })
-      
+      $(@DOMselector).prepend('<div id="transition_open_showMe" style="
+                position: fixed;
+                bottom: 24px;
+                right: 62px;
+                padding: 9px;
+                padding-right: 26px;
+                opacity: 0;
+                box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset;
+                border: 1px solid rgba(20, 86, 15, 0.87);
+                border-radius: 4px;
+                background-color: white;
+            ">
+            <button type="button" class="goTo_creditsView btn btn-mini btn-default ">credits</button> 
+            <button class="btn btn-mini btn-default " style="" class="">newsletter</button> 
+            <button class="btn btn-mini btn-default " id="clearKiwiURLCache">clear cache</button>
+            <button class="btn btn-mini btn-default " id="refreshURLresults">refresh</button>
+          
+          </div>')
+      # setTimeout =>
+      $(@DOMselector + " #transition_open_showMe").animate({'opacity':1}, 499)
+        # , 200
   
 fixedViews = 
   kiwiSlice: new KiwiSlice 'kiwiSlice', 'FixedBottom'
@@ -1041,7 +1080,9 @@ tailorResults =
     
     currentTime = Date.now()
     
-    preppedHTMLstring = "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'><br>" + serviceInfoObject.title + " "
+    preppedHTMLstring = "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'>
+      <div class='serviceResultsHeaderBar'>
+        <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span> &nbsp;&nbsp;<a class="customSearchOpen"> modify search</a>'
       
     if kiwi_userPreferences.sortByPref == 'attention'
       selectedString_attention = 'selected'
@@ -1050,15 +1091,17 @@ tailorResults =
       selectedString_attention = ''
       selectedString_recency = 'selected'
       
-    preppedHTMLstring += '<div style="float:right;"><a class="customSearchOpen"> modify search</a>&nbsp;&nbsp; sorted by: 
+    preppedHTMLstring += '<div style="float:right;">&nbsp;&nbsp; sorted by: 
         <select class="conversations_sortByPref">
           <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option>
           <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option>
-        </select> </div><br>'
+        </select> </div>
+    
+      </div>'
       
     if service_PreppedResults? and service_PreppedResults.length > 0
-      preppedHTMLstring += "
-        Searched for: " + service_PreppedResults[0].kiwi_searchedFor + "<br>"
+      preppedHTMLstring += '
+        Searched for: "<strong>' + service_PreppedResults[0].kiwi_searchedFor + '</strong>"<br>'
     
     if kiwi_userPreferences.sortByPref is 'attention'
       service_PreppedResults = _.sortBy(service_PreppedResults, 'clusterUrl')
@@ -1149,7 +1192,10 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
   
   fuzzyMatchBool = false
   
-  preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "''><br>" + serviceInfoObject.title
+  preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'>
+    
+    <div class='serviceResultsHeaderBar'>
+    <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span>'
   
   if kiwi_userPreferences.sortByPref == 'attention'
     selectedString_attention = 'selected'
@@ -1161,7 +1207,9 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
   preppedHTMLstring += '<div style="float:right;"> &nbsp;&nbsp sorted by: <select class="conversations_sortByPref">
         <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option>
         <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option>
-      </select></div><br>'
+      </select></div>
+      
+    </div>'
   
   if service_PreppedResults.length < 1
     preppedHTMLstring += ' no results <br>'
@@ -1189,8 +1237,18 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
       recentTag = if (currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4) then "<span class='recentListing'>Recent: </span>" else ""
       
       if listing.kiwi_exact_match
-        preppedHTMLstring += '<div class="listing ' + listingClass + '" style="position:relative;">' + recentTag + '
-          <a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '">'
+        # preppedHTMLstring += '<div class="listing ' + listingClass + '" style="position:relative;">' + recentTag + '
+        #   <div style="float:right;">
+        #     <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author  + '</a>
+        #   </div>
+        #   <a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '">'
+        
+        preppedHTMLstring += '<div class="listing ' + listingClass + '">'
+        if serviceInfoObject.name != 'reddit'
+          preppedHTMLstring +=  '<div style="float:right;">
+              <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author  + '</a>
+            </div>'
+        preppedHTMLstring +=  '<a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '"><span style="color:black;">' + recentTag
         
         
         if listing.over_18? and listing.over_18 is true
@@ -1200,16 +1258,14 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
         
         _time = formatTime(listing.kiwi_created_at)
         
-        preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</a>'
+        preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</span></a>'
         
         if listing.subreddit?
           preppedHTMLstring +=  '<br><span> 
             <a target="_blank" href="' + serviceInfoObject.permalinkBase + '/r/' + listing.subreddit + '">
             subreddit: ' + listing.subreddit + '</a></span>'
         
-        preppedHTMLstring += '<div style="float:right;">
-          <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author  + '</a>
-          </div><br><br></div>'
+        preppedHTMLstring += '<br><br></div>'
         
       else
         fuzzyMatchBool = true
@@ -1229,31 +1285,41 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
       listingClass = ''
       
     # listingClass = if nonFuzzyItemCounter > 10 then ' hidden_listing ' else ''
-    preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;"><br> fuzzy matches: <br></div>
+    preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;">fuzzy matches: <br></div>
       <span class="fuzzyMatches">'
     console.log 'fuzzy matches 12312312 ' + serviceInfoObject.name
     
     for listing, index in service_PreppedResults
       listingClass = if (index > 10 and service_PreppedResults.length > 14) then ' hidden_listing ' else ''
       if !listing.kiwi_exact_match
-        preppedHTMLstring += '<div class="listing ' + listingClass + '">
-          <a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '">
-          for Url: <span class="altURL">' + listing.url + '<br>'
+        
+        recentTag = if (currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4) then "<span class='recentListing'>Recent: </span>" else ""
+          
+        preppedHTMLstring += '<div class="listing ' + listingClass + '">'
+        if serviceInfoObject.name != 'reddit'
+          preppedHTMLstring +=  '<div style="float:right;">
+              <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author  + '</a>
+            </div>'
+        preppedHTMLstring +=  '<a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '"><span style="color:black;">' + recentTag
         
         if listing.over_18? and listing.over_18 is true
           preppedHTMLstring += '<span class="nsfw">NSFW</span>' + listing.title + '<br>'
         else
           preppedHTMLstring += listing.title + '<br>'
         
-        preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes ' + formatTime(listing.kiwi_created_at) + '</a>'
+        preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes ' + formatTime(listing.kiwi_created_at) + '</span>
+        <br>
+        for Url: <span class="altURL">' + listing.url + '</span>
+        </a>'
         
         if listing.subreddit?
           preppedHTMLstring +=  '<br><span>
             <a target="_blank" href="' + serviceInfoObject.permalinkBase + '/r/' + listing.subreddit + '">
             subreddit: ' + listing.subreddit + '</a></span>
             <div style="float:right;">
-              <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author  + '</a></div>'
-        preppedHTMLstring += '</div>'
+              <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author  + '
+              </a></div>'
+        preppedHTMLstring += '<br></div>'
         
     
     preppedHTMLstring += "</span>" 

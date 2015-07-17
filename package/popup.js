@@ -114,9 +114,9 @@
           paint: (function(_this) {
             return function(popupParcel) {
               var duplicateFixedHeight, openedCustomSearchHTML;
-              openedCustomSearchHTML = '<div class="topSearchBar"> <input class="queryInputOpen" id="customSearchQueryInput" type="text" placeholder=" combined search" /> <button class="btn btn-mini btn-default goTo_userPreferencesView">User Options <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button>';
+              openedCustomSearchHTML = '<div class="topSearchBar" style="padding-bottom: 14px;"> <div class="evenlySpacedContainer"> <input class="queryInputOpen" id="customSearchQueryInput" type="text" placeholder=" combined search" /> <button class="btn btn-mini btn-default goTo_userPreferencesView">User Options <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> </div>';
               if ((popupParcel.kiwi_customSearchResults.queryString != null) && popupParcel.kiwi_customSearchResults.queryString !== '') {
-                openedCustomSearchHTML += "<br><br><a id='openPreviousSearch'>see custom results for '" + popupParcel.kiwi_customSearchResults.queryString + "' </a> &nbsp;&nbsp;&nbsp;&nbsp; <a id='clearPreviousSearch'>clear</a><br><br>";
+                openedCustomSearchHTML += "<div style='padding-top: 12px;'><a id='openPreviousSearch'>see custom results for '" + popupParcel.kiwi_customSearchResults.queryString + "' </a> &nbsp;&nbsp;&nbsp;&nbsp; <a id='clearPreviousSearch'>clear</a></div>";
               }
               openedCustomSearchHTML += "</div> <div class='notFixed'></div>";
               $(_this.DOMselector).html(openedCustomSearchHTML);
@@ -172,7 +172,7 @@
               console.log('popupParcel.kiwi_servicesInfo.length');
               console.log(popupParcel.kiwi_servicesInfo.length);
               queryString = popupParcel.kiwi_customSearchResults.queryString != null ? popupParcel.kiwi_customSearchResults.queryString : '';
-              openedCustomSearchHTML = '<div class="topSearchBar"> <input id="customSearchQueryInput" value="' + queryString + '" type="text" placeholder=" combined search" style="width:234px; margin-right: 10px;" /> <button  class="btn btn-mini btn-default" id="customSearchQuerySubmit" style="margin-right: 10px;">Submit</button> <button style="" class="goTo_userPreferencesView btn btn-mini btn-default"> Options <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> <br><br> <div class="evenlySpacedContainer">';
+              openedCustomSearchHTML = '<div class="topSearchBar"> <div class="evenlySpacedContainer"> <input id="customSearchQueryInput" value="' + queryString + '" type="text" placeholder=" combined search" style="width:234px; margin-right: 10px;" /> <button  class="btn btn-mini btn-default" id="customSearchQuerySubmit" style="margin-right: 10px;">Submit</button> <button style="" class="goTo_userPreferencesView btn btn-mini btn-default"> Options <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> </div> <br> <div class="evenlySpacedContainer" style="position: relative; top: -8px; margin-bottom: 3px;">';
               _ref = popupParcel.kiwi_servicesInfo;
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 serviceInfoObject = _ref[_i];
@@ -237,6 +237,7 @@
               } else {
                 customSearchResultsHTML += '<div id="customSearchResultsDrop"><br>No results to show... make a search! :) </div><br>';
               }
+              customSearchResultsHTML += "<br><div class='serviceResultsTitles serviceResultsHeaderBar'>Original results for the visited URL below:</div>";
               $(_this.DOMselector).html(openedCustomSearchHTML);
               $(_this.DOMselector + " #customSearchResults").html(customSearchResultsHTML);
               $(_this.DOMselector + " .hidden_listing").hide();
@@ -511,7 +512,7 @@
               _this.Widgets['customSearch'].init(popupParcel);
               researchModeDisabledButtonsHTML = '';
               if (popupParcel.urlBlocked === true || popupParcel.kiwi_userPreferences.researchModeOnOff === 'off' || ((popupParcel.oldUrl != null) && popupParcel.oldUrl === true)) {
-                researchModeDisabledButtonsHTML += "<br><button class='btn btn-mini btn-default' id='researchUrlOverride'>Research this Url</button><br>";
+                researchModeDisabledButtonsHTML += "<br> <div style='width:100%;text-align: center;'><button class='btn btn-success' style='font-size: 1.1em;display: inline-block;' id='researchUrlOverride'>Research this Url</button></div> <br>";
               }
               if (popupParcel.kiwi_userPreferences.researchModeOnOff === 'off') {
                 researchModeDisabledButtonsHTML += "<br>Research Mode is off <button class='goTo_userPreferencesView btn btn-mini btn-default'> change settings </button><br>";
@@ -551,11 +552,15 @@
           })(this),
           bind: (function(_this) {
             return function(popupParcel) {
-              var conversations_sortByPref, researchUrlOverrideButton, showHidden;
+              var conversations_sortByPref, customSearchOpen, researchUrlOverrideButton, showHidden;
               showHidden = $(_this.DOMselector + " .showHidden");
               researchUrlOverrideButton = $(_this.DOMselector + " #researchUrlOverride");
               conversations_sortByPref = $(_this.DOMselector + " .conversations_sortByPref");
-              _this.elsToUnbind.concat([conversations_sortByPref, showHidden, researchUrlOverrideButton]);
+              customSearchOpen = $(_this.DOMselector + " .customSearchOpen");
+              _this.elsToUnbind.concat([conversations_sortByPref, showHidden, researchUrlOverrideButton, customSearchOpen]);
+              customSearchOpen.bind('click', function() {
+                return $("#customSearchQueryInput").click();
+              });
               researchUrlOverrideButton.bind('click', function() {
                 var parcel;
                 parcel = {
@@ -613,12 +618,15 @@
           paint: (function(_this) {
             return function(popupParcel) {
               var activeCheck, autoOffTimerType, autoOffTimerValue, currentTime, index, notActiveCheck, researchModeExpirationString, researchModeHtml, researchOffString, researchOnString, service, servicesHtml, _i, _len, _ref;
+              $(_this.DOMselector + " .userErrMsg").html('');
               console.log('paint: adsfaeaewfawefawefawef(popupParcel) =># viewName = ');
               if (preferencesOnlyPage === true) {
                 $("#menuBar_preferences").hide();
               }
               currentTime = Date.now();
-              if ((popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp != null) && popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp > currentTime) {
+              if (popupParcel.kiwi_userPreferences.researchModeOnOff === "off") {
+                $("#autoOffTimer").html("Research mode is off, so auto-off timer is not set");
+              } else if ((popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp != null) && popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp > currentTime) {
                 $("#autoOffTimer").html("Auto-Off timer expires at: " + formatTime(popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp) + "<br>");
               } else if (popupParcel.kiwi_userPreferences.researchModeOnOff === 'off' && (popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp != null)) {
                 $("#autoOffTimer").html("Auto-off timer last expired at: " + formatTime(popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp) + "<br>");
@@ -648,7 +656,7 @@
           else if(autoOffTimerType == "always"){ autoAlways = " checked='checked' " }
           else if(autoOffTimerType == "custom"){ autoCustom = " checked='checked' "; autoCustomValue = autoOffTimerValue;}
         };
-              researchModeHtml += 'Research Mode: on <input type="radio" name="research" value="on" ' + researchOnString + '> - off <input type="radio" name="research" value="off" ' + researchOffString + '>' + researchModeExpirationString + '<br> <br>Auto-Off in: <br>&nbsp; &nbsp;<input type="radio" name="researchAutoOffType" ' + auto20 + ' value="20"> 20 min <br>&nbsp; &nbsp;<input type="radio" name="researchAutoOffType" ' + auto60 + ' value="60"> 1 hr <br>&nbsp; &nbsp;<input type="radio" name="researchAutoOffType" ' + autoAlways + ' value="always"> Always On <br>&nbsp; &nbsp;<input type="radio" name="researchAutoOffType" ' + autoCustom + ' value="custom"> Custom &nbsp; &nbsp; <input id="autoCustomValue" type="text" value="' + autoCustomValue + '" size="4" disabled /> minutes';
+              researchModeHtml += 'Research Mode: on <input type="radio" name="research" value="on" ' + researchOnString + '> - off <input type="radio" name="research" value="off" ' + researchOffString + '>' + researchModeExpirationString + '<br> <br>Auto-Off in: <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + auto20 + ' value="20"> 20 min</label> <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + auto60 + ' value="60"> 1 hr</label> <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + autoAlways + ' value="always"> Always On</label> <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + autoCustom + ' value="custom"> Custom</label> &nbsp; &nbsp; <input id="autoCustomValue" type="text" value="' + autoCustomValue + '" size="4" disabled /> minutes';
               $("#researchModeDrop").html(researchModeHtml);
               servicesHtml = '';
               _ref = popupParcel.kiwi_servicesInfo;
@@ -671,14 +679,14 @@
                 if (index !== popupParcel.kiwi_servicesInfo.length - 1) {
                   servicesHtml += '<span class="glyphicon glyphicon-chevron-down" id="' + service.name + '_moveServiceDown" aria-hidden="true"></span>';
                 }
-                servicesHtml += '</td> <td class="serviceInfo">' + service.title + ' - using: <a href="' + service.broughtToYouByURL + '">' + service.broughtToYouByTitle + '</a><br> <div style="padding-left:15px;"> status: on <input type="radio" name="' + service.name + '_serviceStatus" value="on" ' + activeCheck + '> - off <input type="radio" name="' + service.name + '_serviceStatus" value="off" ' + notActiveCheck + '> <br>Results are deemed notable (capitilizes badge letter) if:';
+                servicesHtml += '</td> <td class="serviceInfo">' + service.title + ' - using: <a href="' + service.broughtToYouByURL + '">' + service.broughtToYouByTitle + '</a><br> <div style="padding-left:15px;"> status: on <input type="radio" name="' + service.name + '_serviceStatus" value="on" ' + activeCheck + '> - off <input type="radio" name="' + service.name + '_serviceStatus" value="off" ' + notActiveCheck + '> <br><br>Results are deemed notable (capitilizes badge letter) if:';
                 if (service.name === 'gnews') {
                   console.log(" if service.name == 'gnews'  servicesHtml ");
                   console.debug(service);
-                  servicesHtml += '<br> it has <input id="' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit" type="text" size="4" value="' + service.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit + '"/> or related stories <br> posted within  <input id="' + service.name + '_numberOfRelatedItemsWithClusterURL" type="text" size="4" value="' + service.notableConditions.numberOfRelatedItemsWithClusterURL + '"/> hours </div> </td> </tr></tbody></table> </div>';
+                  servicesHtml += '<br><br> the topic has had <input id="' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit" type="text" size="4" value="' + service.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit + '"/> or more related stories published within the last <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> hours <br> <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div> number of News Clusters  <input id="' + service.name + '_numberOfRelatedItemsWithClusterURL" type="text" size="4" value="' + service.notableConditions.numberOfRelatedItemsWithClusterURL + '"/> </div> </td> </tr></tbody></table> </div>';
                   console.log('trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or');
                 } else {
-                  servicesHtml += '<br> URL is an exact match, and: <br> it has been <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting <br> - or - <br> it has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments </div> </td> </tr></tbody></table> </div>';
+                  servicesHtml += '<br> URL is an exact match, and: <br> it has been <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting <br> <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div> a post has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments </div> </td> </tr></tbody></table> </div>';
                   console.log('trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or');
                 }
               }
@@ -752,10 +760,11 @@
                 }
               }
               postError = function(userErrMsg) {
-                return $(this.DOMselector + " .userErrMsg").html(userErrMsg);
+                console.log('trying to post error ' + userErrMsg);
+                return $(_this.DOMselector + " .userErrMsg").html("<br>" + userErrMsg);
               };
               return saveButtons.bind('click', function() {
-                var active, allowedAutoOffTypes, autoOffTimerType, autoOffTimerValue, hoursSincePosted, notableSound, num_comments, numberOfRelatedItemsWithClusterURL, numberOfStoriesFoundWithinTheHoursSincePostedLimit, parcel, researchModeHTMLval, _j, _k, _len1, _len2, _ref1, _ref2;
+                var active, allowedAutoOffTypes, autoOffTimerType, autoOffTimerValue, hoursSincePosted, num_comments, numberOfRelatedItemsWithClusterURL, numberOfStoriesFoundWithinTheHoursSincePostedLimit, parcel, researchModeHTMLval, _j, _k, _len1, _len2, _ref1, _ref2;
                 researchModeHTMLval = $("input:radio[name='research']:checked").val();
                 console.log('researchModeHTMLval is ' + researchModeHTMLval);
                 if (researchModeHTMLval !== 'on' && researchModeHTMLval !== 'off') {
@@ -824,15 +833,23 @@
                   service = _ref2[index];
                   active = $("input:radio[name='" + service.name + "_serviceStatus']:checked").val();
                   popupParcel.kiwi_servicesInfo[index].active = active;
-                  notableSound = $("input:radio[name='" + service.name + "_soundStatus']:checked").val();
-                  popupParcel.kiwi_servicesInfo[index].notableSound = notableSound;
                   hoursSincePosted = $('#' + service.name + '_hoursNotable').val();
+                  console.log(popupParcel.kiwi_servicesInfo[index].name);
+                  console.log("hoursSincePosted = $('#' + service.name + '_hoursNotable').val() " + hoursSincePosted);
                   popupParcel.kiwi_servicesInfo[index].notableConditions.hoursSincePosted = parseFloat(hoursSincePosted);
-                  num_comments = $('#' + service.name + '_commentsNotable').val();
-                  popupParcel.kiwi_servicesInfo[index].notableConditions.num_comments = parseInt(num_comments);
+                  if (service.name === 'gnews') {
+                    numberOfRelatedItemsWithClusterURL = $('#' + service.name + '_numberOfRelatedItemsWithClusterURL').val();
+                    popupParcel.kiwi_servicesInfo[index].notableConditions.numberOfRelatedItemsWithClusterURL = parseInt(numberOfRelatedItemsWithClusterURL);
+                    numberOfStoriesFoundWithinTheHoursSincePostedLimit = $('#' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit').val();
+                    popupParcel.kiwi_servicesInfo[index].notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit = parseInt(numberOfStoriesFoundWithinTheHoursSincePostedLimit);
+                  } else {
+                    num_comments = $('#' + service.name + '_commentsNotable').val();
+                    popupParcel.kiwi_servicesInfo[index].notableConditions.num_comments = parseInt(num_comments);
+                  }
                 }
                 popupParcel.view = 'userPreferences';
                 console.log('4567');
+                console.debug(popupParcel);
                 parcel = {
                   refreshView: popupParcel.view,
                   newPopupParcel: popupParcel,
@@ -996,24 +1013,18 @@
             return function(popupParcel) {
               var kiwiSliceHTML;
               console.log('painting ' + _this.name);
-              kiwiSliceHTML = '<div id="transition_open_showMe" style="position:fixed; bottom: 26px; right: 64px; padding: 7px; padding-right: 26px; opacity: 0; box-shadow: rgb(195, 232, 148) 0px 0px 0px 1px inset; border: 1px solid rgba(20, 86, 15, 0.35); border-radius: 4px; background-color: white; "> <button type="button" class="goTo_creditsView btn btn-mini btn-default">credits</button> <button class="btn btn-mini btn-default" style="" class="">newsletter</button> <button class="btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button> <button class="btn btn-mini btn-default" id="refreshURLresults">refresh</button> </div> <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
+              kiwiSliceHTML = '<div id="transition_open_showMe" style=" position: fixed; bottom: 24px; right: 62px; padding: 9px; padding-right: 26px; opacity: 1; box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset; border: 1px solid rgba(20, 86, 15, 0.87); border-radius: 4px; background-color: white;"> <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> <button class=" btn btn-mini btn-default" style="" class="">newsletter</button> <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button> <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button> </div> <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
               $(_this.DOMselector).html(kiwiSliceHTML);
-              console.log(kiwiSliceHTML);
-              return setTimeout(function() {
-                return $(_this.DOMselector + " #transition_open_showMe").animate({
-                  'opacity': 1
-                }, 200);
-              }, 200);
+              return console.log(kiwiSliceHTML);
             };
           })(this),
           bind: (function(_this) {
             return function(popupParcel) {
-              var clearKiwiURLCacheButton, customSearchOpen, elActivateTransition, refreshURLresultsButton;
+              var clearKiwiURLCacheButton, elActivateTransition, refreshURLresultsButton;
               console.log('binding ' + _this.name);
               elActivateTransition = $(_this.DOMselector + " #sliceActivateTransition");
               clearKiwiURLCacheButton = $(_this.DOMselector + " #clearKiwiURLCache");
               refreshURLresultsButton = $(_this.DOMselector + " #refreshURLresults");
-              customSearchOpen = $(_this.DOMselector + " .customSearchOpen");
               _this.elsToUnbind.concat([elActivateTransition, refreshURLresultsButton, clearKiwiURLCacheButton]);
               refreshURLresultsButton.bind('click', function() {
                 var parcel;
@@ -1034,15 +1045,12 @@
               elActivateTransition.bind('click', function(ev) {
                 return _this.render(popupParcel, 'collapsed', 'open');
               });
-              clearKiwiURLCacheButton.bind('click', function() {
+              return clearKiwiURLCacheButton.bind('click', function() {
                 var parcel;
                 parcel = {
                   msg: 'kiwiPP_clearAllURLresults'
                 };
                 return sendParcel(parcel);
-              });
-              return customSearchOpen.bind('click', function() {
-                return $("#customSearchQueryInput").click();
               });
             };
           })(this)
@@ -1073,7 +1081,7 @@
           return function(popupParcel, renderState, __renderStates__callback) {
             console.log("'collapsed__to__open': (popupParcel, renderState, __renderStates__callback) =>");
             $(_this.DOMselector + " #sliceActivateTransition").addClass('rotateCounterClockwise');
-            return $(_this.DOMselector + " #sliceActivateTransition").animate({
+            $(_this.DOMselector + " #sliceActivateTransition").animate({
               "bottom": '15px',
               "right": "15px"
             }, {
@@ -1083,6 +1091,10 @@
                 return __renderStates__callback(popupParcel, renderState);
               }
             });
+            $(_this.DOMselector).prepend('<div id="transition_open_showMe" style=" position: fixed; bottom: 24px; right: 62px; padding: 9px; padding-right: 26px; opacity: 0; box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset; border: 1px solid rgba(20, 86, 15, 0.87); border-radius: 4px; background-color: white; "> <button type="button" class="goTo_creditsView btn btn-mini btn-default ">credits</button> <button class="btn btn-mini btn-default " style="" class="">newsletter</button> <button class="btn btn-mini btn-default " id="clearKiwiURLCache">clear cache</button> <button class="btn btn-mini btn-default " id="refreshURLresults">refresh</button> </div>');
+            return $(_this.DOMselector + " #transition_open_showMe").animate({
+              'opacity': 1
+            }, 499);
           };
         })(this)
       };
@@ -1107,7 +1119,7 @@
     gnews: function(serviceInfoObject, service_PreppedResults, kiwi_userPreferences) {
       var currentTime, index, listing, listingClass, preppedHTMLstring, recentTag, selectedString_attention, selectedString_recency, _i, _len, _time;
       currentTime = Date.now();
-      preppedHTMLstring = "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'><br>" + serviceInfoObject.title + " ";
+      preppedHTMLstring = "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'> <div class='serviceResultsHeaderBar'> <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span> &nbsp;&nbsp;<a class="customSearchOpen"> modify search</a>';
       if (kiwi_userPreferences.sortByPref === 'attention') {
         selectedString_attention = 'selected';
         selectedString_recency = '';
@@ -1115,9 +1127,9 @@
         selectedString_attention = '';
         selectedString_recency = 'selected';
       }
-      preppedHTMLstring += '<div style="float:right;"><a class="customSearchOpen"> modify search</a>&nbsp;&nbsp; sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select> </div><br>';
+      preppedHTMLstring += '<div style="float:right;">&nbsp;&nbsp; sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select> </div> </div>';
       if ((service_PreppedResults != null) && service_PreppedResults.length > 0) {
-        preppedHTMLstring += "Searched for: " + service_PreppedResults[0].kiwi_searchedFor + "<br>";
+        preppedHTMLstring += 'Searched for: "<strong>' + service_PreppedResults[0].kiwi_searchedFor + '</strong>"<br>';
       }
       if (kiwi_userPreferences.sortByPref === 'attention') {
         service_PreppedResults = _.sortBy(service_PreppedResults, 'clusterUrl');
@@ -1172,7 +1184,7 @@
     preppedHTMLstring = '';
     currentTime = Date.now();
     fuzzyMatchBool = false;
-    preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "''><br>" + serviceInfoObject.title;
+    preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'> <div class='serviceResultsHeaderBar'> <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span>';
     if (kiwi_userPreferences.sortByPref === 'attention') {
       selectedString_attention = 'selected';
       selectedString_recency = '';
@@ -1180,7 +1192,7 @@
       selectedString_attention = '';
       selectedString_recency = 'selected';
     }
-    preppedHTMLstring += '<div style="float:right;"> &nbsp;&nbsp sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select></div><br>';
+    preppedHTMLstring += '<div style="float:right;"> &nbsp;&nbsp sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select></div> </div>';
     if (service_PreppedResults.length < 1) {
       preppedHTMLstring += ' no results <br>';
       return preppedHTMLstring;
@@ -1202,18 +1214,22 @@
       } else {
         recentTag = currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4 ? "<span class='recentListing'>Recent: </span>" : "";
         if (listing.kiwi_exact_match) {
-          preppedHTMLstring += '<div class="listing ' + listingClass + '" style="position:relative;">' + recentTag + '<a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '">';
+          preppedHTMLstring += '<div class="listing ' + listingClass + '">';
+          if (serviceInfoObject.name !== 'reddit') {
+            preppedHTMLstring += '<div style="float:right;"> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author + '</a> </div>';
+          }
+          preppedHTMLstring += '<a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '"><span style="color:black;">' + recentTag;
           if ((listing.over_18 != null) && listing.over_18 === true) {
             preppedHTMLstring += '<span class="nsfw">NSFW</span>' + listing.title + '<br>';
           } else {
             preppedHTMLstring += listing.title + '<br>';
           }
           _time = formatTime(listing.kiwi_created_at);
-          preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</a>';
+          preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</span></a>';
           if (listing.subreddit != null) {
             preppedHTMLstring += '<br><span> <a target="_blank" href="' + serviceInfoObject.permalinkBase + '/r/' + listing.subreddit + '"> subreddit: ' + listing.subreddit + '</a></span>';
           }
-          preppedHTMLstring += '<div style="float:right;"> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author + '</a> </div><br><br></div>';
+          preppedHTMLstring += '<br><br></div>';
         } else {
           fuzzyMatchBool = true;
         }
@@ -1233,23 +1249,28 @@
       } else {
         listingClass = '';
       }
-      preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;"><br> fuzzy matches: <br></div> <span class="fuzzyMatches">';
+      preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;">fuzzy matches: <br></div> <span class="fuzzyMatches">';
       console.log('fuzzy matches 12312312 ' + serviceInfoObject.name);
       for (index = _j = 0, _len1 = service_PreppedResults.length; _j < _len1; index = ++_j) {
         listing = service_PreppedResults[index];
         listingClass = index > 10 && service_PreppedResults.length > 14 ? ' hidden_listing ' : '';
         if (!listing.kiwi_exact_match) {
-          preppedHTMLstring += '<div class="listing ' + listingClass + '"> <a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '"> for Url: <span class="altURL">' + listing.url + '<br>';
+          recentTag = currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4 ? "<span class='recentListing'>Recent: </span>" : "";
+          preppedHTMLstring += '<div class="listing ' + listingClass + '">';
+          if (serviceInfoObject.name !== 'reddit') {
+            preppedHTMLstring += '<div style="float:right;"> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author + '</a> </div>';
+          }
+          preppedHTMLstring += '<a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '"><span style="color:black;">' + recentTag;
           if ((listing.over_18 != null) && listing.over_18 === true) {
             preppedHTMLstring += '<span class="nsfw">NSFW</span>' + listing.title + '<br>';
           } else {
             preppedHTMLstring += listing.title + '<br>';
           }
-          preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes ' + formatTime(listing.kiwi_created_at) + '</a>';
+          preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes ' + formatTime(listing.kiwi_created_at) + '</span> <br> for Url: <span class="altURL">' + listing.url + '</span> </a>';
           if (listing.subreddit != null) {
             preppedHTMLstring += '<br><span> <a target="_blank" href="' + serviceInfoObject.permalinkBase + '/r/' + listing.subreddit + '"> subreddit: ' + listing.subreddit + '</a></span> <div style="float:right;"> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author + '</a></div>';
           }
-          preppedHTMLstring += '</div>';
+          preppedHTMLstring += '<br></div>';
         }
       }
       preppedHTMLstring += "</span>";

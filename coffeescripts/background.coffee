@@ -398,9 +398,9 @@ defaultServicesInfo = [
     notableConditions:
       numberOfRelatedItemsWithClusterURL: 2 # (or more)
       
-      hoursSincePosted: 3
       numberOfStoriesFoundWithinTheHoursSincePostedLimit: 4 # (or more)
     
+      hoursSincePosted: 3
     customSearchTags: {} 
     
   # {
@@ -1845,6 +1845,8 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
     )
 
 setAutoOffTimer = (resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue, autoOffTimerType, researchModeOnOff) ->
+  console.log 'trying setAutoOffTimer 43234'
+  
   if resetTimerBool and kiwi_autoOffClearInterval?
     console.log 'clearing timout'
     clearTimeout(kiwi_autoOffClearInterval)

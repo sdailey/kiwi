@@ -31,15 +31,27 @@
         border-color: rgb(198, 242, 198);
       }
       
+      button.btn-kiwi {
+        background-image: linear-gradient(to bottom,#CDE096 0,#108810 100%);
+      }
+      
+      #customSearchResults {
+        padding:15px;
+      }
+      
       .nsfw {
         color: red;
       }
       .listing {
-        border-color: green;
+        /*border-color: green;
         border-width: 1px;
-        border-style: solid;
+        border-style: solid;*/
+        box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset;
+        border: 1px solid rgba(20, 86, 15, 0.87);
+        border-radius: 4px;
+        background-color: white;
         margin: 6px;
-        padding: 4px;
+        padding: 10px;
         margin-bottom: 25px;
       }
       .hidden_listing {
@@ -83,29 +95,42 @@
       button.btn {
         font-size: .8em;
       }
-      .topSearchBar {
+      .topSearchBar, .navBar {
         width: 100%;
         position: fixed; 
         padding-left:20px;
         padding-right:20px;
         padding-top:16px; 
+        /*padding-bottom: 14px;*/
+        top: -5px;
         background-color: white; 
         text-align: center; 
         opacity:1; 
         z-index:4; 
-        min-height: 64px;
         border-bottom-style:solid;
         border-bottom-width:1px;
         border-bottom-color:grey;
       }
+      .navBar {
+        padding-bottom: 14px;
+      }
       
       
       .topSearchBar .queryInputOpen {
-          width: 275px;
+          width: 292px;
           position: relative;
           height: 29px;
           top: 1px;
           margin-right: 18px;
+      }
+      
+      .serviceResultsTitles {
+        font-size: 1.4em;
+        color: black;
+      }
+      .serviceResultsHeaderBar {
+        padding-top:10px;
+        padding-bottom:10px;
       }
       
       .upDownButtons {
@@ -311,7 +336,7 @@
         </div>
         
         <br>
-        Results:<br>
+        
         
         <!-- ordered according to user prefs -->
         <span id="resultsByService"></span>
@@ -332,40 +357,43 @@
     
     <div id='userPreferences_View' style='display:none;'>
       
-      <div id="menuBar_preferences">
-        <br>
-        <button class="btn btn-mini btn-default goTo_conversationsView"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> View Conversations for this Url</button>&nbsp; <button style="" class="btn btn-mini btn-defaultr goTo_creditsView"> credits </button> <br>
+      <div class="navBar evenlySpacedContainer" id="menuBar_preferences">
+        
+        <button style="" class="btn btn-mini btn-default goTo_conversationsView"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> View Conversations for this Url</button>  <button style="" class="btn btn-mini btn-default goTo_creditsView"> credits </button> <button style="" class="btn btn-mini btn-default userPreferencesSave"> save preferences </button>
+        
       </div>
       <br>
-      <div id="autoOffTimer" ></div>
-      
       <br>
-      Research Mode - 
+      <span class="userErrMsg"></span>
+      <br><span id="servicesInfoDrop"> </span>
       
-      <span id="researchModeDrop"></span>
-      
-      <br><br>
-      
-      <button class="btn btn-mini btn-default userPreferencesSave"> save preferences </button> <span class="userErrMsg"></span>
-      
-      <br><br>  
-      
-      Services: <br><span id="servicesInfoDrop"> </span>
+      <span class="userErrMsg"></span>
+      <br>
+      <div style="margin: 30px;margin-bottom: 45px; margin-top:20px; padding: 15px;" class="bg-warning">
         
-      
-      <button class="btn btn-mini btn-default userPreferencesSave"> save preferences </button> <span class="userErrMsg"></span>
-      
+        Research Mode - 
+        
+        <span id="researchModeDrop"></span>
+        <br><br>
+        <div id="autoOffTimer" ></div>
+          
+        <br><br><div style="width:100%;text-align:center;">
+          <button class="btn btn-mini btn-default userPreferencesSave"> save preferences </button> <span class="userErrMsg"></span>
+        </div>
+      </div>
     </div>
     
     <div id='credits_View' style='display:none;'>
+      <div class="navBar evenlySpacedContainer" >
+        <button class="btn btn-mini btn-default goTo_conversationsView">View Conversations for this Url</button> 
+        <button class="btn btn-mini btn-default goTo_userPreferencesView">View User Preferences</button>
+      </div>
+      <br><br><br>
       <br>
       credits
       <br>
       http://behigh.github.io/bootstrap_dropdowns_enhancement/
       <br>
-      <button class="btn btn-mini btn-default goTo_conversationsView">View Conversations for this Url</button> 
-        
-      <button class="btn btn-mini btn-default goTo_userPreferencesView">View User Preferences</button> <br>
       
       <br>
       Software provided as-is <br>

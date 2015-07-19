@@ -2,8 +2,6 @@
 (function() {
   var CLEANUP_INTERVAL, checkForUrlHourInterval, checkForUrl_Persistent_ChromeNotification_HourInterval, check_updateServiceResults, defaultServicesInfo, defaultUserPreferences, dispatchGnewsQuery, dispatchGnewsQuery__customSearch, dispatchQuery, dispatchQuery__customSearch, getRandom, getUrlResults_to_refreshBadgeIcon, initIfNewURL, initialize, is_url_blocked, kiwi_autoOffClearInterval, kiwi_customSearchResults, kiwi_reddit_token_refresh_interval, kiwi_urlsResultsCache, last_periodicCleanup, maxUrlResultsStoredInLocalStorage, newsSearch, onGoogleLoad, parseResults, periodicCleanup, popupOpen, popupParcel, queryThrottleSeconds, randomishDeviceId, reduceHashByHalf, refreshBadge, requestRedditOathToken, returnNumberOfActiveServices, sendParcel, serviceQueryTimestamps, setAutoOffTimer, setPreppedServiceResults, setPreppedServiceResults__customSearch, setTimeout_forRedditRefresh, tabTitleObject, tabUrl, tempResponsesStore, turnResearchModeOff, updateBadgeText, __randomishStringPadding, _exact_match_url_check, _save_a_la_carte, _save_customSearch_results, _save_from_popupParcel, _save_historyBlob, _save_url_results, _set_popupParcel;
 
-  console.log('wtf');
-
   tabUrl = '';
 
   tabTitleObject = null;
@@ -42,7 +40,6 @@
     while (characterCounter <= randomClientLength) {
       characterCounter++;
       randomASCIIcharcode = getRandom(33, 125);
-      console.log(randomASCIIcharcode);
       randomString += String.fromCharCode(randomASCIIcharcode);
     }
     return randomString;
@@ -67,9 +64,7 @@
       async: true,
       success: function(data) {
         var setObj, token_lifespan_timestamp;
-        console.debug(data);
         if ((data.access_token != null) && (data.expires_in != null) && data.token_type === "bearer") {
-          console.log('response from reddit!');
           token_lifespan_timestamp = currentTime + data.expires_in * 1000;
           setObj = {};
           setObj['kiwi_reddit_oauth'] = {
@@ -85,7 +80,6 @@
         }
       },
       fail: function(data) {
-        console.log('reddit failed to authenticate client, try again in 5 min');
         return setTimeout(function() {
           return requestRedditOathToken(kiwi_reddit_oauth);
         }, 1000 * 60 * 5);
@@ -106,15 +100,12 @@
       device_id: randomishDeviceId()
     };
     if ((allItemsInLocalStorage.kiwi_reddit_oauth == null) || (allItemsInLocalStorage.kiwi_reddit_oauth.token == null)) {
-      console.log("2 setObj['kiwi_reddit_oauth'] =");
       return chrome.storage.local.set(setObj, function(data) {
         return requestRedditOathToken(setObj.kiwi_reddit_oauth);
       });
     } else if (((allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp != null) && currentTime > allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp) || (allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp == null)) {
-      console.log("3 setObj['kiwi_reddit_oauth'] =");
       return requestRedditOathToken(setObj.kiwi_reddit_oauth);
     } else if ((allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp != null) && (allItemsInLocalStorage.kiwi_reddit_oauth != null)) {
-      console.log("4 setObj['kiwi_reddit_oauth'] =");
       token_timestamp = allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp;
       if ((kiwi_reddit_token_refresh_interval == null) || kiwi_reddit_token_refresh_interval.timestamp !== token_timestamp) {
         return setTimeout_forRedditRefresh(token_timestamp, allItemsInLocalStorage.kiwi_reddit_oauth);
@@ -333,10 +324,7 @@
         }
         switch (dataFromPopup.msg) {
           case 'kiwiPP_post_customSearch':
-            console.log('when kiwiPP_post_customSearch1');
-            console.debug(dataFromPopup);
             if ((dataFromPopup.customSearchRequest != null) && (dataFromPopup.customSearchRequest.queryString != null) && dataFromPopup.customSearchRequest.queryString !== '') {
-              console.log('when kiwiPP_post_customSearch2');
               return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
                 var serviceInfoObject, _i, _len, _ref, _results;
                 if (allItemsInSyncedStorage['kiwi_servicesInfo'] != null) {
@@ -344,7 +332,6 @@
                   _results = [];
                   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                     serviceInfoObject = _ref[_i];
-                    console.log('when kiwiPP_post_customSearch4 for ' + serviceInfoObject.name);
                     if (dataFromPopup.customSearchRequest.servicesToSearch[serviceInfoObject.name] != null) {
                       if (serviceInfoObject.name === 'gnews') {
                         _results.push(dispatchGnewsQuery__customSearch(dataFromPopup.customSearchRequest.queryString, dataFromPopup.customSearchRequest.servicesToSearch, serviceInfoObject, allItemsInSyncedStorage['kiwi_servicesInfo']));
@@ -397,21 +384,15 @@
           case 'kiwiPP_post_save_a_la_carte':
             return _save_a_la_carte(dataFromPopup);
           case 'kiwiPP_post_savePopupParcel':
-            console.log("when 'kiwiPP_post_savePopupParcel'");
             _save_from_popupParcel(dataFromPopup.newPopupParcel, dataFromPopup.forUrl, dataFromPopup.refreshView);
             if (kiwi_urlsResultsCache[tabUrl] != null) {
               return refreshBadge(dataFromPopup.newPopupParcel.kiwi_servicesInfo, kiwi_urlsResultsCache[tabUrl]);
             }
             break;
           case 'kiwiPP_request_popupParcel':
-            console.log(" when 'kiwiPP_request_popupParcel' ");
-            console.log('dataFromPopup.forUrl' + dataFromPopup.forUrl);
-            console.log('tabUrl:' + tabUrl);
             if (dataFromPopup.forUrl === tabUrl) {
               preppedResponsesInPopupParcel = 0;
               if ((popupParcel != null) && (popupParcel.allPreppedResults != null)) {
-                console.log('popupParcel.allPreppedResults? ');
-                console.debug(popupParcel.allPreppedResults);
                 _ref = popupParcel.allPreppedResults;
                 for (serviceName in _ref) {
                   service = _ref[serviceName];
@@ -422,8 +403,6 @@
               }
               preppedResponsesInTempResponsesStore = 0;
               if ((tempResponsesStore != null) && (tempResponsesStore.services != null)) {
-                console.log('tempResponsesStore.services? ');
-                console.debug(tempResponsesStore.services);
                 _ref1 = tempResponsesStore.services;
                 for (serviceName in _ref1) {
                   service = _ref1[serviceName];
@@ -435,14 +414,12 @@
                 newResultsBool = true;
               }
               if ((popupParcel != null) && popupParcel.forUrl === tabUrl && newResultsBool === false) {
-                console.log("popup parcel ready");
                 parcel = {};
                 parcel.msg = 'kiwiPP_popupParcel_ready';
                 parcel.forUrl = tabUrl;
                 parcel.popupParcel = popupParcel;
                 return sendParcel(parcel);
               } else {
-                console.log("popup parcel not ready");
                 if ((tempResponsesStore.services == null) || tempResponsesStore.forUrl !== tabUrl) {
                   return _set_popupParcel({}, tabUrl, true);
                 } else {
@@ -456,7 +433,6 @@
   });
 
   initialize = function(currentUrl) {
-    console.log('yolo 1 ' + currentUrl);
     return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
       if (allItemsInSyncedStorage['kiwi_servicesInfo'] == null) {
         return chrome.storage.sync.set({
@@ -472,7 +448,6 @@
 
   getUrlResults_to_refreshBadgeIcon = function(servicesInfo, currentUrl) {
     var currentTime, sendPopupParcel, service, _i, _len;
-    console.log('yolo 2  getUrlResults_to_refreshBadgeIcon');
     currentTime = Date.now();
     if (Object.keys(kiwi_urlsResultsCache).length > 0) {
       if (kiwi_urlsResultsCache[currentUrl] != null) {
@@ -496,22 +471,17 @@
         } else {
           sendPopupParcel = false;
         }
-        console.log('console.debug tempResponsesStore.services');
-        console.debug(tempResponsesStore.services);
         return _set_popupParcel(tempResponsesStore.services, currentUrl, sendPopupParcel);
       } else {
-        console.log('# this url has not been checked');
         return check_updateServiceResults(servicesInfo, currentUrl, kiwi_urlsResultsCache);
       }
     } else {
-      console.log('# no urls have been checked');
       return check_updateServiceResults(servicesInfo, currentUrl, null);
     }
   };
 
   _save_customSearch_results = function(servicesInfo, tempResponsesStore, _urlsResultsCache) {
     var previousUrl, service, urlsResultsCache, _i, _len;
-    console.log('yolo 3');
     urlsResultsCache = _.extend({}, _urlsResultsCache);
     previousUrl = tempResponsesStore.forUrl;
     if (urlsResultsCache[previousUrl] != null) {
@@ -534,7 +504,6 @@
 
   _save_url_results = function(servicesInfo, tempResponsesStore, _urlsResultsCache) {
     var previousUrl, service, urlsResultsCache, _i, _len;
-    console.log('yolo 3');
     urlsResultsCache = _.extend({}, _urlsResultsCache);
     previousUrl = tempResponsesStore.forUrl;
     if (urlsResultsCache[previousUrl] != null) {
@@ -578,7 +547,6 @@
       historyString = reduceHashByHalf(tabUrl_hash);
       paddedHistoryString = __randomishStringPadding() + historyString;
       if ((allItemsInLocalStorage.kiwi_historyBlob != null) && typeof allItemsInLocalStorage.kiwi_historyBlob === 'string' && allItemsInLocalStorage.kiwi_historyBlob.indexOf(historyString) < 15000 && allItemsInLocalStorage.kiwi_historyBlob.indexOf(historyString) !== -1) {
-        console.log('# already exists in history blob ' + allItemsInLocalStorage.kiwi_historyBlob.indexOf(historyString));
         return 0;
       } else {
         if (allItemsInLocalStorage.kiwi_historyBlob == null) {
@@ -595,11 +563,7 @@
       }
       return chrome.storage.local.set({
         'kiwi_historyBlob': newKiwi_historyBlob
-      }, function() {
-        console.log('successfully set for ' + tabUrl);
-        console.log('successfully set for ' + tabUrl_hash);
-        return console.log('paddedHistoryString ' + paddedHistoryString);
-      });
+      }, function() {});
     });
   };
 
@@ -608,7 +572,6 @@
     if (urlsResultsCache == null) {
       urlsResultsCache = null;
     }
-    console.log('yolo 4');
     if ((urlsResultsCache != null) && Object.keys(tempResponsesStore).length > 0) {
       previousResponsesStore = _.extend({}, tempResponsesStore);
       _urlsResultsCache = _.extend({}, urlsResultsCache);
@@ -654,15 +617,12 @@
 
   dispatchGnewsQuery = function(service_info, currentUrl, servicesInfo) {
     var currentTime;
-    console.log('yolo 5 ~ - gnews ');
-    console.debug(service_info);
     currentTime = Date.now();
     if ((newsSearch != null) && (tabTitleObject != null) && tabTitleObject.forUrl === currentUrl && tabTitleObject.tabTitle !== null && tabTitleObject.tabTitle !== "") {
       if (serviceQueryTimestamps[service_info.name] == null) {
         serviceQueryTimestamps[service_info.name] = currentTime;
       } else {
         if ((currentTime - serviceQueryTimestamps[service_info.name]) < queryThrottleSeconds * 1000) {
-          console.log('too soon on dispatch, waiting a couple seconds');
           setTimeout(function() {
             if (currentUrl === tabUrl) {
               return dispatchGnewsQuery(service_info, currentUrl, servicesInfo);
@@ -694,13 +654,11 @@
 
   dispatchQuery = function(service_info, currentUrl, servicesInfo) {
     var currentTime;
-    console.log('yolo 5 ~ for ' + service_info.name);
     currentTime = Date.now();
     if (serviceQueryTimestamps[service_info.name] == null) {
       serviceQueryTimestamps[service_info.name] = currentTime;
     } else {
       if ((currentTime - serviceQueryTimestamps[service_info.name]) < queryThrottleSeconds * 1000) {
-        console.log('too soon on dispatch, waiting a couple seconds');
         setTimeout(function() {
           return dispatchQuery(service_info, currentUrl, servicesInfo);
         }, 2000);
@@ -716,22 +674,16 @@
         url: service_info.queryApi + encodeURIComponent(currentUrl),
         success: function(queryResult) {
           var responsePackage;
-          console.log('response yoyoyo');
-          console.debug(queryResult);
           responsePackage = {
             forUrl: currentUrl,
             servicesInfo: servicesInfo,
             serviceName: service_info.name,
             queryResult: queryResult
           };
-          console.log('responsePackage');
-          console.debug(responsePackage);
           return setPreppedServiceResults(responsePackage, servicesInfo);
         }
       };
       if (service_info.name === 'reddit' && (allItemsInLocalStorage.kiwi_reddit_oauth != null)) {
-        console.log('we are trying with oauth!');
-        console.debug(allItemsInLocalStorage.kiwi_reddit_oauth);
         queryObj.headers = {
           'Authorization': "'bearer " + allItemsInLocalStorage.kiwi_reddit_oauth + "'"
         };
@@ -742,14 +694,12 @@
 
   dispatchGnewsQuery__customSearch = function(customSearchQuery, servicesToSearch, service_info, servicesInfo) {
     var currentTime;
-    console.log('yolo 5 ~ - CUSTOM gnews');
     currentTime = Date.now();
     if (newsSearch != null) {
       if (serviceQueryTimestamps[service_info.name] == null) {
         serviceQueryTimestamps[service_info.name] = currentTime;
       } else {
         if ((currentTime - serviceQueryTimestamps[service_info.name]) < queryThrottleSeconds * 1000) {
-          console.log('too soon on dispatch, waiting a couple seconds');
           setTimeout(function() {
             if (currentUrl === tabUrl) {
               return dispatchGnewsQuery__customSearch(service_info, customSearchQuery, servicesInfo);
@@ -762,8 +712,6 @@
       }
       newsSearch.setSearchCompleteCallback(this, function() {
         var responsePackage, results;
-        console.log(' google console.debug(newsSearch);');
-        console.debug(newsSearch);
         if (_.isArray(newsSearch.results)) {
           results = newsSearch.results;
         } else {
@@ -784,14 +732,11 @@
 
   dispatchQuery__customSearch = function(customSearchQuery, servicesToSearch, service_info, servicesInfo) {
     var currentTime, queryUrl, tagIdentifier, tagObject, _ref;
-    console.log('yolo 5 ~ for CUSTOM ' + service_info.name);
-    console.debug(servicesToSearch);
     currentTime = Date.now();
     if (serviceQueryTimestamps[service_info.name] == null) {
       serviceQueryTimestamps[service_info.name] = currentTime;
     } else {
       if ((currentTime - serviceQueryTimestamps[service_info.name]) < queryThrottleSeconds * 1000) {
-        console.log('too soon on dispatch, waiting a couple seconds');
         setTimeout(function() {
           return dispatchQuery__customSearch(customSearchQuery, servicesToSearch, service_info, servicesInfo);
         }, 2000);
@@ -806,8 +751,6 @@
       for (tagIdentifier in _ref) {
         tagObject = _ref[tagIdentifier];
         queryUrl = queryUrl + service_info.customSearchTags__convention.string + service_info.customSearchTags[tagIdentifier].string;
-        console.log('asd;lfkjaewo;ifjae; ');
-        console.log(queryUrl);
       }
     }
     return chrome.storage.local.get(null, function(allItemsInLocalStorage) {
@@ -817,8 +760,6 @@
         url: queryUrl,
         success: function(queryResult) {
           var responsePackage;
-          console.log('response yoyoyo');
-          console.debug(queryResult);
           responsePackage = {
             servicesInfo: servicesInfo,
             serviceName: service_info.name,
@@ -826,14 +767,10 @@
             servicesToSearch: servicesToSearch,
             customSearchQuery: customSearchQuery
           };
-          console.log('responsePackage');
-          console.debug(responsePackage);
           return setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
         }
       };
       if (service_info.name === 'reddit' && (allItemsInLocalStorage.kiwi_reddit_oauth != null)) {
-        console.log('we are trying with oauth!');
-        console.debug(allItemsInLocalStorage.kiwi_reddit_oauth);
         queryObj.headers = {
           'Authorization': "'bearer " + allItemsInLocalStorage.kiwi_reddit_oauth + "'"
         };
@@ -844,7 +781,6 @@
 
   setPreppedServiceResults__customSearch = function(responsePackage, servicesInfo) {
     var completedQueryServicesArray, currentTime, numberOfActiveServices, service, serviceInfo, serviceName, serviceObj, service_PreppedResults, _i, _len, _ref;
-    console.log('yolo 6');
     currentTime = Date.now();
     for (_i = 0, _len = servicesInfo.length; _i < _len; _i++) {
       serviceObj = servicesInfo[_i];
@@ -864,10 +800,6 @@
       kiwi_customSearchResults.servicesSearched[responsePackage.serviceName] = {};
       kiwi_customSearchResults.servicesSearched[responsePackage.serviceName].results = service_PreppedResults;
     }
-    console.log('yolo 6 results service_PreppedResults');
-    console.debug(service_PreppedResults);
-    console.log('numberOfActiveServices');
-    console.debug(returnNumberOfActiveServices(servicesInfo));
     numberOfActiveServices = Object.keys(responsePackage.servicesToSearch).length;
     completedQueryServicesArray = [];
     if (kiwi_customSearchResults.queryString === responsePackage.customSearchQuery) {
@@ -878,10 +810,7 @@
       }
     }
     completedQueryServicesArray = _.uniq(completedQueryServicesArray);
-    console.log('completedQueryServicesArray.length ');
-    console.log(completedQueryServicesArray.length);
     if (completedQueryServicesArray.length === numberOfActiveServices && numberOfActiveServices !== 0) {
-      console.log('yolo 6 _save_ results(servicesInfo, tempRes -- for ' + serviceInfo.name);
       if (kiwi_urlsResultsCache[tabUrl] != null) {
         return _set_popupParcel(kiwi_urlsResultsCache[tabUrl], tabUrl, true);
       } else {
@@ -898,10 +827,8 @@
     if (oldUrl == null) {
       oldUrl = false;
     }
-    console.log('trying to set popupParcel, forUrl tabUrl' + forUrl + tabUrl);
     if (setWith_urlResults !== {}) {
       if (forUrl !== tabUrl) {
-        console.log("_set_popupParcel request for old url");
         return false;
       }
     }
@@ -929,7 +856,6 @@
       }
       setObj_popupParcel.kiwi_customSearchResults = kiwi_customSearchResults;
       if (setWith_urlResults == null) {
-        console.log('_set_popupParcel called with undefined responses (not supposed to happen, ever)');
         return 0;
       } else {
         setObj_popupParcel.allPreppedResults = setWith_urlResults;
@@ -952,7 +878,6 @@
         setObj_popupParcel.oldUrl = false;
       }
       popupParcel = setObj_popupParcel;
-      console.debug(popupParcel);
       if (sendPopupParcel) {
         parcel = {};
         parcel.msg = 'kiwiPP_popupParcel_ready';
@@ -965,7 +890,6 @@
 
   setPreppedServiceResults = function(responsePackage, servicesInfo) {
     var completedQueryServicesArray, currentTime, numberOfActiveServices, sendPopupParcel, service, serviceInfo, serviceName, serviceObj, service_PreppedResults, _i, _len, _ref, _ref1;
-    console.log('yolo 6');
     currentTime = Date.now();
     if (tabUrl === responsePackage.forUrl) {
       for (_i = 0, _len = servicesInfo.length; _i < _len; _i++) {
@@ -980,10 +904,6 @@
         service_PreppedResults: service_PreppedResults,
         forUrl: responsePackage.forUrl
       };
-      console.log('yolo 6 results service_PreppedResults');
-      console.debug(service_PreppedResults);
-      console.log('numberOfActiveServices');
-      console.debug(returnNumberOfActiveServices(servicesInfo));
       numberOfActiveServices = returnNumberOfActiveServices(servicesInfo);
       completedQueryServicesArray = [];
       if (tempResponsesStore.forUrl === tabUrl) {
@@ -1001,23 +921,17 @@
         }
       }
       completedQueryServicesArray = _.uniq(completedQueryServicesArray);
-      console.log('completedQueryServicesArray.length ');
-      console.log(completedQueryServicesArray.length);
       if (completedQueryServicesArray.length === numberOfActiveServices && numberOfActiveServices !== 0) {
-        console.log('yolo 6 _save_url_results(servicesInfo, tempRes -- for ' + serviceInfo.name);
         kiwi_urlsResultsCache = _save_url_results(servicesInfo, tempResponsesStore, kiwi_urlsResultsCache);
         _save_historyBlob(kiwi_urlsResultsCache, tabUrl);
         if (popupOpen) {
           sendPopupParcel = true;
-          console.log('yolo 6 sendPopupParcel = true');
         } else {
           sendPopupParcel = false;
-          console.log('yolo 6 sendPopupParcel = false');
         }
         _set_popupParcel(kiwi_urlsResultsCache[tabUrl], responsePackage.forUrl, sendPopupParcel);
         return refreshBadge(servicesInfo, kiwi_urlsResultsCache[tabUrl]);
       } else {
-        console.log('yolo 6 not finished ' + serviceInfo.name);
         _set_popupParcel(tempResponsesStore.services, responsePackage.forUrl, false);
         return refreshBadge(servicesInfo, tempResponsesStore.services);
       }
@@ -1031,8 +945,6 @@
         customSearchBool = false;
       }
       matchedListings = [];
-      console.log('reddit: (resultsObj) ->');
-      console.debug(resultsObj);
       if ((resultsObj.kind != null) && resultsObj.kind === "Listing" && (resultsObj.data != null) && (resultsObj.data.children != null) && resultsObj.data.children.length > 0) {
         _ref = resultsObj.data.children;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -1060,8 +972,6 @@
         customSearchBool = false;
       }
       matchedListings = [];
-      console.log(' hacker news console.debug resultsObj');
-      console.debug(resultsObj);
       if (resultsObj.hits != null) {
         _ref = resultsObj.hits;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -1089,8 +999,6 @@
       if (customSearchBool === false) {
         forUrl = searchQueryString;
         matchedListings = [];
-        console.log('gnews: (resultsObj) ->');
-        console.debug(resultsObj);
         for (_i = 0, _len = resultsObj.length; _i < _len; _i++) {
           child = resultsObj[_i];
           listingKeys = ['clusterUrl', 'publisher', 'content', 'publishedDate', 'unescapedUrl', 'titleNoFormatting'];
@@ -1133,14 +1041,9 @@
         if (noteworthy) {
           matchedListings[0].kiwi_exact_match = true;
         }
-        console.log('console.debug __numberOfStoriesFoundWithinTheHoursSincePostedLimit console.debug serviceInfo.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit');
-        console.debug(__numberOfRelatedItemsWithClusterURL);
-        console.debug(serviceInfo.notableConditions.numberOfRelatedItemsWithClusterURL);
         return matchedListings;
       } else {
         matchedListings = [];
-        console.log('gnews: (resultsObj) ->');
-        console.debug(resultsObj);
         for (_k = 0, _len2 = resultsObj.length; _k < _len2; _k++) {
           child = resultsObj[_k];
           listingKeys = ['clusterUrl', 'publisher', 'content', 'publishedDate', 'unescapedUrl', 'titleNoFormatting'];
@@ -1343,13 +1246,11 @@
           if (service.updateBadgeOnlyWithExactMatch && (exactMatch = false)) {
             break;
           }
-          console.log(service.name + ' noteworthy ' + noteworthy);
           if (noteworthy) {
             abbreviationLettersArray.push(service.abbreviation);
           } else {
             abbreviationLettersArray.push(service.abbreviation.toLowerCase());
           }
-          console.debug(abbreviationLettersArray);
         }
       }
     }
@@ -1365,7 +1266,6 @@
     } else {
       badgeText = abbreviationLettersArray.join(" ");
     }
-    console.log('yolo 8 ' + badgeText);
     return updateBadgeText(badgeText);
   };
 
@@ -1377,16 +1277,12 @@
 
   periodicCleanup = function(tab, allItemsInLocalStorage, allItemsInSyncedStorage, initialize_callback) {
     var cull_kiwi_urlsResultsCache, currentTime, deletedCount, num_results_to_delete, serviceKey, serviceResults, url, urlServiceResults;
-    console.log('wtf a');
     currentTime = Date.now();
     if (last_periodicCleanup < (currentTime - CLEANUP_INTERVAL)) {
       last_periodicCleanup = currentTime;
-      console.log('wtf b');
       if (Object.keys(kiwi_urlsResultsCache).length === 0) {
-        console.log('wtf ba');
         return initialize_callback(tab, allItemsInLocalStorage, allItemsInSyncedStorage);
       } else {
-        console.log('wtf bb');
         cull_kiwi_urlsResultsCache = _.extend({}, kiwi_urlsResultsCache);
         for (url in cull_kiwi_urlsResultsCache) {
           urlServiceResults = cull_kiwi_urlsResultsCache[url];
@@ -1417,7 +1313,6 @@
         }
       }
     } else {
-      console.log('wtf c');
       return initialize_callback(tab, allItemsInLocalStorage, allItemsInSyncedStorage);
     }
   };
@@ -1460,8 +1355,6 @@
             parcel.popupParcel = _popupParcel;
             sendParcel(parcel);
           }
-          console.log('in _save_from_popupParcel _popupParcel.forUrl ' + _popupParcel.forUrl);
-          console.log('in _save_from_popupParcel tabUrl ' + tabUrl);
           if (_popupParcel.forUrl === tabUrl) {
             if ((formerResearchModeValue != null) && formerResearchModeValue === 'off' && (_popupParcel.kiwi_userPreferences != null) && _popupParcel.kiwi_userPreferences.researchModeOnOff === 'on') {
               initIfNewURL(true);
@@ -1469,10 +1362,6 @@
             } else if (formerKiwi_servicesInfo != null) {
               formerActiveServicesList = _.pluck(formerKiwi_servicesInfo, 'active');
               newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo, 'active');
-              console.log('formerActiveServicesList = _.pluck(formerKiwi_servicesInfo)');
-              console.debug(formerActiveServicesList);
-              console.log('newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo)');
-              console.debug(newActiveServicesList);
               if (!_.isEqual(formerActiveServicesList, newActiveServicesList)) {
                 initIfNewURL(true);
                 return 0;
@@ -1492,9 +1381,7 @@
 
   setAutoOffTimer = function(resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue, autoOffTimerType, researchModeOnOff) {
     var currentTime, new_autoOffAtUTCmilliTimestamp;
-    console.log('trying setAutoOffTimer 43234');
     if (resetTimerBool && (kiwi_autoOffClearInterval != null)) {
-      console.log('clearing timout');
       clearTimeout(kiwi_autoOffClearInterval);
       kiwi_autoOffClearInterval = null;
     }
@@ -1510,35 +1397,28 @@
           new_autoOffAtUTCmilliTimestamp = null;
         } else if (autoOffTimerType === 'custom') {
           new_autoOffAtUTCmilliTimestamp = currentTime + parseInt(autoOffTimerValue) * 60 * 1000;
-          console.log('setting custom new_autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp);
         }
       } else {
         new_autoOffAtUTCmilliTimestamp = autoOffAtUTCmilliTimestamp;
         if ((kiwi_autoOffClearInterval == null) && autoOffAtUTCmilliTimestamp > currentTime) {
-          console.log('resetting timer timeout');
           kiwi_autoOffClearInterval = setTimeout(turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime);
         }
-        console.log(' setting 123 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp);
         return new_autoOffAtUTCmilliTimestamp;
       }
     } else {
       new_autoOffAtUTCmilliTimestamp = null;
-      console.log('researchModeOnOff is off - resetting autoOff timestamp and clearInterval');
       if (kiwi_autoOffClearInterval != null) {
         clearTimeout(kiwi_autoOffClearInterval);
         kiwi_autoOffClearInterval = null;
       }
     }
-    console.log(' setting 000 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp);
     if (new_autoOffAtUTCmilliTimestamp !== null) {
-      console.log('setting timer timeout');
       kiwi_autoOffClearInterval = setTimeout(turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime);
     }
     return new_autoOffAtUTCmilliTimestamp;
   };
 
   turnResearchModeOff = function() {
-    console.log('turning off research mode - in turnResearchModeOff');
     return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
       var urlResults;
       if (kiwi_urlsResultsCache[tabUrl] != null) {
@@ -1555,7 +1435,7 @@
           if (allItemsInSyncedStorage.kiwi_servicesInfo != null) {
             return refreshBadge(allItemsInSyncedStorage.kiwi_servicesInfo, urlResults);
           } else {
-            return console.log('weird, allItemsInSyncedStorage.kiwi_servicesInfo not set');
+
           }
         });
       } else {
@@ -1593,13 +1473,17 @@
       currentWindow: true,
       active: true
     }, function(tabs) {
-      var tabUrl_hash, tabUrl_hashWordArray;
+      var tabUrl_hash, tabUrl_hashWordArray, title;
       if (tabs.length > 0 && (tabs[0].url != null)) {
         if (tabs[0].url.indexOf('chrome-devtools://') !== 0) {
           tabUrl = tabs[0].url;
           if (tabs[0].status === 'complete') {
+            title = tabs[0].title;
+            if (title.length > 3 && title[0] === "(" && isNaN(title[1]) === false && title.indexOf(')') !== -1 && title.indexOf(')') !== title.length - 1) {
+              title = title.slice(title.indexOf(')') + 1, title.length).trim();
+            }
             tabTitleObject = {
-              tabTitle: tabs[0].title,
+              tabTitle: title,
               forUrl: tabUrl
             };
           } else {
@@ -1610,7 +1494,6 @@
           }
         } else {
           _set_popupParcel({}, tabUrl, false);
-          console.log('chrome-devtools:// has been the only url visited so far');
           return 0;
         }
         tabUrl_hashWordArray = CryptoJS.SHA512(tabUrl);
@@ -1623,7 +1506,6 @@
             allItemsInLocalStorage.persistentUrlHash = '';
           }
           if (overrideSameURLCheck_popupOpen === false && (allItemsInLocalStorage['kiwi_historyBlob'] != null) && allItemsInLocalStorage['kiwi_historyBlob'].indexOf(historyString) !== -1 && ((kiwi_urlsResultsCache == null) || (kiwi_urlsResultsCache[tabUrl] == null))) {
-            console.log(' trying to set as old 123412341241234 ');
             updateBadgeText('old');
             sameURLCheck = true;
             _set_popupParcel({}, tabUrl, false, null, true);
@@ -1637,26 +1519,16 @@
           }, function() {});
           if (sameURLCheck === false) {
             updateBadgeText('');
-            console.log('console.debug kiwi_urlsResultsCache');
-            console.debug(kiwi_urlsResultsCache);
             return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
-              console.log('allItemsInSyncedStorage123');
-              console.debug(allItemsInSyncedStorage);
               if (allItemsInSyncedStorage.kiwi_userPreferences != null) {
                 if (allItemsInSyncedStorage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp != null) {
                   if (currentTime > allItemsInSyncedStorage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp) {
-                    console.log('timer is past due - turning off - in initifnewurl');
                     allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff = 'off';
                   }
                 }
                 if (allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff === 'off' && overrideResearchModeOff === false) {
                   updateBadgeText('off');
-                  console.log('console.debug kiwi_urlsResultsCache');
-                  console.debug(kiwi_urlsResultsCache);
                   if (tabUrl === tempResponsesStore.forUrl) {
-                    console.log('if tabUrl == tempResponsesStore.forUrl');
-                    console.log(tabUrl);
-                    console.log(tempResponsesStore.forUrl);
                     if (kiwi_urlsResultsCache[tabUrl] != null) {
                       _set_popupParcel(kiwi_urlsResultsCache[tabUrl], tabUrl, false);
                       if (allItemsInSyncedStorage['kiwi_servicesInfo'] != null) {
@@ -1664,7 +1536,6 @@
                       }
                     }
                   } else {
-                    console.log('_set_popupParcel({},tabUrl,false);  ');
                     _set_popupParcel({}, tabUrl, false);
                   }
                   return 0;
@@ -1672,10 +1543,7 @@
               }
               return periodicCleanup(tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage, function(tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage) {
                 var isUrlBlocked, setObj, _autoOffAtUTCmilliTimestamp;
-                console.log('in initialize callback');
                 if (allItemsInSyncedStorage['kiwi_userPreferences'] == null) {
-                  console.log("console.debug allItemsInSyncedStorage['kiwi_userPreferences']");
-                  console.debug(allItemsInSyncedStorage['kiwi_userPreferences']);
                   _autoOffAtUTCmilliTimestamp = setAutoOffTimer(false, defaultUserPreferences.autoOffAtUTCmilliTimestamp, defaultUserPreferences.autoOffTimerValue, defaultUserPreferences.autoOffTimerType, defaultUserPreferences.researchModeOnOff);
                   defaultUserPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp;
                   setObj = {
@@ -1687,19 +1555,15 @@
                     isUrlBlocked = is_url_blocked(defaultUserPreferences.urlSubstring_blacklists, tabUrl);
                     if (isUrlBlocked === true && overrideResearchModeOff === false) {
                       updateBadgeText('block');
-                      console.log('# user is not interested in results for this url: ' + tabUrl);
                       _set_popupParcel({}, tabUrl, true);
                       return 0;
                     }
                     return initialize(tabUrl);
                   });
                 } else {
-                  console.log("allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists");
-                  console.debug(allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists);
                   isUrlBlocked = is_url_blocked(allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists, tabUrl);
                   if (isUrlBlocked === true && overrideResearchModeOff === false) {
                     updateBadgeText('block');
-                    console.log('# user is not interested in results for this url: ' + tabUrl);
                     _set_popupParcel({}, tabUrl, true);
                     return 0;
                   }
@@ -1721,8 +1585,6 @@
     updateBadgeText('');
     if ((tabTitleObject != null) && tabTitleObject.forUrl === tabUrl && (tabTitleObject.tabTitle == null)) {
       if (info.status === "complete") {
-        console.log(' if (info.status == "complete") ');
-        console.debug(info);
         initIfNewURL(true);
         return 0;
       }

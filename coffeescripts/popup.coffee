@@ -488,7 +488,7 @@ class Conversations extends SwitchView
           
         $("#researchModeDisabledButtons").html(researchModeDisabledButtonsHTML)
         
-        preppedHTMLstring = ''
+        preppedHTMLstring = '<h3 style="position:relative; top:-10px;">Results for this URL:</h3>'
         
         for serviceInfoObject in popupParcel.kiwi_servicesInfo
           
@@ -504,7 +504,8 @@ class Conversations extends SwitchView
             if serviceInfoObject.submitTitle?
               submitUrl = serviceInfoObject.submitUrl
               submitTitle = serviceInfoObject.submitTitle
-              preppedHTMLstring += '<div><a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div>'
+              preppedHTMLstring += '<div>No matches for conversation threads on ' + serviceInfoObject.title + '... <br> 
+                &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>'
               
             else
               

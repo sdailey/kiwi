@@ -3,8 +3,8 @@
 
   "name": "Kiwi Conversations",
   "short_name": "Kiwi Conversations",
-  "description": "Kiwi Conversations searches community sites to find forum comment threads about the url you're visiting... Also queries for related news via Google News.",
-  "version": "0.9.69",
+  "description": "Kiwi Conversations searches community sites to find forum comment threads about the url you're visiting.",
+  "version": "0.9.72",
 
   "permissions": [
     "tabs",

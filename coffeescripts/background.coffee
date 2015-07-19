@@ -1,5 +1,5 @@
 
-console.log 'wtf'
+#console.log 'wtf'
 
 tabUrl = ''
 
@@ -66,7 +66,7 @@ randomishDeviceId = ->   # to be held in localStorage
     characterCounter++
     
     randomASCIIcharcode = getRandom(33,125)
-    console.log randomASCIIcharcode
+    #console.log randomASCIIcharcode
     randomString += String.fromCharCode(randomASCIIcharcode)
   
   return randomString
@@ -93,11 +93,11 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
     cache: false
     async: true
     success: (data) ->
-      console.debug data
+      #console.debug data
       # {access_token: "-i9YlrxIjXkl8HTXfdFgJ4eVp6RE", token_type: "bearer", expires_in: 3600, scope: "*"}
       if data.access_token? and data.expires_in? and data.token_type == "bearer"
         
-        console.log 'response from reddit!'
+        #console.log 'response from reddit!'
         
         token_lifespan_timestamp = currentTime + data.expires_in * 1000
         setObj = {}
@@ -115,7 +115,7 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
         )
         
     fail: (data) ->
-      console.log 'reddit failed to authenticate client, try again in 5 min'
+      #console.log 'reddit failed to authenticate client, try again in 5 min'
       setTimeout( ->
         requestRedditOathToken(kiwi_reddit_oauth)
       , 1000 * 60 * 5
@@ -139,7 +139,7 @@ chrome.storage.local.get(null, (allItemsInLocalStorage) ->
   
   if !allItemsInLocalStorage.kiwi_reddit_oauth? or !allItemsInLocalStorage.kiwi_reddit_oauth.token?
     
-    console.log "2 setObj['kiwi_reddit_oauth'] ="
+    #console.log "2 setObj['kiwi_reddit_oauth'] ="
     
     chrome.storage.local.set(setObj, (data) ->
       
@@ -151,13 +151,13 @@ chrome.storage.local.get(null, (allItemsInLocalStorage) ->
       currentTime > allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp) or
       !allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp?
     
-    console.log "3 setObj['kiwi_reddit_oauth'] ="
+    #console.log "3 setObj['kiwi_reddit_oauth'] ="
     
     requestRedditOathToken(setObj.kiwi_reddit_oauth)
     
   else if allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp? and allItemsInLocalStorage.kiwi_reddit_oauth?
     
-    console.log "4 setObj['kiwi_reddit_oauth'] ="
+    #console.log "4 setObj['kiwi_reddit_oauth'] ="
     
     token_timestamp = allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp
     
@@ -465,8 +465,8 @@ chrome.extension.onConnect.addListener((port) ->
       switch dataFromPopup.msg
         
         when 'kiwiPP_post_customSearch'
-          console.log 'when kiwiPP_post_customSearch1'
-          console.debug dataFromPopup
+          #console.log 'when kiwiPP_post_customSearch1'
+          #console.debug dataFromPopup
           # dataFromPopup.servicesToSearch
           
           if dataFromPopup.customSearchRequest? and dataFromPopup.customSearchRequest.queryString? and
@@ -475,15 +475,15 @@ chrome.extension.onConnect.addListener((port) ->
             # if kiwi_customSearchResults? and kiwi_customSearchResults.queryString? and
             #     kiwi_customSearchResults.queryString == dataFromPopup.customSearchRequest.queryString
             #   return 0
-            console.log 'when kiwiPP_post_customSearch2'
+            #console.log 'when kiwiPP_post_customSearch2'
             
             chrome.storage.sync.get(null, (allItemsInSyncedStorage) -> 
               
               if allItemsInSyncedStorage['kiwi_servicesInfo']?
-                # console.log 'when kiwiPP_post_customSearch3'
+                # #console.log 'when kiwiPP_post_customSearch3'
                 for serviceInfoObject in allItemsInSyncedStorage['kiwi_servicesInfo']
                   
-                  console.log 'when kiwiPP_post_customSearch4 for ' + serviceInfoObject.name
+                  #console.log 'when kiwiPP_post_customSearch4 for ' + serviceInfoObject.name
                   if dataFromPopup.customSearchRequest.servicesToSearch[serviceInfoObject.name]?
                     
                     if serviceInfoObject.name is 'gnews'
@@ -497,11 +497,11 @@ chrome.extension.onConnect.addListener((port) ->
               
           
         when 'kiwiPP_researchUrlOverrideButton'
-          # console.log "when 'kiwiPP_researchUrlOverrideButton'"
+          # #console.log "when 'kiwiPP_researchUrlOverrideButton'"
           initIfNewURL(true,true)
           
         when 'kiwiPP_clearAllURLresults'
-          # console.log "when 'kiwiPP_clearAllURLresults'"
+          # #console.log "when 'kiwiPP_clearAllURLresults'"
           updateBadgeText('')
           kiwi_urlsResultsCache = {}
           tempResponsesStore = {}
@@ -551,7 +551,7 @@ chrome.extension.onConnect.addListener((port) ->
           _save_a_la_carte(dataFromPopup)    
         
         when 'kiwiPP_post_savePopupParcel'
-          console.log "when 'kiwiPP_post_savePopupParcel'"
+          #console.log "when 'kiwiPP_post_savePopupParcel'"
           
           
           _save_from_popupParcel(dataFromPopup.newPopupParcel, dataFromPopup.forUrl, dataFromPopup.refreshView)
@@ -563,18 +563,18 @@ chrome.extension.onConnect.addListener((port) ->
           
         when 'kiwiPP_request_popupParcel'
           
-          console.log " when 'kiwiPP_request_popupParcel' "
-          console.log 'dataFromPopup.forUrl' + dataFromPopup.forUrl
-          console.log 'tabUrl:' + tabUrl
+          #console.log " when 'kiwiPP_request_popupParcel' "
+          #console.log 'dataFromPopup.forUrl' + dataFromPopup.forUrl
+          #console.log 'tabUrl:' + tabUrl
           
           if dataFromPopup.forUrl is tabUrl
-            # console.log popupParcel.forUrl
-            # console.log tabUrl
+            # #console.log popupParcel.forUrl
+            # #console.log tabUrl
             
             preppedResponsesInPopupParcel = 0
             if popupParcel? and popupParcel.allPreppedResults? 
-              console.log 'popupParcel.allPreppedResults? '
-              console.debug popupParcel.allPreppedResults
+              #console.log 'popupParcel.allPreppedResults? '
+              #console.debug popupParcel.allPreppedResults
               
               for serviceName, service of popupParcel.allPreppedResults
                 if service.service_PreppedResults?
@@ -582,8 +582,8 @@ chrome.extension.onConnect.addListener((port) ->
             
             preppedResponsesInTempResponsesStore = 0
             if tempResponsesStore? and tempResponsesStore.services? 
-              console.log 'tempResponsesStore.services? '
-              console.debug tempResponsesStore.services
+              #console.log 'tempResponsesStore.services? '
+              #console.debug tempResponsesStore.services
               for serviceName, service of tempResponsesStore.services
                 preppedResponsesInTempResponsesStore += service.service_PreppedResults.length
             
@@ -593,7 +593,7 @@ chrome.extension.onConnect.addListener((port) ->
               newResultsBool = true
             
             if popupParcel? and popupParcel.forUrl is tabUrl and newResultsBool == false
-              console.log "popup parcel ready"
+              #console.log "popup parcel ready"
               
               parcel = {}
           
@@ -603,9 +603,9 @@ chrome.extension.onConnect.addListener((port) ->
               
               sendParcel(parcel)
             else
-              # console.log 'parcel is Not ready for tabUrl, must be set' + tabUrl
+              # #console.log 'parcel is Not ready for tabUrl, must be set' + tabUrl
               
-              console.log "popup parcel not ready"
+              #console.log "popup parcel not ready"
               
               if !tempResponsesStore.services? or tempResponsesStore.forUrl != tabUrl
                 _set_popupParcel({}, tabUrl, true)
@@ -618,7 +618,7 @@ chrome.extension.onConnect.addListener((port) ->
 
 
 initialize = (currentUrl) ->
-  console.log 'yolo 1 ' + currentUrl
+  #console.log 'yolo 1 ' + currentUrl
   
    # to prevent repeated api requests - we check to see if we have an up-to-date version in local storage
   chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
@@ -635,7 +635,7 @@ initialize = (currentUrl) ->
   
 getUrlResults_to_refreshBadgeIcon = (servicesInfo, currentUrl) ->
   
-  console.log 'yolo 2  getUrlResults_to_refreshBadgeIcon'
+  #console.log 'yolo 2  getUrlResults_to_refreshBadgeIcon'
   
   currentTime = Date.now()
   
@@ -669,24 +669,24 @@ getUrlResults_to_refreshBadgeIcon = (servicesInfo, currentUrl) ->
         sendPopupParcel = true
       else
         sendPopupParcel = false
-      console.log 'console.debug tempResponsesStore.services'
-      console.debug tempResponsesStore.services
+      #console.log '#console.debug tempResponsesStore.services'
+      #console.debug tempResponsesStore.services
       _set_popupParcel(tempResponsesStore.services, currentUrl, sendPopupParcel)
       
           
     else
       # this url has not been checked
-      console.log '# this url has not been checked'
+      #console.log '# this url has not been checked'
       check_updateServiceResults(servicesInfo, currentUrl, kiwi_urlsResultsCache)
         
   else
     
-    console.log '# no urls have been checked'
+    #console.log '# no urls have been checked'
     check_updateServiceResults(servicesInfo, currentUrl, null)
 
 
 _save_customSearch_results = (servicesInfo, tempResponsesStore, _urlsResultsCache) ->
-  console.log 'yolo 3'
+  #console.log 'yolo 3'
   
   
   urlsResultsCache = _.extend {}, _urlsResultsCache
@@ -712,7 +712,7 @@ _save_customSearch_results = (servicesInfo, tempResponsesStore, _urlsResultsCach
   return urlsResultsCache
 
 _save_url_results = (servicesInfo, tempResponsesStore, _urlsResultsCache) ->
-  console.log 'yolo 3'
+  #console.log 'yolo 3'
   
   urlsResultsCache = _.extend {}, _urlsResultsCache
   previousUrl = tempResponsesStore.forUrl
@@ -771,7 +771,7 @@ _save_historyBlob = (kiwi_urlsResultsCache, tabUrl) ->
       
       
       
-      console.log '# already exists in history blob ' + allItemsInLocalStorage.kiwi_historyBlob.indexOf(historyString)
+      #console.log '# already exists in history blob ' + allItemsInLocalStorage.kiwi_historyBlob.indexOf(historyString)
       
       return 0
       
@@ -797,15 +797,15 @@ _save_historyBlob = (kiwi_urlsResultsCache, tabUrl) ->
     
     
     chrome.storage.local.set({'kiwi_historyBlob': newKiwi_historyBlob}, ->
-        console.log 'successfully set for ' + tabUrl
-        console.log 'successfully set for ' + tabUrl_hash
-        console.log 'paddedHistoryString ' + paddedHistoryString
+        #console.log 'successfully set for ' + tabUrl
+        #console.log 'successfully set for ' + tabUrl_hash
+        #console.log 'paddedHistoryString ' + paddedHistoryString
       )
   )
       
 
 check_updateServiceResults = (servicesInfo, currentUrl, urlsResultsCache = null) ->
-  console.log 'yolo 4'
+  #console.log 'yolo 4'
   # if any results from previous tab have not been set, set them.
   if urlsResultsCache? and Object.keys(tempResponsesStore).length > 0
     previousResponsesStore = _.extend {}, tempResponsesStore
@@ -826,13 +826,13 @@ check_updateServiceResults = (servicesInfo, currentUrl, urlsResultsCache = null)
   if !urlsResultsCache[currentUrl]?
     urlsResultsCache[currentUrl] = {}
   
-  # console.log 'about to check for dispatch query'
-  # console.debug urlsResultsCache[currentUrl]
+  # #console.log 'about to check for dispatch query'
+  # #console.debug urlsResultsCache[currentUrl]
   
   # check on a service-by-service basis (so we don't requery all services just b/c one api/service is down)
   for service in servicesInfo
-    # console.log 'for service in servicesInfo'
-    # console.debug service
+    # #console.log 'for service in servicesInfo'
+    # #console.debug service
     
     if service.active == 'on'
       if urlsResultsCache[currentUrl][service.name]?
@@ -848,8 +848,8 @@ check_updateServiceResults = (servicesInfo, currentUrl, urlsResultsCache = null)
           dispatchQuery(service, currentUrl, servicesInfo)
 
 dispatchGnewsQuery = (service_info, currentUrl, servicesInfo) ->
-  console.log 'yolo 5 ~ - gnews '
-  console.debug service_info
+  #console.log 'yolo 5 ~ - gnews '
+  #console.debug service_info
   
   currentTime = Date.now()
   
@@ -865,7 +865,7 @@ dispatchGnewsQuery = (service_info, currentUrl, servicesInfo) ->
     else
       if (currentTime - serviceQueryTimestamps[service_info.name]) < queryThrottleSeconds * 1000
         #wait a couple seconds before querying service
-        console.log 'too soon on dispatch, waiting a couple seconds'
+        #console.log 'too soon on dispatch, waiting a couple seconds'
         setTimeout(->
             if currentUrl == tabUrl # if they've tabbed away, don't bother
                 # (although this check exists within dispatchGnewsQuery as well)
@@ -897,7 +897,7 @@ dispatchGnewsQuery = (service_info, currentUrl, servicesInfo) ->
     newsSearch.execute(tabTitleObject.tabTitle);
 
 dispatchQuery = (service_info, currentUrl, servicesInfo) ->
-  console.log 'yolo 5 ~ for ' + service_info.name
+  #console.log 'yolo 5 ~ for ' + service_info.name
   
   currentTime = Date.now()
   
@@ -907,7 +907,7 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
   else
     if (currentTime - serviceQueryTimestamps[service_info.name]) < queryThrottleSeconds * 1000
       #wait a couple seconds before querying service
-      console.log 'too soon on dispatch, waiting a couple seconds'
+      #console.log 'too soon on dispatch, waiting a couple seconds'
       setTimeout(->
           dispatchQuery(service_info, currentUrl, servicesInfo) 
         , 2000
@@ -923,8 +923,8 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
       type: "GET"
       url: service_info.queryApi + encodeURIComponent(currentUrl)
       success: (queryResult) ->
-        console.log 'response yoyoyo'
-        console.debug queryResult
+        #console.log 'response yoyoyo'
+        #console.debug queryResult
         responsePackage =
           
           forUrl: currentUrl
@@ -935,14 +935,14 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
           
           queryResult: queryResult
         
-        console.log 'responsePackage'
-        console.debug responsePackage
+        #console.log 'responsePackage'
+        #console.debug responsePackage
         
         setPreppedServiceResults(responsePackage, servicesInfo)
     }
     if service_info.name is 'reddit' and allItemsInLocalStorage.kiwi_reddit_oauth? 
-      console.log 'we are trying with oauth!'
-      console.debug allItemsInLocalStorage.kiwi_reddit_oauth
+      #console.log 'we are trying with oauth!'
+      #console.debug allItemsInLocalStorage.kiwi_reddit_oauth
       queryObj.headers =
         'Authorization': "'bearer " + allItemsInLocalStorage.kiwi_reddit_oauth + "'"
     
@@ -950,7 +950,7 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
   )
    
 dispatchGnewsQuery__customSearch = (customSearchQuery, servicesToSearch, service_info, servicesInfo) ->
-  console.log 'yolo 5 ~ - CUSTOM gnews'
+  #console.log 'yolo 5 ~ - CUSTOM gnews'
   
   currentTime = Date.now()
   
@@ -962,7 +962,7 @@ dispatchGnewsQuery__customSearch = (customSearchQuery, servicesToSearch, service
     else
       if (currentTime - serviceQueryTimestamps[service_info.name]) < queryThrottleSeconds * 1000
         #wait a couple seconds before querying service
-        console.log 'too soon on dispatch, waiting a couple seconds'
+        #console.log 'too soon on dispatch, waiting a couple seconds'
         setTimeout(->
             if currentUrl == tabUrl # if they've tabbed away, don't bother
                 # (although this check exists within dispatchGnewsQuery as well)
@@ -977,8 +977,8 @@ dispatchGnewsQuery__customSearch = (customSearchQuery, servicesToSearch, service
     # // Set searchComplete as the callback function when a search is 
     # // complete.  The newsSearch object will have results in it.
     newsSearch.setSearchCompleteCallback( @,  () ->
-      console.log ' google console.debug(newsSearch);'
-      console.debug(newsSearch);
+      #console.log ' google #console.debug(newsSearch);'
+      #console.debug(newsSearch);
       if _.isArray(newsSearch.results)
         results = newsSearch.results
       else
@@ -997,8 +997,8 @@ dispatchGnewsQuery__customSearch = (customSearchQuery, servicesToSearch, service
     newsSearch.execute(customSearchQuery);   
   
 dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info, servicesInfo) ->
-  console.log 'yolo 5 ~ for CUSTOM ' + service_info.name
-  console.debug servicesToSearch
+  #console.log 'yolo 5 ~ for CUSTOM ' + service_info.name
+  #console.debug servicesToSearch
   
   currentTime = Date.now()
   
@@ -1009,7 +1009,7 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
     if (currentTime - serviceQueryTimestamps[service_info.name]) < queryThrottleSeconds * 1000
       
       #wait a couple seconds before querying service
-      console.log 'too soon on dispatch, waiting a couple seconds'
+      #console.log 'too soon on dispatch, waiting a couple seconds'
       setTimeout(->
           dispatchQuery__customSearch(customSearchQuery, servicesToSearch, service_info, servicesInfo) 
         , 2000
@@ -1028,8 +1028,8 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
       
       queryUrl = queryUrl + service_info.customSearchTags__convention.string + service_info.customSearchTags[tagIdentifier].string
       
-      console.log 'asd;lfkjaewo;ifjae; '
-      console.log queryUrl
+      #console.log 'asd;lfkjaewo;ifjae; '
+      #console.log queryUrl
       # tagObject might one day accept special parameters like author name, etc
       
       
@@ -1038,8 +1038,8 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
       type: "GET"
       url: queryUrl
       success: (queryResult) ->
-        console.log 'response yoyoyo'
-        console.debug queryResult
+        #console.log 'response yoyoyo'
+        #console.debug queryResult
         responsePackage =
           
           servicesInfo: servicesInfo
@@ -1052,14 +1052,14 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
           
           customSearchQuery: customSearchQuery
         
-        console.log 'responsePackage'
-        console.debug responsePackage
+        #console.log 'responsePackage'
+        #console.debug responsePackage
         
         setPreppedServiceResults__customSearch(responsePackage, servicesInfo)
     }
     if service_info.name is 'reddit' and allItemsInLocalStorage.kiwi_reddit_oauth? 
-      console.log 'we are trying with oauth!'
-      console.debug allItemsInLocalStorage.kiwi_reddit_oauth
+      #console.log 'we are trying with oauth!'
+      #console.debug allItemsInLocalStorage.kiwi_reddit_oauth
       queryObj.headers =
         'Authorization': "'bearer " + allItemsInLocalStorage.kiwi_reddit_oauth + "'"
     
@@ -1072,7 +1072,7 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
   
   # the popup should always have enough to render with a properly set popupParcel.
 setPreppedServiceResults__customSearch = (responsePackage, servicesInfo) ->
-  console.log 'yolo 6'
+  #console.log 'yolo 6'
   
   currentTime = Date.now()
   
@@ -1112,11 +1112,11 @@ setPreppedServiceResults__customSearch = (responsePackage, servicesInfo) ->
     kiwi_customSearchResults.servicesSearched[responsePackage.serviceName].results = service_PreppedResults
     
   
-  console.log 'yolo 6 results service_PreppedResults'
-  console.debug service_PreppedResults
+  #console.log 'yolo 6 results service_PreppedResults'
+  #console.debug service_PreppedResults
   
-  console.log 'numberOfActiveServices'
-  console.debug returnNumberOfActiveServices(servicesInfo)
+  #console.log 'numberOfActiveServices'
+  #console.debug returnNumberOfActiveServices(servicesInfo)
   
   numberOfActiveServices = Object.keys(responsePackage.servicesToSearch).length
   
@@ -1130,19 +1130,19 @@ setPreppedServiceResults__customSearch = (responsePackage, servicesInfo) ->
     
   completedQueryServicesArray = _.uniq(completedQueryServicesArray)
   
-  console.log 'completedQueryServicesArray.length '
-  console.log completedQueryServicesArray.length
+  #console.log 'completedQueryServicesArray.length '
+  #console.log completedQueryServicesArray.length
   
   if completedQueryServicesArray.length is numberOfActiveServices and numberOfActiveServices != 0
     
       # NO LONGER STORING URL CACHE IN LOCALSTORAGE - BECAUSE : INFORMATION LEAKAGE / BROKEN EXTENSION SECURITY MODEL
         # get a fresh copy of urls results and reset with updated info
         # chrome.storage.local.get(null, (allItemsInLocalStorage) ->
-          # console.log 'trying to save all'
+          # #console.log 'trying to save all'
           # if !allItemsInLocalStorage['kiwi_urlsResultsCache']?
           #   allItemsInLocalStorage['kiwi_urlsResultsCache'] = {}
     
-    console.log 'yolo 6 _save_ results(servicesInfo, tempRes -- for ' + serviceInfo.name
+    #console.log 'yolo 6 _save_ results(servicesInfo, tempRes -- for ' + serviceInfo.name
     
     if kiwi_urlsResultsCache[tabUrl]?
       _set_popupParcel(kiwi_urlsResultsCache[tabUrl], tabUrl, true)
@@ -1150,18 +1150,18 @@ setPreppedServiceResults__customSearch = (responsePackage, servicesInfo) ->
       _set_popupParcel({}, tabUrl, true)
     
   # else
-  #   console.log 'yolo 6 not finished ' + serviceInfo.name
+  #   #console.log 'yolo 6 not finished ' + serviceInfo.name
   #   _set_popupParcel(tempResponsesStore.services, responsePackage.forUrl, false)
     
 
 
 _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = null, oldUrl = false) ->
   
-  console.log 'trying to set popupParcel, forUrl tabUrl' + forUrl + tabUrl
+  #console.log 'trying to set popupParcel, forUrl tabUrl' + forUrl + tabUrl
   # tabUrl
   if setWith_urlResults != {}
     if forUrl != tabUrl
-      console.log "_set_popupParcel request for old url"
+      #console.log "_set_popupParcel request for old url"
       return false
   
   setObj_popupParcel = {}
@@ -1197,7 +1197,7 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
     setObj_popupParcel.kiwi_customSearchResults = kiwi_customSearchResults
     
     if !setWith_urlResults?
-      console.log '_set_popupParcel called with undefined responses (not supposed to happen, ever)'
+      #console.log '_set_popupParcel called with undefined responses (not supposed to happen, ever)'
       return 0
     else
       setObj_popupParcel.allPreppedResults = setWith_urlResults
@@ -1222,7 +1222,7 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
     
     popupParcel = setObj_popupParcel
     
-    console.debug popupParcel
+    #console.debug popupParcel
     
     if sendPopupParcel
       
@@ -1241,7 +1241,7 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
 
 
 setPreppedServiceResults = (responsePackage, servicesInfo) ->
-  console.log 'yolo 6'
+  #console.log 'yolo 6'
   currentTime = Date.now()
   
   if tabUrl == responsePackage.forUrl  # if false, then do nothing (user's probably switched to new tab)
@@ -1261,11 +1261,11 @@ setPreppedServiceResults = (responsePackage, servicesInfo) ->
       service_PreppedResults: service_PreppedResults
       forUrl: responsePackage.forUrl
     
-    console.log 'yolo 6 results service_PreppedResults'
-    console.debug service_PreppedResults
+    #console.log 'yolo 6 results service_PreppedResults'
+    #console.debug service_PreppedResults
     
-    console.log 'numberOfActiveServices'
-    console.debug returnNumberOfActiveServices(servicesInfo)
+    #console.log 'numberOfActiveServices'
+    #console.debug returnNumberOfActiveServices(servicesInfo)
     
     numberOfActiveServices = returnNumberOfActiveServices(servicesInfo)
     
@@ -1282,19 +1282,19 @@ setPreppedServiceResults = (responsePackage, servicesInfo) ->
       
     completedQueryServicesArray = _.uniq(completedQueryServicesArray)
     
-    console.log 'completedQueryServicesArray.length '
-    console.log completedQueryServicesArray.length
+    #console.log 'completedQueryServicesArray.length '
+    #console.log completedQueryServicesArray.length
     
     if completedQueryServicesArray.length is numberOfActiveServices and numberOfActiveServices != 0
       
         # NO LONGER STORING URL CACHE IN LOCALSTORAGE - BECAUSE 1.) INFORMATION LEAKAGE, 2.) SLOWER
           # get a fresh copy of urls results and reset with updated info
           # chrome.storage.local.get(null, (allItemsInLocalStorage) ->
-            # console.log 'trying to save all'
+            # #console.log 'trying to save all'
             # if !allItemsInLocalStorage['kiwi_urlsResultsCache']?
             #   allItemsInLocalStorage['kiwi_urlsResultsCache'] = {}
       
-      console.log 'yolo 6 _save_url_results(servicesInfo, tempRes -- for ' + serviceInfo.name
+      #console.log 'yolo 6 _save_url_results(servicesInfo, tempRes -- for ' + serviceInfo.name
       
       kiwi_urlsResultsCache = _save_url_results(servicesInfo, tempResponsesStore, kiwi_urlsResultsCache)
       
@@ -1302,16 +1302,16 @@ setPreppedServiceResults = (responsePackage, servicesInfo) ->
       
       if popupOpen
         sendPopupParcel = true
-        console.log 'yolo 6 sendPopupParcel = true'
+        #console.log 'yolo 6 sendPopupParcel = true'
       else
         sendPopupParcel = false
-        console.log 'yolo 6 sendPopupParcel = false'
+        #console.log 'yolo 6 sendPopupParcel = false'
       
       _set_popupParcel(kiwi_urlsResultsCache[tabUrl], responsePackage.forUrl, sendPopupParcel)
       refreshBadge(servicesInfo, kiwi_urlsResultsCache[tabUrl])
       
     else
-      console.log 'yolo 6 not finished ' + serviceInfo.name
+      #console.log 'yolo 6 not finished ' + serviceInfo.name
       _set_popupParcel(tempResponsesStore.services, responsePackage.forUrl, false)
       refreshBadge(servicesInfo, tempResponsesStore.services)
 
@@ -1328,8 +1328,8 @@ parseResults =
   reddit: (resultsObj, searchQueryString, serviceInfo, customSearchBool = false) ->
     
     matchedListings = []
-    console.log 'reddit: (resultsObj) ->'
-    console.debug resultsObj
+    #console.log 'reddit: (resultsObj) ->'
+    #console.debug resultsObj
     if resultsObj.kind? and resultsObj.kind == "Listing" and resultsObj.data? and 
         resultsObj.data.children? and resultsObj.data.children.length > 0
       
@@ -1360,8 +1360,8 @@ parseResults =
   hackerNews: (resultsObj, searchQueryString, serviceInfo, customSearchBool = false) ->
     
     matchedListings = []
-    console.log ' hacker news console.debug resultsObj'
-    console.debug resultsObj
+    #console.log ' hacker news #console.debug resultsObj'
+    #console.debug resultsObj
     # if resultsObj.nbHits? and resultsObj.nbHits > 0 and resultsObj.hits? and resultsObj.hits.length is resultsObj.nbHits
     if resultsObj.hits?
       for hit in resultsObj.hits
@@ -1391,8 +1391,8 @@ parseResults =
     if customSearchBool == false
       forUrl = searchQueryString
       matchedListings = []
-      console.log 'gnews: (resultsObj) ->'
-      console.debug resultsObj
+      #console.log 'gnews: (resultsObj) ->'
+      #console.debug resultsObj
       
       for child in resultsObj
         
@@ -1449,16 +1449,16 @@ parseResults =
         matchedListings[0].kiwi_exact_match = true
       
       
-      console.log 'console.debug __numberOfStoriesFoundWithinTheHoursSincePostedLimit
-      console.debug serviceInfo.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit'
-      console.debug __numberOfRelatedItemsWithClusterURL
-      console.debug serviceInfo.notableConditions.numberOfRelatedItemsWithClusterURL
+      #console.log '#console.debug __numberOfStoriesFoundWithinTheHoursSincePostedLimit
+      #console.debug serviceInfo.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit'
+      #console.debug __numberOfRelatedItemsWithClusterURL
+      #console.debug serviceInfo.notableConditions.numberOfRelatedItemsWithClusterURL
       
       return matchedListings
     else
       matchedListings = []
-      console.log 'gnews: (resultsObj) ->'
-      console.debug resultsObj
+      #console.log 'gnews: (resultsObj) ->'
+      #console.debug resultsObj
       
       for child in resultsObj
         
@@ -1610,9 +1610,9 @@ _exact_match_url_check = (forUrl, preppedResultUrl) ->
 
 refreshBadge = (servicesInfo, resultsObjForCurrentUrl) ->
   
-  # console.log 'yolo 8'
-  # console.debug resultsObjForCurrentUrl
-  # console.debug servicesInfo
+  # #console.log 'yolo 8'
+  # #console.debug resultsObjForCurrentUrl
+  # #console.debug servicesInfo
   
   # icon badges typically only have room for 5 characters
   
@@ -1652,13 +1652,13 @@ refreshBadge = (servicesInfo, resultsObjForCurrentUrl) ->
         if service.updateBadgeOnlyWithExactMatch and exactMatch = false
           break
         
-        console.log service.name + ' noteworthy ' + noteworthy
+        #console.log service.name + ' noteworthy ' + noteworthy
         
         if noteworthy
           abbreviationLettersArray.push service.abbreviation
         else
           abbreviationLettersArray.push service.abbreviation.toLowerCase()
-        console.debug abbreviationLettersArray
+        #console.debug abbreviationLettersArray
         
   
   
@@ -1676,14 +1676,14 @@ refreshBadge = (servicesInfo, resultsObjForCurrentUrl) ->
       #   if tabUrl.indexOf(urlSubstring) != -1
       #     # user is not interested in results for this url
       #     updateBadgeText('block')
-      #     console.log '# user is not interested in results for this url: ' + tabUrl
+      #     #console.log '# user is not interested in results for this url: ' + tabUrl
       #     return 0 # we return before initializing script
     )
   else
     
     badgeText = abbreviationLettersArray.join(" ")
     
-  console.log 'yolo 8 ' + badgeText
+  #console.log 'yolo 8 ' + badgeText
   
   updateBadgeText(badgeText)
   
@@ -1695,7 +1695,7 @@ updateBadgeText = (text) ->
 
 
 periodicCleanup = (tab, allItemsInLocalStorage, allItemsInSyncedStorage, initialize_callback) ->
-  console.log 'wtf a'
+  #console.log 'wtf a'
   currentTime = Date.now()
   
   
@@ -1703,16 +1703,16 @@ periodicCleanup = (tab, allItemsInLocalStorage, allItemsInSyncedStorage, initial
     
     last_periodicCleanup = currentTime
     
-    console.log 'wtf b'
+    #console.log 'wtf b'
     # delete any results older than checkForUrlHourInterval 
     
     if Object.keys(kiwi_urlsResultsCache).length is 0
-      console.log 'wtf ba'
+      #console.log 'wtf ba'
       # nothing to (potentially) clean up!
       initialize_callback(tab, allItemsInLocalStorage, allItemsInSyncedStorage)
       
     else
-      console.log 'wtf bb'
+      #console.log 'wtf bb'
       # allItemsInLocalStorage.kiwi_urlsResultsCache
       
       cull_kiwi_urlsResultsCache = _.extend {}, kiwi_urlsResultsCache
@@ -1751,7 +1751,7 @@ periodicCleanup = (tab, allItemsInLocalStorage, allItemsInSyncedStorage, initial
         initialize_callback(tab, allItemsInLocalStorage, allItemsInSyncedStorage)
     
   else
-    console.log 'wtf c'
+    #console.log 'wtf c'
     initialize_callback(tab, allItemsInLocalStorage, allItemsInSyncedStorage)
 
 _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
@@ -1761,11 +1761,11 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
   former_autoOffTimerType = null
   former_autoOffTimerValue = null
   
-  # console.log 'console.debug popupParcel
-  #  console.debug _popupParcel'
+  # #console.log '#console.debug popupParcel
+  #  #console.debug _popupParcel'
   
-  # console.debug popupParcel
-  # console.debug _popupParcel
+  # #console.debug popupParcel
+  # #console.debug _popupParcel
   
   if popupParcel? and popupParcel.kiwi_userPreferences? and popupParcel.kiwi_servicesInfo
     formerResearchModeValue = popupParcel.kiwi_userPreferences.researchModeOnOff
@@ -1775,12 +1775,12 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
   
   popupParcel = {}
   
-  # console.log ' asdfasdfasd formerKiwi_autoOffTimerType'
-  # console.log former_autoOffTimerType
-  # console.log _popupParcel.kiwi_userPreferences.autoOffTimerType
-  # console.log ' a;woeifjaw;ef formerKiwi_autoOffTimerValue'
-  # console.log former_autoOffTimerValue
-  # console.log _popupParcel.kiwi_userPreferences.autoOffTimerValue
+  # #console.log ' asdfasdfasd formerKiwi_autoOffTimerType'
+  # #console.log former_autoOffTimerType
+  # #console.log _popupParcel.kiwi_userPreferences.autoOffTimerType
+  # #console.log ' a;woeifjaw;ef formerKiwi_autoOffTimerValue'
+  # #console.log former_autoOffTimerValue
+  # #console.log _popupParcel.kiwi_userPreferences.autoOffTimerValue
   
   if formerResearchModeValue? and formerResearchModeValue == 'off' and 
       _popupParcel.kiwi_userPreferences? and _popupParcel.kiwi_userPreferences.researchModeOnOff == 'on' or 
@@ -1813,8 +1813,8 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
                 
                 sendParcel(parcel)
               
-              console.log 'in _save_from_popupParcel _popupParcel.forUrl ' + _popupParcel.forUrl
-              console.log 'in _save_from_popupParcel tabUrl ' + tabUrl
+              #console.log 'in _save_from_popupParcel _popupParcel.forUrl ' + _popupParcel.forUrl
+              #console.log 'in _save_from_popupParcel tabUrl ' + tabUrl
               if _popupParcel.forUrl == tabUrl
                 
                 
@@ -1827,10 +1827,10 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
                   # so if user turns on a service and saves - it will immediately begin new query
                   formerActiveServicesList = _.pluck(formerKiwi_servicesInfo, 'active')
                   newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo, 'active')
-                  console.log 'formerActiveServicesList = _.pluck(formerKiwi_servicesInfo)'
-                  console.debug formerActiveServicesList
-                  console.log 'newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo)'
-                  console.debug newActiveServicesList
+                  #console.log 'formerActiveServicesList = _.pluck(formerKiwi_servicesInfo)'
+                  #console.debug formerActiveServicesList
+                  #console.log 'newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo)'
+                  #console.debug newActiveServicesList
                   
                   if !_.isEqual(formerActiveServicesList, newActiveServicesList)
                     initIfNewURL(true); return 0
@@ -1845,10 +1845,10 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
     )
 
 setAutoOffTimer = (resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue, autoOffTimerType, researchModeOnOff) ->
-  console.log 'trying setAutoOffTimer 43234'
+  #console.log 'trying setAutoOffTimer 43234'
   
   if resetTimerBool and kiwi_autoOffClearInterval?
-    console.log 'clearing timout'
+    #console.log 'clearing timout'
     clearTimeout(kiwi_autoOffClearInterval)
     kiwi_autoOffClearInterval = null
   
@@ -1869,41 +1869,41 @@ setAutoOffTimer = (resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue
         new_autoOffAtUTCmilliTimestamp = null
       else if autoOffTimerType == 'custom'
         new_autoOffAtUTCmilliTimestamp = currentTime + parseInt(autoOffTimerValue) * 60 * 1000
-        console.log 'setting custom new_autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
+        #console.log 'setting custom new_autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
         
     else
       
       new_autoOffAtUTCmilliTimestamp = autoOffAtUTCmilliTimestamp
       
       if !kiwi_autoOffClearInterval? and autoOffAtUTCmilliTimestamp > currentTime
-        console.log 'resetting timer timeout'
+        #console.log 'resetting timer timeout'
         
         kiwi_autoOffClearInterval = setTimeout( turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime )
       
-      console.log ' setting 123 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
+      #console.log ' setting 123 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
       
       return new_autoOffAtUTCmilliTimestamp
   else
     # it's already off - no need for timer
     new_autoOffAtUTCmilliTimestamp = null
     
-    console.log 'researchModeOnOff is off - resetting autoOff timestamp and clearInterval'
+    #console.log 'researchModeOnOff is off - resetting autoOff timestamp and clearInterval'
     
     if kiwi_autoOffClearInterval?
       clearTimeout(kiwi_autoOffClearInterval)
       kiwi_autoOffClearInterval = null
   
-  console.log ' setting 000 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
+  #console.log ' setting 000 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
   
   if new_autoOffAtUTCmilliTimestamp != null
-    console.log 'setting timer timeout'
+    #console.log 'setting timer timeout'
     kiwi_autoOffClearInterval = setTimeout( turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime )
   
   return new_autoOffAtUTCmilliTimestamp
     
     
 turnResearchModeOff = ->
-  console.log 'turning off research mode - in turnResearchModeOff'
+  #console.log 'turning off research mode - in turnResearchModeOff'
   
   chrome.storage.sync.get(null, (allItemsInSyncedStorage) -> 
     
@@ -1920,7 +1920,7 @@ turnResearchModeOff = ->
           if allItemsInSyncedStorage.kiwi_servicesInfo?
             refreshBadge(allItemsInSyncedStorage.kiwi_servicesInfo, urlResults)
           else
-            console.log 'weird, allItemsInSyncedStorage.kiwi_servicesInfo not set'
+            #console.log 'weird, allItemsInSyncedStorage.kiwi_servicesInfo not set'
         )
       
     else
@@ -1946,7 +1946,7 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
       # that has since been negated by nesting the callback, but why not leave the check here?
     overrideSameURLCheck_popupOpen = false
   
-  # console.log 'wtf 1 kiwi_urlsResultsCache ' + overrideSameURLCheck_popupOpen
+  # #console.log 'wtf 1 kiwi_urlsResultsCache ' + overrideSameURLCheck_popupOpen
   if overrideSameURLCheck_popupOpen # for when a user turns researchModeOnOff "on" or refreshes results from popup
     popupOpen = true
   else
@@ -1965,9 +1965,15 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
         
         # we care about the title, because it's the best way to search google news
         if tabs[0].status == 'complete'
+          title = tabs[0].title
+          
+          if title.length > 3 and title[0] == "(" and isNaN(title[1]) == false and title.indexOf(')') != -1 and
+              title.indexOf(')') != title.length - 1
+            
+            title = title.slice(title.indexOf(')') + 1 , title.length).trim()
           
           tabTitleObject = 
-            tabTitle: tabs[0].title
+            tabTitle: title
             forUrl: tabUrl
             
         else
@@ -1978,7 +1984,7 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
         
       else 
         _set_popupParcel({}, tabUrl, false)
-        console.log 'chrome-devtools:// has been the only url visited so far'
+        #console.log 'chrome-devtools:// has been the only url visited so far'
         return 0  
       
       tabUrl_hashWordArray = CryptoJS.SHA512(tabUrl)
@@ -1986,7 +1992,7 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
       
       chrome.storage.local.get(null, (allItemsInLocalStorage) ->
         
-        # console.log 'chrome.storage.local.get(null, (allItemsInLocalStorage) ->  '
+        # #console.log 'chrome.storage.local.get(null, (allItemsInLocalStorage) ->  '
           
         sameURLCheck = true
         
@@ -2000,7 +2006,7 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
             allItemsInLocalStorage['kiwi_historyBlob'].indexOf(historyString) != -1 and 
             (!kiwi_urlsResultsCache? or !kiwi_urlsResultsCache[tabUrl]?)
           
-          console.log ' trying to set as old 123412341241234 ' 
+          #console.log ' trying to set as old 123412341241234 ' 
           
           updateBadgeText('old')
           sameURLCheck = true
@@ -2022,51 +2028,51 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
         
         if sameURLCheck == false          
           updateBadgeText('')
-          console.log 'console.debug kiwi_urlsResultsCache'
-          console.debug kiwi_urlsResultsCache
+          #console.log '#console.debug kiwi_urlsResultsCache'
+          #console.debug kiwi_urlsResultsCache
         
           chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
             
-            console.log 'allItemsInSyncedStorage123'
-            console.debug allItemsInSyncedStorage
+            #console.log 'allItemsInSyncedStorage123'
+            #console.debug allItemsInSyncedStorage
             if allItemsInSyncedStorage.kiwi_userPreferences?
               
               if allItemsInSyncedStorage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp?
                 if currentTime > allItemsInSyncedStorage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp 
-                  console.log 'timer is past due - turning off - in initifnewurl'
+                  #console.log 'timer is past due - turning off - in initifnewurl'
                   allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff = 'off'
                   
               if allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff is 'off' and overrideResearchModeOff == false
                 updateBadgeText('off')
                 
-                console.log 'console.debug kiwi_urlsResultsCache'
-                console.debug kiwi_urlsResultsCache
+                #console.log '#console.debug kiwi_urlsResultsCache'
+                #console.debug kiwi_urlsResultsCache
                 
                 # showing cached responses
                 if tabUrl == tempResponsesStore.forUrl
-                  console.log 'if tabUrl == tempResponsesStore.forUrl'
-                  console.log tabUrl
-                  console.log tempResponsesStore.forUrl
+                  #console.log 'if tabUrl == tempResponsesStore.forUrl'
+                  #console.log tabUrl
+                  #console.log tempResponsesStore.forUrl
                   if kiwi_urlsResultsCache[tabUrl]?
                     _set_popupParcel(kiwi_urlsResultsCache[tabUrl],tabUrl,false);
                     if allItemsInSyncedStorage['kiwi_servicesInfo']?
                       refreshBadge(allItemsInSyncedStorage['kiwi_servicesInfo'], kiwi_urlsResultsCache[tabUrl])
                 else
-                  console.log '_set_popupParcel({},tabUrl,false);  '
+                  #console.log '_set_popupParcel({},tabUrl,false);  '
                   _set_popupParcel({},tabUrl,false);  
                 return 0;
             
             
             periodicCleanup(tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage, (tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage) ->
               
-              console.log 'in initialize callback'
+              #console.log 'in initialize callback'
               
               if !allItemsInSyncedStorage['kiwi_userPreferences']?
                 
                 # defaultUserPreferences 
                 
-                console.log "console.debug allItemsInSyncedStorage['kiwi_userPreferences']"
-                console.debug allItemsInSyncedStorage['kiwi_userPreferences']
+                #console.log "#console.debug allItemsInSyncedStorage['kiwi_userPreferences']"
+                #console.debug allItemsInSyncedStorage['kiwi_userPreferences']
                 
                 _autoOffAtUTCmilliTimestamp = setAutoOffTimer(false, defaultUserPreferences.autoOffAtUTCmilliTimestamp, 
                     defaultUserPreferences.autoOffTimerValue, defaultUserPreferences.autoOffTimerType, defaultUserPreferences.researchModeOnOff)
@@ -2083,7 +2089,7 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
                     
                     # user is not interested in results for this url
                     updateBadgeText('block')
-                    console.log '# user is not interested in results for this url: ' + tabUrl
+                    #console.log '# user is not interested in results for this url: ' + tabUrl
                     
                     _set_popupParcel({}, tabUrl, true)  # trying to send, because options page
                     
@@ -2092,8 +2098,8 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
                   initialize(tabUrl)
                 )
               else
-                console.log "allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists"
-                console.debug allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists
+                #console.log "allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists"
+                #console.debug allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists
                 
                 isUrlBlocked = is_url_blocked(allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists, tabUrl)
                 
@@ -2101,7 +2107,7 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
                   
                   # user is not interested in results for this url
                   updateBadgeText('block')
-                  console.log '# user is not interested in results for this url: ' + tabUrl
+                  #console.log '# user is not interested in results for this url: ' + tabUrl
                   _set_popupParcel({}, tabUrl, true)  # trying to send, because options page
                   
                   return 0 # we return before initializing script
@@ -2122,8 +2128,8 @@ chrome.tabs.onUpdated.addListener((tabId , info) ->
     updateBadgeText('')
     if tabTitleObject? and tabTitleObject.forUrl == tabUrl and !tabTitleObject.tabTitle?
       if (info.status == "complete") 
-        console.log ' if (info.status == "complete") '
-        console.debug info
+        #console.log ' if (info.status == "complete") '
+        #console.debug info
         initIfNewURL(true)
         return 0
     else

@@ -518,7 +518,7 @@
                 researchModeDisabledButtonsHTML += "<br>Research Mode is off <button class='goTo_userPreferencesView btn btn-mini btn-default'> change settings </button><br>";
               }
               $("#researchModeDisabledButtons").html(researchModeDisabledButtonsHTML);
-              preppedHTMLstring = '';
+              preppedHTMLstring = '<h3 style="position:relative; top:-10px;">Results for this URL:</h3>';
               _ref = popupParcel.kiwi_servicesInfo;
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 serviceInfoObject = _ref[_i];
@@ -532,7 +532,7 @@
                   if (serviceInfoObject.submitTitle != null) {
                     submitUrl = serviceInfoObject.submitUrl;
                     submitTitle = serviceInfoObject.submitTitle;
-                    preppedHTMLstring += '<div><a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div>';
+                    preppedHTMLstring += '<div>No matches for conversation threads on ' + serviceInfoObject.title + '... <br> &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>';
                   } else {
                     preppedHTMLstring += '<div>No results for ' + serviceInfoObject.title + '</div>';
                   }

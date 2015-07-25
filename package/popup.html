@@ -23,7 +23,6 @@
         min-width: 450px;
         overflow-x: hidden;
         margin-top: 8px;
-        
       }
       .commentBox {
         padding: 5px;
@@ -42,6 +41,8 @@
       .nsfw {
         color: red;
       }
+      
+      
       .listing {
         /*border-color: green;
         border-width: 1px;
@@ -53,6 +54,11 @@
         margin: 6px;
         padding: 10px;
         margin-bottom: 25px;
+        
+      }
+      .recentListingTag {
+        color:green; 
+        font-weight:bold;
       }
       .hidden_listing {
         display: hidden;
@@ -60,6 +66,21 @@
       .servicesToSearch {
         
       }
+      
+      .kiwiSliceOpenPlatter {
+        position: fixed;
+        bottom: 24px;
+        right: 62px;
+        padding: 9px;
+        width:404px;
+        padding-right: 34px;
+        padding-left: 20px;
+        box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset;
+        border: 1px solid rgba(20, 86, 15, 0.87);
+        border-radius: 4px;
+        background-color: white;
+      }
+      
       .evenlySpacedContainer {
         display: flex;
         justify-content: space-between;
@@ -73,7 +94,10 @@
         border-color: green;
         border-width: 1px;
         border-style: solid;
-        margin: 3px;
+        margin-left: 28px;
+        margin-right: 28px;
+        margin-top: 5px;
+        margin-bottom: 5px;
         padding: 8px;
       }
       
@@ -92,9 +116,11 @@
         z-index:3; 
         height: 55px;
       }
+      
       button.btn {
         font-size: .8em;
       }
+      
       .topSearchBar, .navBar {
         width: 100%;
         position: fixed; 
@@ -115,7 +141,6 @@
         padding-bottom: 14px;
       }
       
-      
       .topSearchBar .queryInputOpen {
           width: 292px;
           position: relative;
@@ -123,10 +148,14 @@
           top: 1px;
           margin-right: 18px;
       }
+      .showFuzzyMatches {
+        padding-left: 9px;
+      }
       
       .serviceResultsTitles {
-        font-size: 1.4em;
-        color: black;
+        font-size: 1.7em;
+        color:green;
+        /*color: black;*/
       }
       .serviceResultsHeaderBar {
         padding-top:10px;
@@ -136,17 +165,17 @@
       .upDownButtons {
         padding-right: 4px;
       }
+      .altURL {
+        padding-left: 0px;
+        /*word-wrap: break-word;*/
+        /*display: inline-block;*/
+      }
+      
       /*
       .serviceInfo {
         padding-left: 12px;
       }
       */
-      .altURL {
-        padding-left: 0px;
-        /*word-wrap: break-word;*/
-        
-        /*display: inline-block;*/
-      }
       
       #menuBar_conversations {
         padding-top:10px;
@@ -280,7 +309,7 @@
     
   </head>
   
-  <body style="height: 580px; width: 460px;">
+  <body style="height: 580px; width: 500px;">
     <div id="loading_View" style="display:none;">
       <br>
       loading...
@@ -369,9 +398,8 @@
       
       <span class="userErrMsg"></span>
       <br>
-      <div style="margin: 30px;margin-bottom: 45px; margin-top:20px; padding: 15px;" class="bg-warning">
+      <div style="margin: 30px;margin-bottom: 45px; margin-top:20px; padding: 35px;" class="bg-warning">
         
-        Research Mode - 
         
         <span id="researchModeDrop"></span>
         <br><br>

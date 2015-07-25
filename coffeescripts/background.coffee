@@ -21,7 +21,7 @@ serviceQueryTimestamps = {}
 
 maxUrlResultsStoredInLocalStorage = 800 # they're deleted after they've expired anyway - so this likely won't be reached by user
 
-kiwi_urlsResultsCache = {}  
+kiwi_urlsResultsCache = {}
   # < url >:
     # < serviceName >: {
     #   forUrl: url
@@ -224,7 +224,7 @@ defaultUserPreferences = {
   
   sortByPref: 'attention' # 'recency'   # "attention" means 'comments' if story, 'points' if comment, 'clusterUrl' if news
   
-    # suggested values to all users
+    # suggested values to all users  -- any can be overriden with the "Research this URL" button
   urlSubstring_blacklists: 
     anyMatch: [
       'facebook.com'
@@ -252,17 +252,17 @@ defaultUserPreferences = {
       
       'chrome-devtools://'  # hardcoded block
     ]
+    beginsWith: [
+      "about:"
+      'chrome://'
+    ]
     endingIn: [
       #future - ending in:
       'youtube.com' # /
     ]
     unless: [
-      #unless 
-      ['twitter.com/','/status/'] # unless /status/
-    # ,
-    #   'twitter.com'
+      ['twitter.com/','/status/'] # unless /status/    # so that people checking their homepage doesn't count 
     ] 
-  
 }
 
 is_url_blocked = (blockedLists, url) ->
@@ -270,7 +270,12 @@ is_url_blocked = (blockedLists, url) ->
     for urlSubstring in blockedLists.anyMatch
       if url.indexOf(urlSubstring) != -1
         return true
-        
+  
+  if blockedLists.beginsWith?
+    for urlSubstring in blockedLists.beginsWith
+      if url.indexOf(urlSubstring) == 0
+        return true
+  
   if blockedLists.endingIn?
     for urlSubstring in blockedLists.endingIn
       if url.indexOf(urlSubstring) == url.length - urlSubstring.length
@@ -440,15 +445,19 @@ sendParcel = (parcel) ->
     
     
 _save_a_la_carte = (parcel) ->
-  
+  # console.log '_save_a_la_carte = (parcel) ->'
   setObj = {}
   setObj[parcel.keyName] = parcel.newValue
   
   chrome.storage[parcel.localOrSync].set(setObj, (data) ->
-    if parcel.refreshView?
-      _set_popupParcel(tempResponsesStore.services, tabUrl, true, parcel.refreshView)
+    if !tempResponsesStore? or !tempResponsesStore.services?
+      tempResponsesStoreServices = {}
     else
-      _set_popupParcel(tempResponsesStore.services, tabUrl, false)
+      tempResponsesStoreServices = tempResponsesStore.services
+    if parcel.refreshView?
+      _set_popupParcel(tempResponsesStoreServices, tabUrl, true, parcel.refreshView)
+    else
+      _set_popupParcel(tempResponsesStoreServices, tabUrl, false)
   )
 
 
@@ -548,6 +557,7 @@ chrome.extension.onConnect.addListener((port) ->
           _save_a_la_carte(parcel)
           
         when 'kiwiPP_post_save_a_la_carte'
+          console.log "when 'kiwiPP_post_save_a_la_carte'"
           _save_a_la_carte(dataFromPopup)    
         
         when 'kiwiPP_post_savePopupParcel'
@@ -620,7 +630,6 @@ chrome.extension.onConnect.addListener((port) ->
 initialize = (currentUrl) ->
   #console.log 'yolo 1 ' + currentUrl
   
-   # to prevent repeated api requests - we check to see if we have an up-to-date version in local storage
   chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
     
     if !allItemsInSyncedStorage['kiwi_servicesInfo']?
@@ -641,6 +650,7 @@ getUrlResults_to_refreshBadgeIcon = (servicesInfo, currentUrl) ->
   
   if Object.keys(kiwi_urlsResultsCache).length > 0
     
+     # to prevent repeated api requests - we check to see if we have up-to-date request results in local storage
     if kiwi_urlsResultsCache[currentUrl]?
       
       # start off by instantly updating UI with what we know
@@ -683,33 +693,6 @@ getUrlResults_to_refreshBadgeIcon = (servicesInfo, currentUrl) ->
     
     #console.log '# no urls have been checked'
     check_updateServiceResults(servicesInfo, currentUrl, null)
-
-
-_save_customSearch_results = (servicesInfo, tempResponsesStore, _urlsResultsCache) ->
-  #console.log 'yolo 3'
-  
-  
-  urlsResultsCache = _.extend {}, _urlsResultsCache
-  previousUrl = tempResponsesStore.forUrl
-  
-  if urlsResultsCache[previousUrl]? 
-    
-      # these will always be at least as recent as what's in the store. 
-    for service in servicesInfo
-      
-      if tempResponsesStore.services[service.name]?
-        
-        urlsResultsCache[previousUrl][service.name] =
-          forUrl: previousUrl
-          timestamp: tempResponsesStore.services[service.name].timestamp
-          service_PreppedResults: tempResponsesStore.services[service.name].service_PreppedResults
-       
-      
-  else
-    urlsResultsCache[previousUrl] = {}
-    urlsResultsCache[previousUrl] = tempResponsesStore.services
-    
-  return urlsResultsCache
 
 _save_url_results = (servicesInfo, tempResponsesStore, _urlsResultsCache) ->
   #console.log 'yolo 3'
@@ -964,7 +947,7 @@ dispatchGnewsQuery__customSearch = (customSearchQuery, servicesToSearch, service
         #wait a couple seconds before querying service
         #console.log 'too soon on dispatch, waiting a couple seconds'
         setTimeout(->
-            if currentUrl == tabUrl # if they've tabbed away, don't bother
+            
                 # (although this check exists within dispatchGnewsQuery as well)
               dispatchGnewsQuery__customSearch(service_info, customSearchQuery, servicesInfo) 
           , queryThrottleSeconds * 1000
@@ -1142,8 +1125,6 @@ setPreppedServiceResults__customSearch = (responsePackage, servicesInfo) ->
           # if !allItemsInLocalStorage['kiwi_urlsResultsCache']?
           #   allItemsInLocalStorage['kiwi_urlsResultsCache'] = {}
     
-    #console.log 'yolo 6 _save_ results(servicesInfo, tempRes -- for ' + serviceInfo.name
-    
     if kiwi_urlsResultsCache[tabUrl]?
       _set_popupParcel(kiwi_urlsResultsCache[tabUrl], tabUrl, true)
     else
@@ -1155,13 +1136,13 @@ setPreppedServiceResults__customSearch = (responsePackage, servicesInfo) ->
     
 
 
-_set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = null, oldUrl = false) ->
+_set_popupParcel = (setWith_urlResults = {}, forUrl, sendPopupParcel, renderView = null, oldUrl = false) ->
   
-  #console.log 'trying to set popupParcel, forUrl tabUrl' + forUrl + tabUrl
+  # console.log 'trying to set popupParcel, forUrl tabUrl' + forUrl + tabUrl
   # tabUrl
   if setWith_urlResults != {}
     if forUrl != tabUrl
-      #console.log "_set_popupParcel request for old url"
+      console.log "_set_popupParcel request for old url"
       return false
   
   setObj_popupParcel = {}
@@ -1186,18 +1167,15 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
     if renderView != null
       setObj_popupParcel.view = renderView
     
+    # if !allItemsInSyncedStorage['kiwi_alerts']?
+    #   setObj_popupParcel.kiwi_alerts = []
+    # else
+    #   setObj_popupParcel.kiwi_alerts = allItemsInSyncedStorage['kiwi_alerts']
     
-    if !allItemsInSyncedStorage['kiwi_alerts']?
-    
-      setObj_popupParcel.kiwi_alerts = []
-      
-    else
-      setObj_popupParcel.kiwi_alerts = allItemsInSyncedStorage['kiwi_alerts']
-      
     setObj_popupParcel.kiwi_customSearchResults = kiwi_customSearchResults
     
     if !setWith_urlResults?
-      #console.log '_set_popupParcel called with undefined responses (not supposed to happen, ever)'
+      console.log '_set_popupParcel called with undefined responses (not supposed to happen, ever)'
       return 0
     else
       setObj_popupParcel.allPreppedResults = setWith_urlResults
@@ -1221,8 +1199,6 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
       setObj_popupParcel.oldUrl = false
     
     popupParcel = setObj_popupParcel
-    
-    #console.debug popupParcel
     
     if sendPopupParcel
       
@@ -1254,6 +1230,10 @@ setPreppedServiceResults = (responsePackage, servicesInfo) ->
     
     # even if there are zero matches returned, that counts as a proper query response
     service_PreppedResults = parseResults[responsePackage.serviceName](responsePackage.queryResult, responsePackage.forUrl, serviceInfo)
+    
+    if !tempResponsesStore.services?
+      tempResponsesStore = {}
+      tempResponsesStore.services = {}
     
     tempResponsesStore.services[responsePackage.serviceName] =
       
@@ -1516,12 +1496,21 @@ _exact_match_url_check = (forUrl, preppedResultUrl) ->
       modify: (tOrF, forUrl) ->
         if tOrF is 't'
           protocolSplitUrlArray = forUrl.split('://')
-          if protocolSplitUrlArray[1].indexOf('www.') != 0
-            protocolSplitUrlArray[1] = 'www.' + protocolSplitUrlArray[1]
-            WWWurl = protocolSplitUrlArray.join('://')
+          if protocolSplitUrlArray.length > 1
+            if protocolSplitUrlArray[1].indexOf('www.') != 0
+              protocolSplitUrlArray[1] = 'www.' + protocolSplitUrlArray[1]
+              WWWurl = protocolSplitUrlArray.join('://')
+            else
+              WWWurl = forUrl
+            return WWWurl
+            
           else
-            WWWurl = forUrl
-          return WWWurl
+            if protocolSplitUrlArray[0].indexOf('www.') != 0
+              protocolSplitUrlArray[0] = 'www.' + protocolSplitUrlArray[1]
+              WWWurl = protocolSplitUrlArray.join('://')
+            else
+              WWWurl = forUrl
+            return WWWurl
         else
           wwwSplitUrlArray = forUrl.split('www.')
           if wwwSplitUrlArray.length is 2
@@ -1755,17 +1744,17 @@ periodicCleanup = (tab, allItemsInLocalStorage, allItemsInSyncedStorage, initial
     initialize_callback(tab, allItemsInLocalStorage, allItemsInSyncedStorage)
 
 _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
-  
+    
   formerResearchModeValue = null
   formerKiwi_servicesInfo = null
   former_autoOffTimerType = null
   former_autoOffTimerValue = null
   
-  # #console.log '#console.debug popupParcel
-  #  #console.debug _popupParcel'
+  console.log '#console.debug popupParcel
+   console.debug _popupParcel'
   
-  # #console.debug popupParcel
-  # #console.debug _popupParcel
+  console.debug popupParcel
+  console.debug _popupParcel
   
   if popupParcel? and popupParcel.kiwi_userPreferences? and popupParcel.kiwi_servicesInfo
     formerResearchModeValue = popupParcel.kiwi_userPreferences.researchModeOnOff
@@ -1775,12 +1764,12 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
   
   popupParcel = {}
   
-  # #console.log ' asdfasdfasd formerKiwi_autoOffTimerType'
-  # #console.log former_autoOffTimerType
-  # #console.log _popupParcel.kiwi_userPreferences.autoOffTimerType
-  # #console.log ' a;woeifjaw;ef formerKiwi_autoOffTimerValue'
-  # #console.log former_autoOffTimerValue
-  # #console.log _popupParcel.kiwi_userPreferences.autoOffTimerValue
+  console.log ' asdfasdfasd formerKiwi_autoOffTimerType'
+  console.log former_autoOffTimerType
+  console.log _popupParcel.kiwi_userPreferences.autoOffTimerType
+  console.log ' a;woeifjaw;ef formerKiwi_autoOffTimerValue'
+  console.log former_autoOffTimerValue
+  console.log _popupParcel.kiwi_userPreferences.autoOffTimerValue
   
   if formerResearchModeValue? and formerResearchModeValue == 'off' and 
       _popupParcel.kiwi_userPreferences? and _popupParcel.kiwi_userPreferences.researchModeOnOff == 'on' or 
@@ -1799,49 +1788,47 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
   
   chrome.storage.sync.set({'kiwi_userPreferences': _popupParcel.kiwi_userPreferences}, ->
       
-      chrome.storage.sync.set({'kiwi_servicesInfo': _popupParcel.kiwi_servicesInfo}, ->
+    chrome.storage.sync.set({'kiwi_servicesInfo': _popupParcel.kiwi_servicesInfo}, ->
+        
+      
+      if updateToView?
+        
+        parcel = {}
+        popupParcel = _popupParcel
+        parcel.msg = 'kiwiPP_popupParcel_ready'
+        parcel.forUrl = tabUrl
+        parcel.popupParcel = _popupParcel
+        
+        sendParcel(parcel)
+      
+      #console.log 'in _save_from_popupParcel _popupParcel.forUrl ' + _popupParcel.forUrl
+      #console.log 'in _save_from_popupParcel tabUrl ' + tabUrl
+      if _popupParcel.forUrl == tabUrl
+        
+        
+        if formerResearchModeValue? and formerResearchModeValue == 'off' and 
+            _popupParcel.kiwi_userPreferences? and _popupParcel.kiwi_userPreferences.researchModeOnOff == 'on'
           
-          chrome.storage.sync.set({'kiwi_alerts': _popupParcel.kiwi_alerts}, ->
-              
-              if updateToView?
-                
-                parcel = {}
-                popupParcel = _popupParcel
-                parcel.msg = 'kiwiPP_popupParcel_ready'
-                parcel.forUrl = tabUrl
-                parcel.popupParcel = _popupParcel
-                
-                sendParcel(parcel)
-              
-              #console.log 'in _save_from_popupParcel _popupParcel.forUrl ' + _popupParcel.forUrl
-              #console.log 'in _save_from_popupParcel tabUrl ' + tabUrl
-              if _popupParcel.forUrl == tabUrl
-                
-                
-                
-                if formerResearchModeValue? and formerResearchModeValue == 'off' and 
-                    _popupParcel.kiwi_userPreferences? and _popupParcel.kiwi_userPreferences.researchModeOnOff == 'on'
-                  
-                  initIfNewURL(true); return 0
-                else if formerKiwi_servicesInfo? 
-                  # so if user turns on a service and saves - it will immediately begin new query
-                  formerActiveServicesList = _.pluck(formerKiwi_servicesInfo, 'active')
-                  newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo, 'active')
-                  #console.log 'formerActiveServicesList = _.pluck(formerKiwi_servicesInfo)'
-                  #console.debug formerActiveServicesList
-                  #console.log 'newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo)'
-                  #console.debug newActiveServicesList
-                  
-                  if !_.isEqual(formerActiveServicesList, newActiveServicesList)
-                    initIfNewURL(true); return 0
-                  else
-                    refreshBadge(_popupParcel.kiwi_servicesInfo, _popupParcel.allPreppedResults); return 0
-                else
-                  refreshBadge(_popupParcel.kiwi_servicesInfo, _popupParcel.allPreppedResults); return 0
-                
-              
-            )
-        )
+          initIfNewURL(true); return 0
+        else if formerKiwi_servicesInfo? 
+          # so if user turns on a service and saves - it will immediately begin new query
+          formerActiveServicesList = _.pluck(formerKiwi_servicesInfo, 'active')
+          newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo, 'active')
+          #console.log 'formerActiveServicesList = _.pluck(formerKiwi_servicesInfo)'
+          #console.debug formerActiveServicesList
+          #console.log 'newActiveServicesList = _.pluck(_popupParcel.kiwi_servicesInfo)'
+          #console.debug newActiveServicesList
+          
+          if !_.isEqual(formerActiveServicesList, newActiveServicesList)
+            initIfNewURL(true); return 0
+          else
+            refreshBadge(_popupParcel.kiwi_servicesInfo, _popupParcel.allPreppedResults); return 0
+        else
+          refreshBadge(_popupParcel.kiwi_servicesInfo, _popupParcel.allPreppedResults); return 0
+        
+            
+          
+      )
     )
 
 setAutoOffTimer = (resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue, autoOffTimerType, researchModeOnOff) ->
@@ -1919,7 +1906,7 @@ turnResearchModeOff = ->
           _set_popupParcel(urlResults, tabUrl, true)
           if allItemsInSyncedStorage.kiwi_servicesInfo?
             refreshBadge(allItemsInSyncedStorage.kiwi_servicesInfo, urlResults)
-          else
+          # else
             #console.log 'weird, allItemsInSyncedStorage.kiwi_servicesInfo not set'
         )
       
@@ -2074,10 +2061,15 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
                 #console.log "#console.debug allItemsInSyncedStorage['kiwi_userPreferences']"
                 #console.debug allItemsInSyncedStorage['kiwi_userPreferences']
                 
+                
+                
                 _autoOffAtUTCmilliTimestamp = setAutoOffTimer(false, defaultUserPreferences.autoOffAtUTCmilliTimestamp, 
                     defaultUserPreferences.autoOffTimerValue, defaultUserPreferences.autoOffTimerType, defaultUserPreferences.researchModeOnOff)
                 
                 defaultUserPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp
+                
+                
+                
                 
                 setObj =
                   kiwi_servicesInfo: defaultServicesInfo

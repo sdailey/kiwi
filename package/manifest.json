@@ -4,7 +4,7 @@
   "name": "Kiwi Conversations",
   "short_name": "Kiwi Conversations",
   "description": "Kiwi Conversations searches community sites to find forum comment threads about the url you're visiting.",
-  "version": "0.9.72",
+  "version": "0.9.77",
 
   "permissions": [
     "tabs",
@@ -18,7 +18,7 @@
       "vendor/gApiLoader.js",
       "vendor/jquery-2.1.4.min.js",
       "vendor/Underscore1-8-3.js",
-      "vendor/sha512.js",
+      "vendor/CryptoJS.js",
       "background.js"
     ]
   },

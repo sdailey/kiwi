@@ -757,11 +757,11 @@ class UserPreferences extends SwitchView
             console.log 'trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or'
           
           
-        # servicesHtml += '<div class="serviceListing">
+        servicesHtml += "<div class='serviceListing listing' style='padding:15px; margin-top: 30px;'>
             
-        #     add service! (tweet)
+            Wouldn't it be awesome if we could add some more services to opt-in to?&nbsp;&nbsp; All that's needed are friendly APIs!&nbsp; <a href='https://twitter.com/spencenow' target='_blank'>Tweet me</a> if you're interested in adding one!
             
-        #   </div>'
+          </div>"
         
         $("#servicesInfoDrop").html(servicesHtml)
         

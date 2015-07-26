@@ -1464,6 +1464,8 @@ parseResults =
 
 _exact_match_url_check = (forUrl, preppedResultUrl) ->
   
+    # warning:: one of the worst algo-s i've ever written... please don't use as reference
+  
   kiwi_exact_match = false
   
   modifications = [

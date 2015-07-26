@@ -1,8 +1,12 @@
 # kiwi conversations
 
-The packaged end-result can be found:
+The packaged end-result can be found here:
 https://chrome.google.com/webstore/detail/kiwi-conversations/pkifhlefpamigmobjmjjjnjglpebflhp
 
+the firefox add-on repo can be found here: https://github.com/sdailey/kiwi-firefox
+
+
+homepage: http://www.metafruit.com/kiwi
 
 ------------------------------------------------------------------------
 

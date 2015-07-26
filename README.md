@@ -1,10 +1,11 @@
-# kiwi conversations - key context
+# kiwi conversations
 
-warning - this project is many commits away from being a useful thing.
+The packaged end-result can be found:
+https://chrome.google.com/webstore/detail/kiwi-conversations/pkifhlefpamigmobjmjjjnjglpebflhp
+
 
 ------------------------------------------------------------------------
 
-- written with coffeescript (www.coffeescript.org).
 - use the command 'coffee -o kiwi/package -cw kiwi/coffeescripts'
 from the root directory
 

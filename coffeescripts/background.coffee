@@ -1,6 +1,4 @@
 
-#console.log 'wtf'
-
 tabUrl = ''
 
 tabTitleObject = null
@@ -77,8 +75,6 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
   queryObj = 
     type: "POST"
     
-      # data:'grant_type=https%3A%2F%2Foauth.reddit.com%2Fgrants%2Finstalled_client&device_id=MsZCo%5E)%3B%5D!M2y%2BbdTA2.po&'
-      # // data: 'grant_type=' + encodeURIComponent('https://oauth.reddit.com/grants/installed_client') + '&device_id=' + encodeURIComponent('MsZCo^);]!M2y+bdTA2.po'), 
     data: {
         grant_type: "https://oauth.reddit.com/grants/installed_client"
         device_id: kiwi_reddit_oauth.device_id
@@ -86,15 +82,13 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
     
     url: 'https://www.reddit.com/api/v1/access_token'
     headers: { 
-      'Authorization':    'Basic ' + btoa(kiwi_reddit_oauth.client_id + ":") # UjEwTnh2U1JPeVYwOVE6
+      'Authorization':    'Basic ' + btoa(kiwi_reddit_oauth.client_id + ":") 
       'Content-Type':     'application/x-www-form-urlencoded'
       'X-Requested-With': 'csrf suck it ' + getRandom(1,10000000)
     }
     cache: false
     async: true
     success: (data) ->
-      #console.debug data
-      # {access_token: "-i9YlrxIjXkl8HTXfdFgJ4eVp6RE", token_type: "bearer", expires_in: 3600, scope: "*"}
       if data.access_token? and data.expires_in? and data.token_type == "bearer"
         
         #console.log 'response from reddit!'
@@ -247,6 +241,8 @@ defaultUserPreferences = {
       'hotmail.com'
       'outlook.com'
       
+      '/wp-admin'
+      
       'chrome://'
       'chrome-extension://'
       
@@ -257,8 +253,8 @@ defaultUserPreferences = {
       'chrome://'
     ]
     endingIn: [
-      #future - ending in:
-      'youtube.com' # /
+      # - ending in: # (or with '/' at end)
+      'youtube.com' 
     ]
     unless: [
       ['twitter.com/','/status/'] # unless /status/    # so that people checking their homepage doesn't count 
@@ -311,7 +307,6 @@ defaultServicesInfo = [
     submitUrl: 'https://news.ycombinator.com/submit'
     
     active: 'on'
-    
     
     notableConditions:
       hoursSincePosted: 4 # an exact match is less than 5 hours old
@@ -409,7 +404,7 @@ defaultServicesInfo = [
     customSearchTags: {} 
     
   # {
-  #   <voat, lobste.rs, metafilter, layervault -- get on this! ping me @spencenow if an API surfaces>  :D
+  #   <voat, lobste.rs, metafilter, layervault, seenthis, producthunt -- get on this! ping me @spencenow if an API surfaces>  :D
   # },
   
 ]
@@ -436,16 +431,12 @@ sendParcel = (parcel) ->
   switch parcel.msg
     when 'kiwiPP_popupParcel_ready'
       
-      # refreshBadge(parcel.popupParcel)
-      
       outPort.postMessage(parcel)
       
-    # when 'kiwi_alertAddResponse' -> new popup parcel ^^
-    # 'kiwi_userPreferencesResponse' -> again, new popup parcel, with viewPreference
     
     
 _save_a_la_carte = (parcel) ->
-  # console.log '_save_a_la_carte = (parcel) ->'
+  
   setObj = {}
   setObj[parcel.keyName] = parcel.newValue
   
@@ -480,11 +471,6 @@ chrome.extension.onConnect.addListener((port) ->
           
           if dataFromPopup.customSearchRequest? and dataFromPopup.customSearchRequest.queryString? and
               dataFromPopup.customSearchRequest.queryString != ''
-            
-            # if kiwi_customSearchResults? and kiwi_customSearchResults.queryString? and
-            #     kiwi_customSearchResults.queryString == dataFromPopup.customSearchRequest.queryString
-            #   return 0
-            #console.log 'when kiwiPP_post_customSearch2'
             
             chrome.storage.sync.get(null, (allItemsInSyncedStorage) -> 
               
@@ -573,18 +559,10 @@ chrome.extension.onConnect.addListener((port) ->
           
         when 'kiwiPP_request_popupParcel'
           
-          #console.log " when 'kiwiPP_request_popupParcel' "
-          #console.log 'dataFromPopup.forUrl' + dataFromPopup.forUrl
-          #console.log 'tabUrl:' + tabUrl
-          
           if dataFromPopup.forUrl is tabUrl
-            # #console.log popupParcel.forUrl
-            # #console.log tabUrl
             
             preppedResponsesInPopupParcel = 0
             if popupParcel? and popupParcel.allPreppedResults? 
-              #console.log 'popupParcel.allPreppedResults? '
-              #console.debug popupParcel.allPreppedResults
               
               for serviceName, service of popupParcel.allPreppedResults
                 if service.service_PreppedResults?
@@ -592,8 +570,7 @@ chrome.extension.onConnect.addListener((port) ->
             
             preppedResponsesInTempResponsesStore = 0
             if tempResponsesStore? and tempResponsesStore.services? 
-              #console.log 'tempResponsesStore.services? '
-              #console.debug tempResponsesStore.services
+              
               for serviceName, service of tempResponsesStore.services
                 preppedResponsesInTempResponsesStore += service.service_PreppedResults.length
             
@@ -613,9 +590,6 @@ chrome.extension.onConnect.addListener((port) ->
               
               sendParcel(parcel)
             else
-              # #console.log 'parcel is Not ready for tabUrl, must be set' + tabUrl
-              
-              #console.log "popup parcel not ready"
               
               if !tempResponsesStore.services? or tempResponsesStore.forUrl != tabUrl
                 _set_popupParcel({}, tabUrl, true)
@@ -628,7 +602,6 @@ chrome.extension.onConnect.addListener((port) ->
 
 
 initialize = (currentUrl) ->
-  #console.log 'yolo 1 ' + currentUrl
   
   chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
     
@@ -643,8 +616,6 @@ initialize = (currentUrl) ->
   )
   
 getUrlResults_to_refreshBadgeIcon = (servicesInfo, currentUrl) ->
-  
-  #console.log 'yolo 2  getUrlResults_to_refreshBadgeIcon'
   
   currentTime = Date.now()
   
@@ -695,7 +666,6 @@ getUrlResults_to_refreshBadgeIcon = (servicesInfo, currentUrl) ->
     check_updateServiceResults(servicesInfo, currentUrl, null)
 
 _save_url_results = (servicesInfo, tempResponsesStore, _urlsResultsCache) ->
-  #console.log 'yolo 3'
   
   urlsResultsCache = _.extend {}, _urlsResultsCache
   previousUrl = tempResponsesStore.forUrl
@@ -788,7 +758,7 @@ _save_historyBlob = (kiwi_urlsResultsCache, tabUrl) ->
       
 
 check_updateServiceResults = (servicesInfo, currentUrl, urlsResultsCache = null) ->
-  #console.log 'yolo 4'
+  
   # if any results from previous tab have not been set, set them.
   if urlsResultsCache? and Object.keys(tempResponsesStore).length > 0
     previousResponsesStore = _.extend {}, tempResponsesStore
@@ -831,8 +801,6 @@ check_updateServiceResults = (servicesInfo, currentUrl, urlsResultsCache = null)
           dispatchQuery(service, currentUrl, servicesInfo)
 
 dispatchGnewsQuery = (service_info, currentUrl, servicesInfo) ->
-  #console.log 'yolo 5 ~ - gnews '
-  #console.debug service_info
   
   currentTime = Date.now()
   
@@ -880,7 +848,7 @@ dispatchGnewsQuery = (service_info, currentUrl, servicesInfo) ->
     newsSearch.execute(tabTitleObject.tabTitle);
 
 dispatchQuery = (service_info, currentUrl, servicesInfo) ->
-  #console.log 'yolo 5 ~ for ' + service_info.name
+  
   
   currentTime = Date.now()
   
@@ -933,7 +901,6 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
   )
    
 dispatchGnewsQuery__customSearch = (customSearchQuery, servicesToSearch, service_info, servicesInfo) ->
-  #console.log 'yolo 5 ~ - CUSTOM gnews'
   
   currentTime = Date.now()
   
@@ -980,8 +947,6 @@ dispatchGnewsQuery__customSearch = (customSearchQuery, servicesToSearch, service
     newsSearch.execute(customSearchQuery);   
   
 dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info, servicesInfo) ->
-  #console.log 'yolo 5 ~ for CUSTOM ' + service_info.name
-  #console.debug servicesToSearch
   
   currentTime = Date.now()
   
@@ -2126,8 +2091,6 @@ chrome.tabs.onUpdated.addListener((tabId , info) ->
     updateBadgeText('')
     if tabTitleObject? and tabTitleObject.forUrl == tabUrl and !tabTitleObject.tabTitle?
       if (info.status == "complete") 
-        #console.log ' if (info.status == "complete") '
-        #console.debug info
         initIfNewURL(true)
         return 0
     else

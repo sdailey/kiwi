@@ -152,7 +152,7 @@
     autoOffTimerValue: null,
     sortByPref: 'attention',
     urlSubstring_blacklists: {
-      anyMatch: ['facebook.com', 'news.ycombinator.com', 'reddit.com', 'imgur.com', 'www.google.com', 'docs.google', 'drive.google', 'accounts.google', '.slack.com/', '//t.co', '//bit.ly', '//goo.gl', '//mail.google', '//mail.yahoo.com', 'hotmail.com', 'outlook.com', 'chrome://', 'chrome-extension://', 'chrome-devtools://'],
+      anyMatch: ['facebook.com', 'news.ycombinator.com', 'reddit.com', 'imgur.com', 'www.google.com', 'docs.google', 'drive.google', 'accounts.google', '.slack.com/', '//t.co', '//bit.ly', '//goo.gl', '//mail.google', '//mail.yahoo.com', 'hotmail.com', 'outlook.com', '/wp-admin', 'chrome://', 'chrome-extension://', 'chrome-devtools://'],
       beginsWith: ["about:", 'chrome://'],
       endingIn: ['youtube.com'],
       unless: [['twitter.com/', '/status/']]

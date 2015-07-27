@@ -19,7 +19,7 @@
       "vendor/jquery-2.1.4.min.js", 
       "vendor/Underscore1-8-3.js",
       "vendor/CryptoJS.js",
-      "background.min.js"
+      "background.js"
     ]
   },
   

@@ -6,6 +6,10 @@ https://chrome.google.com/webstore/detail/kiwi-conversations/pkifhlefpamigmobjmj
 the firefox add-on repo can be found here: https://github.com/sdailey/kiwi-firefox
 
 
+note: simply spinning up the extension on your machine won't quite work, as
+you need to provide your own reddit app oauth client id.
+
+
 homepage: http://www.metafruit.com/kiwi
 
 ------------------------------------------------------------------------

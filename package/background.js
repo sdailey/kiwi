@@ -96,7 +96,7 @@
       token: null,
       token_type: null,
       token_lifespan_timestamp: null,
-      client_id: "R10NxvSROyV09Q",
+      client_id: "",
       device_id: randomishDeviceId()
     };
     if ((allItemsInLocalStorage.kiwi_reddit_oauth == null) || (allItemsInLocalStorage.kiwi_reddit_oauth.token == null)) {
@@ -1413,7 +1413,9 @@
       } else {
         new_autoOffAtUTCmilliTimestamp = autoOffAtUTCmilliTimestamp;
         if ((kiwi_autoOffClearInterval == null) && autoOffAtUTCmilliTimestamp > currentTime) {
-          kiwi_autoOffClearInterval = setTimeout(turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime);
+          kiwi_autoOffClearInterval = setTimeout(function() {
+            return turnResearchModeOff();
+          }, new_autoOffAtUTCmilliTimestamp - currentTime);
         }
         return new_autoOffAtUTCmilliTimestamp;
       }
@@ -1425,7 +1427,9 @@
       }
     }
     if (new_autoOffAtUTCmilliTimestamp !== null) {
-      kiwi_autoOffClearInterval = setTimeout(turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime);
+      kiwi_autoOffClearInterval = setTimeout(function() {
+        return turnResearchModeOff();
+      }, new_autoOffAtUTCmilliTimestamp - currentTime);
     }
     return new_autoOffAtUTCmilliTimestamp;
   };

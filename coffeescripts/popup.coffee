@@ -390,7 +390,8 @@ class CustomSearch extends Widget
             sendParcel(parcel)
         
         customSearchQueryInput.keypress (event) ->
-          if event.charCode == 13 # (enter)
+          charCode = if event.keyCode then event.keyCode else event.which
+          if charCode == 13
             sendSearch()
         
         customSearchQuerySubmit.bind 'click', =>
@@ -1026,7 +1027,7 @@ class KiwiSlice extends FixedView
         console.log 'painting ' + @name
         kiwiSliceHTML = '<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter">
             <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> 
-            <button class=" btn btn-mini btn-default" style="" class="">MetaFruit <span class="glyphicon glyphicon-apple"></span></button> 
+            <a class=" btn btn-mini btn-default" style="font-size:.8em;" target="_blank" href="http://www.metafruit.com/kiwi/">MetaFruit <span class="glyphicon glyphicon-apple"></span></a>
             <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button>
             <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button>
           </div>
@@ -1099,7 +1100,7 @@ class KiwiSlice extends FixedView
       })
       $(@DOMselector).prepend('<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter" style="opacity: 0;">
             <button type="button" class="goTo_creditsView btn btn-mini btn-default ">credits</button> 
-            <button class="btn btn-mini btn-default " style="" class="">MetaFruit <span class="glyphicon glyphicon-apple"></span></button> 
+            <a class=" btn btn-mini btn-default" style="" target="_blank" href="http://www.metafruit.com/kiwi/">MetaFruit <span class="glyphicon glyphicon-apple"></span></a> 
             <button class="btn btn-mini btn-default " id="clearKiwiURLCache">clear cache</button>
             <button class="btn btn-mini btn-default " id="refreshURLresults">refresh</button>
           

@@ -133,7 +133,7 @@ chrome.storage.local.get(null, (allItemsInLocalStorage) ->
     token: null
     token_type: null
     token_lifespan_timestamp: null
-    client_id: "R10NxvSROyV09Q"
+    client_id: "" # your client id here
     device_id: randomishDeviceId()
     
   
@@ -1867,7 +1867,9 @@ setAutoOffTimer = (resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue
       if !kiwi_autoOffClearInterval? and autoOffAtUTCmilliTimestamp > currentTime
         #console.log 'resetting timer timeout'
         
-        kiwi_autoOffClearInterval = setTimeout( turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime )
+        kiwi_autoOffClearInterval = setTimeout( ->
+            turnResearchModeOff()
+          , new_autoOffAtUTCmilliTimestamp - currentTime )
       
       #console.log ' setting 123 autoOffAtUTCmilliTimestamp ' + new_autoOffAtUTCmilliTimestamp
       
@@ -1886,7 +1888,9 @@ setAutoOffTimer = (resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue
   
   if new_autoOffAtUTCmilliTimestamp != null
     #console.log 'setting timer timeout'
-    kiwi_autoOffClearInterval = setTimeout( turnResearchModeOff, new_autoOffAtUTCmilliTimestamp - currentTime )
+    kiwi_autoOffClearInterval = setTimeout( ->
+        turnResearchModeOff()
+      , new_autoOffAtUTCmilliTimestamp - currentTime )
   
   return new_autoOffAtUTCmilliTimestamp
     

@@ -4,7 +4,7 @@
   "name": "Kiwi Conversations",
   "short_name": "Kiwi Conversations",
   "description": "Kiwi Conversations searches community sites to find forum comment threads about the url you're visiting.",
-  "version": "0.9.80",
+  "version": "0.9.81",
 
   "permissions": [
     "tabs",
@@ -24,7 +24,7 @@
   },
   
   "content_scripts": [ {
-    "js": ["vendor/jquery-2.1.4.min.js", "popup.min.js", "vendor/Underscore1-8-3.js",
+    "js": ["vendor/jquery-2.1.4.min.js", "popup.js", "vendor/Underscore1-8-3.js",
       "vendor/bootstrap-3.3.5-dist/js/bootstrap.min.js",
       "vendor/behigh-bootstrap_dropdown_enhancement/js/dropdowns-enhancement.js"
     ],

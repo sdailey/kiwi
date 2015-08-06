@@ -762,9 +762,9 @@ class UserPreferences extends SwitchView
               <th scope="row" style="width:35px;"> ' + (index + 1) + ' </th>
               <td> ' + whitelistSubString + ' </td>
               <td style="width:35px;"> 
-                <button class="btn btn-xs btn-default"> 
-                  <span title="remove" data-whitelistStringToRemove="' + whitelistSubString + '" 
-                      class="glyphicon glyphicon-remove removeWhitelistString" aria-hidden="true"
+                <button class="btn btn-xs btn-defaultremoveWhitelistString" data-whitelistStringToRemove="' + whitelistSubString + '" > 
+                  <span title="remove" 
+                      class="glyphicon glyphicon-remove" aria-hidden="true"
                       style="color:#E65F5F;"
                     ></span>
                 </button>

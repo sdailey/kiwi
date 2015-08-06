@@ -114,7 +114,7 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
         requestRedditOathToken(kiwi_reddit_oauth)
       , 1000 * 60 * 5
       )
-
+      
   $.ajax( queryObj )
 
 
@@ -211,7 +211,7 @@ popupParcel = {}
 defaultUserPreferences = {
 
   fontSize: .8
-  researchModeOnOff: 'on'
+  researchModeOnOff: 'off'
   autoOffAtUTCmilliTimestamp: null
   autoOffTimerType: 'always' # 'custom','always','20','60'
   autoOffTimerValue: null
@@ -323,7 +323,7 @@ defaultServicesInfo = [
     submitTitle: 'Be the first to submit on Hacker News!'
     submitUrl: 'https://news.ycombinator.com/submit'
 
-    active: 'on'
+    active: 'off'
 
     notableConditions:
       hoursSincePosted: 4 # an exact match is less than 5 hours old
@@ -620,8 +620,6 @@ chrome.extension.onConnect.addListener((port) ->
 
 initialize = (currentUrl) ->
 
-  console.log 'in initialize'
-
   chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
 
     if !allItemsInSyncedStorage['kiwi_servicesInfo']?
@@ -723,7 +721,6 @@ __randomishStringPadding = ->
   while characterCounter <= randomPaddingLength
 
     randomLatinKeycode = getRandom(33,265)
-    String.fromCharCode(randomLatinKeycode)
 
     paddingString += String.fromCharCode(randomLatinKeycode)
     characterCounter++
@@ -755,7 +752,6 @@ _save_historyBlob = (kiwi_urlsResultsCache, tabUrl) ->
           # if it doesn't exist, then we need end padding
         paddedHistoryString = paddedHistoryString + __randomishStringPadding()
 
-        # in periodic cleanup - if in last 1000, snip and add to front
 
       if allItemsInLocalStorage['kiwi_historyBlob']?
         newKiwi_historyBlob = paddedHistoryString + allItemsInLocalStorage['kiwi_historyBlob']
@@ -771,9 +767,14 @@ _save_historyBlob = (kiwi_urlsResultsCache, tabUrl) ->
 
 
     chrome.storage.local.set({'kiwi_historyBlob': newKiwi_historyBlob}, ->
-        #console.log 'successfully set for ' + tabUrl
-        #console.log 'successfully set for ' + tabUrl_hash
-        #console.log 'paddedHistoryString ' + paddedHistoryString
+
+        # console.log 'historyString'
+        # console.log historyString
+        # console.log 'console.log paddedHistoryString'
+        # console.log paddedHistoryString
+        # console.log 'newKiwi_historyBlob'
+        # console.log newKiwi_historyBlob
+
       )
   )
 
@@ -866,8 +867,6 @@ dispatchGnewsQuery = (service_info, currentUrl, servicesInfo) ->
 
 dispatchQuery = (service_info, currentUrl, servicesInfo) ->
 
-  console.log 'trying query for ' + currentUrl
-
   currentTime = Date.now()
 
   # self imposed rate limiting per api
@@ -904,8 +903,6 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
 
           queryResult: queryResult
 
-        console.log 'responsePackage'
-        console.debug responsePackage
 
         setPreppedServiceResults(responsePackage, servicesInfo)
     }
@@ -1294,8 +1291,6 @@ parseResults =
   reddit: (resultsObj, searchQueryString, serviceInfo, customSearchBool = false) ->
 
     matchedListings = []
-    console.log 'reddit: (resultsObj) ->'
-    console.debug resultsObj
 
     # occasionally Reddit will decide to return an array instead of an object, so...
       # in response to user's feedback, see: https://news.ycombinator.com/item?id=9994202
@@ -1662,7 +1657,8 @@ refreshBadge = (servicesInfo, resultsObjForCurrentUrl) ->
         badgeText = 'off'
       else if defaultUserPreferences.researchModeOnOff == 'off'
         badgeText = 'off'
-
+      else
+        badgeText = ''
       # \/\/\/\/ this is supposed to happen in initIfNewUrl \/\/\/\/
       # for urlSubstring in allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists
       #   if tabUrl.indexOf(urlSubstring) != -1
@@ -1962,7 +1958,6 @@ autoOffTimerExpired_orOff_withoutURLoverride = (allItemsInSyncedStorage, current
 proceedWithPreInitCheck = (allItemsInSyncedStorage, allItemsInLocalStorage, overrideSameURLCheck_popupOpen, overrideResearchModeOff,
                               sameURLCheck, tabUrl, currentTime, popupOpen) ->
 
-  console.log 'yoyoyo'
 
   if allItemsInSyncedStorage['kiwi_userPreferences']? and overrideResearchModeOff is false
     isUrlWhitelistedBool = is_url_whitelisted(allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_whitelists, tabUrl)
@@ -1993,7 +1988,6 @@ proceedWithPreInitCheck = (allItemsInSyncedStorage, allItemsInLocalStorage, over
   else
     periodicCleanup(tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage, (tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage) ->
 
-      console.log 'in periodicCleanup callback'
 
       if !allItemsInSyncedStorage['kiwi_userPreferences']?
 

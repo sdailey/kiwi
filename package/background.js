@@ -146,7 +146,7 @@
 
   defaultUserPreferences = {
     fontSize: .8,
-    researchModeOnOff: 'on',
+    researchModeOnOff: 'off',
     autoOffAtUTCmilliTimestamp: null,
     autoOffTimerType: 'always',
     autoOffTimerValue: null,
@@ -232,7 +232,7 @@
       userPageBaselink: 'https://news.ycombinator.com/user?id=',
       submitTitle: 'Be the first to submit on Hacker News!',
       submitUrl: 'https://news.ycombinator.com/submit',
-      active: 'on',
+      active: 'off',
       notableConditions: {
         hoursSincePosted: 4,
         num_comments: 10
@@ -463,7 +463,6 @@
   });
 
   initialize = function(currentUrl) {
-    console.log('in initialize');
     return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
       if (allItemsInSyncedStorage['kiwi_servicesInfo'] == null) {
         return chrome.storage.sync.set({
@@ -540,7 +539,6 @@
     paddingString = "";
     while (characterCounter <= randomPaddingLength) {
       randomLatinKeycode = getRandom(33, 265);
-      String.fromCharCode(randomLatinKeycode);
       paddingString += String.fromCharCode(randomLatinKeycode);
       characterCounter++;
     }
@@ -663,7 +661,6 @@
 
   dispatchQuery = function(service_info, currentUrl, servicesInfo) {
     var currentTime;
-    console.log('trying query for ' + currentUrl);
     currentTime = Date.now();
     if (serviceQueryTimestamps[service_info.name] == null) {
       serviceQueryTimestamps[service_info.name] = currentTime;
@@ -690,8 +687,6 @@
             serviceName: service_info.name,
             queryResult: queryResult
           };
-          console.log('responsePackage');
-          console.debug(responsePackage);
           return setPreppedServiceResults(responsePackage, servicesInfo);
         }
       };
@@ -957,8 +952,6 @@
         customSearchBool = false;
       }
       matchedListings = [];
-      console.log('reddit: (resultsObj) ->');
-      console.debug(resultsObj);
       forEachQueryObject = function(resultsObj, _matchedListings) {
         var child, listingKeys, preppedResult, _i, _len, _ref;
         if ((resultsObj.kind != null) && resultsObj.kind === "Listing" && (resultsObj.data != null) && (resultsObj.data.children != null) && resultsObj.data.children.length > 0) {
@@ -1297,6 +1290,8 @@
           return badgeText = 'off';
         } else if (defaultUserPreferences.researchModeOnOff === 'off') {
           return badgeText = 'off';
+        } else {
+          return badgeText = '';
         }
       });
     } else {
@@ -1504,7 +1499,6 @@
 
   proceedWithPreInitCheck = function(allItemsInSyncedStorage, allItemsInLocalStorage, overrideSameURLCheck_popupOpen, overrideResearchModeOff, sameURLCheck, tabUrl, currentTime, popupOpen) {
     var isUrlWhitelistedBool;
-    console.log('yoyoyo');
     if ((allItemsInSyncedStorage['kiwi_userPreferences'] != null) && overrideResearchModeOff === false) {
       isUrlWhitelistedBool = is_url_whitelisted(allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_whitelists, tabUrl);
       overrideResearchModeOff = isUrlWhitelistedBool;
@@ -1522,7 +1516,6 @@
     } else {
       return periodicCleanup(tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage, function(tabUrl, allItemsInLocalStorage, allItemsInSyncedStorage) {
         var isUrlBlocked, setObj, _autoOffAtUTCmilliTimestamp;
-        console.log('in periodicCleanup callback');
         if (allItemsInSyncedStorage['kiwi_userPreferences'] == null) {
           _autoOffAtUTCmilliTimestamp = setAutoOffTimer(false, defaultUserPreferences.autoOffAtUTCmilliTimestamp, defaultUserPreferences.autoOffTimerValue, defaultUserPreferences.autoOffTimerType, defaultUserPreferences.researchModeOnOff);
           defaultUserPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp;

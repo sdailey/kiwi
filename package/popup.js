@@ -14,7 +14,6 @@
 
   initialize = function(popupParcel) {
     var view, viewName;
-    console.log('in init');
     if (getURLParam(window.location, 'optionsOnly') !== '') {
       preferencesOnlyPage = true;
       switchViews.userPreferences.render(popupParcel);
@@ -42,14 +41,10 @@
       this.bindAllGoToViewButtons = (function(_this) {
         return function(viewData) {
           var els_goTo_view, viewValue, _results, _viewName;
-          console.log('@bindAllGoToViewButtons = (viewData) =>');
-          console.log(_this.DOMname);
           _results = [];
           for (_viewName in switchViews) {
             viewValue = switchViews[_viewName];
-            console.log(_viewName);
             els_goTo_view = $(_this.DOMselector + ' .goTo_' + _viewName + 'View');
-            console.debug(els_goTo_view);
             _this.elsToUnbind.push(els_goTo_view);
             _results.push(bindGoToViewButtons(els_goTo_view, _viewName, viewData));
           }
@@ -92,7 +87,6 @@
       this.parentView = _at_parentView;
       this.widgetOpenBool = _at_widgetOpenBool;
       this.__renderStates__ = __bind(this.__renderStates__, this);
-      console.debug(this.__renderStates__);
       CustomSearch.__super__.constructor.call(this, this.name, this.parentView, this.__renderStates__);
     }
 
@@ -117,16 +111,13 @@
               }
               openedCustomSearchHTML += "</div> <div class='notFixed'></div>";
               $(_this.DOMselector).html(openedCustomSearchHTML);
-              console.log('console.log @DOMselector + " .topSearchBar"' + _this.DOMselector + " .topSearchBar");
               duplicateFixedHeight = function() {
                 var fixedElHeight;
                 fixedElHeight = $(_this.DOMselector + " .topSearchBar").outerHeight();
-                console.log('console.log fixedElHeight');
-                console.log(fixedElHeight);
                 if (fixedElHeight === 0) {
                   return setTimeout(function() {
                     return duplicateFixedHeight();
-                  }, 80);
+                  }, 0);
                 } else {
                   return $(_this.DOMselector + " .notFixed").css({
                     'height': fixedElHeight + "px"
@@ -139,7 +130,6 @@
           bind: (function(_this) {
             return function(popupParcel) {
               var clearPreviousSearch, inputSearchQueryInput, previousSearchLink;
-              console.log('bind: (popupParcel) =>');
               inputSearchQueryInput = $("#customSearchQueryInput");
               previousSearchLink = $("#openPreviousSearch");
               clearPreviousSearch = $("#clearPreviousSearch");
@@ -155,7 +145,6 @@
                 return sendParcel(parcel);
               });
               return inputSearchQueryInput.bind('click', function() {
-                console.log('@widgetOpenBool = true');
                 _this.widgetOpenBool = true;
                 return _this.render('opened', popupParcel);
               });
@@ -166,16 +155,12 @@
           paint: (function(_this) {
             return function(popupParcel) {
               var activeClass, ariaPressedState, customSearchResultsHTML, duplicateFixedHeight, index, openedCustomSearchHTML, queryString, resultsSummaryArray, serviceDisabledAttr, serviceInfoObject, service_PreppedResults, tagActiveChecked, tagDisabledAttr, tagName, tagObject, _i, _j, _len, _len1, _ref, _ref1, _ref2;
-              console.log('popupParcel.kiwi_servicesInfo.length');
-              console.log(popupParcel.kiwi_servicesInfo.length);
               queryString = popupParcel.kiwi_customSearchResults.queryString != null ? popupParcel.kiwi_customSearchResults.queryString : '';
               openedCustomSearchHTML = '<div class="topSearchBar"> <div class="evenlySpacedContainer"> <input id="customSearchQueryInput" value="' + queryString + '" type="text" placeholder=" combined search" style="width:234px; margin-right: 10px;" /> <button  class="btn btn-mini btn-default" id="customSearchQuerySubmit" style="margin-right: 10px;">Submit</button> <button style="" class="goTo_userPreferencesView btn btn-mini btn-default"> Options <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> </div> <br> <div class="evenlySpacedContainer" style="position: relative; top: -8px; margin-bottom: 3px;">';
               _ref = popupParcel.kiwi_servicesInfo;
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 serviceInfoObject = _ref[_i];
                 openedCustomSearchHTML += '<div>';
-                console.log('asdfasdf ' + serviceInfoObject.name);
-                console.debug(serviceInfoObject);
                 if (serviceInfoObject.active === 'off') {
                   serviceDisabledAttr = ' disabled title="Service must be active, can be changed in options." ';
                 } else {
@@ -245,12 +230,10 @@
                 var fixedElHeight, fixedElTableHeight;
                 fixedElHeight = $(_this.DOMselector + " .topSearchBar").outerHeight();
                 fixedElTableHeight = $(_this.DOMselector + " .topSearchBar table").outerHeight();
-                console.log('console.log fixedElHeight');
-                console.log(fixedElHeight);
                 if (fixedElTableHeight === 0) {
                   return setTimeout(function() {
                     return duplicateFixedHeight();
-                  }, 80);
+                  }, 0);
                 } else {
                   return $(_this.DOMselector + " .notFixed").css({
                     'height': fixedElHeight + "px"
@@ -285,10 +268,7 @@
               });
               showHidden.bind('click', function(ev) {
                 var serviceName;
-                console.log("showHidden.bind 'click', (ev) ->");
-                console.debug(ev);
                 serviceName = $(ev.target).data('servicename');
-                console.log(_this.DOMselector + " .resultsBox__" + serviceName + " .hidden_listing");
                 $(_this.DOMselector + " .resultsBox__" + serviceName + " .hidden_listing").show(1200);
                 return $(ev.target).remove();
               });
@@ -296,16 +276,12 @@
                 var ariaPressed, serviceName;
                 if ($(ev.target).hasClass("dropdownLabel")) {
                   serviceName = $(ev.target).attr('data-serviceName');
-                  console.log(serviceName);
-                  console.debug($(ev.target).attr('aria-pressed'));
                   ariaPressed = $(ev.target).attr('aria-pressed');
                   if (ariaPressed === 'true') {
                     $('button.dropDownPrefs_' + serviceName).removeClass('active');
-                    console.log('if ev.target.checked == "false" ' + serviceName);
                     $(_this.DOMselector + " input.tagPref_" + serviceName).attr('disabled', 'disabled');
                   } else {
                     $('button.dropDownPrefs_' + serviceName).addClass('active');
-                    console.log($(ev.target).attr('aria-pressed') + "asdfasdf");
                     $(_this.DOMselector + " input.tagPref_" + serviceName).removeAttr('disabled');
                   }
                 }
@@ -313,7 +289,6 @@
               });
               customSearch_sortByPref.bind('change', function(ev) {
                 var parcel;
-                console.log(' customSearch_sortByPref.val()');
                 popupParcel.kiwi_userPreferences.sortByPref = $(ev.target).val();
                 parcel = {
                   refreshView: 'conversations',
@@ -341,8 +316,6 @@
                     servicesToSearch[serviceName].customSearchTags[tagName] = {};
                   }
                 }
-                console.log('asfdasdfasdf ' + serviceName);
-                console.debug(servicesToSearch);
                 if (queryString !== '') {
                   parcel = {
                     msg: 'kiwiPP_post_customSearch',
@@ -408,8 +381,6 @@
 
     View.prototype.unbindView = function() {
       var el, widget, _i, _j, _len, _len1, _ref, _ref1, _results;
-      console.log('unbinding view');
-      console.debug(this.elsToUnbind);
       _ref = this.elsToUnbind;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         el = _ref[_i];
@@ -432,11 +403,10 @@
       this.totalRenders++;
       this.unbindView(this.name);
       if ((renderState == null) && (this.renderStates.__normal__ == null)) {
-        console.log('ERROR: must declare renderState for view ' + this.name + ' since __normal__ undefined');
+        if (typeof console !== "undefined" && console !== null) {
+          console.log('ERROR: must declare renderState for view ' + this.name + ' since __normal__ undefined');
+        }
       }
-      console.log('console.debug renderState ' + this.name + renderState);
-      console.log(this.totalRenders);
-      console.debug(this.renderStates);
       this.renderStates[renderState].paint(popupParcel);
       this.bindAllGoToViewButtons(popupParcel);
       return this.renderStates[renderState].bind(popupParcel);
@@ -454,7 +424,6 @@
       this.__renderStates__ = _at___renderStates__;
       FixedView.__super__.constructor.call(this, this.name, this.__renderStates__);
       this.DOMselector += uniqueSelectorPostfix;
-      console.log(this.DOMselector);
     }
 
     return FixedView;
@@ -478,12 +447,10 @@
       for (_viewName in switchViews) {
         viewValue = switchViews[_viewName];
         if (_viewName === this.name) {
-          console.log('showing ' + _viewName);
           _results.push($('#' + _viewName + '_View').css({
             'display': 'block'
           }));
         } else {
-          console.log('hiding ' + _viewName);
           _results.push($('#' + _viewName + '_View').css({
             'display': 'none'
           }));
@@ -527,15 +494,13 @@
           paint: (function(_this) {
             return function(popupParcel) {
               var index, preppedHTMLstring, researchModeDisabledButtonsHTML, resultsHTML, resultsSummaryArray, serviceInfoObject, service_PreppedResults, submitTitle, submitUrl, totalResults, _i, _len, _ref;
-              console.log(' in conversations view');
-              console.debug(popupParcel);
               _this.Widgets['customSearch'].init(popupParcel);
               researchModeDisabledButtonsHTML = '';
               if (popupParcel.urlBlocked === true || popupParcel.kiwi_userPreferences.researchModeOnOff === 'off' || ((popupParcel.oldUrl != null) && popupParcel.oldUrl === true)) {
                 researchModeDisabledButtonsHTML += "<br> <div style='width:100%;text-align: center;'><button class='btn btn-success' style='font-size: 1.1em;display: inline-block;' id='researchUrlOverride'>Research this Url</button></div> <br>";
               }
               if (popupParcel.kiwi_userPreferences.researchModeOnOff === 'off') {
-                researchModeDisabledButtonsHTML += "<br>Research Mode is off <button class='goTo_userPreferencesView btn btn-mini btn-default'> change settings </button><br>";
+                researchModeDisabledButtonsHTML += "<br> <div style='width:100%; text-align:center;'> Research Mode is off: &nbsp; <button class='goTo_userPreferencesView btn btn-xs btn-default' style='position:relative; bottom:2px;'> change settings </button> </div> <br>";
               }
               $("#researchModeDisabledButtons").html(researchModeDisabledButtonsHTML);
               preppedHTMLstring = '<h3 style="position:relative; top:-10px;">Results for this URL:</h3>';
@@ -567,8 +532,6 @@
               preppedHTMLstring += resultsHTML;
               $("#resultsByService").html(preppedHTMLstring);
               $(_this.DOMselector + " .hidden_listing").hide();
-              console.log('console.log $("#resultsByService").outerHeight()');
-              console.log($("#resultsByService").outerHeight());
               if (totalResults < 4 && _this.totalRenders < 2) {
                 fixedViews.kiwiSlice.render(popupParcel, "open");
               }
@@ -594,7 +557,6 @@
               jumpToService.bind('click', function(ev) {
                 var offsetBy, pxFromTop, serviceIndex;
                 serviceIndex = parseInt($(ev.target).data('serviceindex'));
-                console.log(serviceIndex);
                 pxFromTop = $($("#resultsByService .serviceResultsHeaderBar")[serviceIndex]).offset().top;
                 offsetBy = $($("#resultsByService .serviceResultsHeaderBar")[serviceIndex]).outerHeight() + 40;
                 return $('body').scrollTop(pxFromTop - offsetBy);
@@ -611,16 +573,12 @@
               });
               showHidden.bind('click', function(ev) {
                 var serviceName;
-                console.log("showHidden.bind 'click', (ev) -> ");
-                console.debug(ev);
                 serviceName = $(ev.target).data('servicename');
                 $(_this.DOMselector + " .resultsBox__" + serviceName + " .hidden_listing").show(1200);
                 return $(ev.target).remove();
               });
               return conversations_sortByPref.bind('change', function(ev) {
                 var parcel;
-                console.log("'conversations_sortByPref.bind 'change', (ev) ->");
-                console.log($(ev.target).val());
                 popupParcel.kiwi_userPreferences.sortByPref = $(ev.target).val();
                 parcel = {
                   refreshView: 'conversations',
@@ -660,9 +618,8 @@
         __normal__: {
           paint: (function(_this) {
             return function(popupParcel) {
-              var activeCheck, autoOffTimerType, autoOffTimerValue, currentTime, index, notActiveCheck, researchModeExpirationString, researchModeHtml, researchOffString, researchOnString, service, servicesHtml, _i, _len, _ref;
+              var activeCheck, autoOffTimerType, autoOffTimerValue, currentTime, index, notActiveCheck, researchModeHtml, researchOffString, researchOnString, service, servicesHtml, timerDisabled, timerOnlyUsefulWhenMessage, whitelistSubString, _i, _j, _len, _len1, _ref, _ref1;
               $(_this.DOMselector + " .userErrMsg").html('');
-              console.log('paint: adsfaeaewfawefawefawef(popupParcel) =># viewName = ');
               if (preferencesOnlyPage === true) {
                 $("#menuBar_preferences").hide();
               }
@@ -684,12 +641,6 @@
                 researchOnString = "";
                 researchOffString = " checked='checked' ";
               }
-              if (typeof autoOffAtUTCmilliTimestamp !== "undefined" && autoOffAtUTCmilliTimestamp !== null) {
-                researchModeExpirationString = '<br>Research Mode will turn off (expire) at: ' + formatTime(autoOffAtUTCmilliTimestamp);
-                researchModeExpirationString += '<br><button class="btn btn-mini btn-default" id="resetAutoOffTimer">Reset auto-off timer</button>';
-              } else {
-                researchModeExpirationString = '';
-              }
               autoOffTimerType = popupParcel.kiwi_userPreferences.autoOffTimerType;
               autoOffTimerValue = popupParcel.kiwi_userPreferences.autoOffTimerValue;
               var auto20, auto60, autoAlways, autoCustom, autoCustomValue = '';
@@ -699,12 +650,28 @@
           else if(autoOffTimerType == "always"){ autoAlways = " checked='checked' " }
           else if(autoOffTimerType == "custom"){ autoCustom = " checked='checked' "; autoCustomValue = autoOffTimerValue;}
         };
-              researchModeHtml += 'Research Mode: on <input type="radio" name="research" value="on" ' + researchOnString + '> - off <input type="radio" name="research" value="off" ' + researchOffString + '>' + researchModeExpirationString + '<br> <br>Auto-Off in: <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + auto20 + ' value="20"> 20 min</label> <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + auto60 + ' value="60"> 1 hr</label> <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + autoAlways + ' value="always"> Always On</label> <br>&nbsp; &nbsp;<label><input type="radio" name="researchAutoOffType" ' + autoCustom + ' value="custom"> Custom</label> &nbsp; &nbsp; <input id="autoCustomValue" type="text" value="' + autoCustomValue + '" size="4" disabled /> minutes';
+              researchModeHtml += 'Research Mode: <a class="tooltipCustom" style="position: relative;"> <div style="display:inline; font-size:.9em;"><sup><em> ?</em></sup></div> <span style="bottom:34px; left:-114px;"> When the Research mode is "Off", Kiwi won\'t automatically search URLs as you surf; instead, you can check URLs on a case-by-case basis (and still be able to do custom searches) </span> </a> on <input type="radio" name="research" value="on" ' + researchOnString + '> - off <input type="radio" name="research" value="off" ' + researchOffString + '> &nbsp;&nbsp;<button class="btn btn-mini btn-default userPreferencesSave"> save preferences </button><br>';
+              if (popupParcel.kiwi_userPreferences.researchModeOnOff === 'off') {
+                researchModeHtml += '';
+                timerDisabled = ' disabled ';
+                timerOnlyUsefulWhenMessage = '<br> <span style="font-size:.8em;"><i> &nbsp;&nbsp;Note: the auto-off-timer only matters when Research Mode is "on". </i></span> <br>';
+              } else {
+                timerDisabled = ' ';
+                researchModeHtml += '<br> <span style="font-size:.8em;"><i> Note: The Whitelist only makes a difference when Research mode is turned "off", which it currently isn\'t. </i></span> <br>';
+                timerOnlyUsefulWhenMessage = '';
+              }
+              researchModeHtml += '<br> <table class="table table-bordered table-striped whitelistTable"> <thead> <tr> <th colspan="3"> <div class="input-group" id="addWhiteListString"> <label class="input-group-addon"> <a class="tooltipCustom" style="position: relative;"> <div style="display:inline; font-size:.9em;">whitelist strings <sup><em> ?</em></sup></div> <span style="bottom:84px;left:-12px;"> <b>Whitelist strings:</b> <br> Kiwi will automatically research any URL (upon visiting) that contains a user-provided Whitelist string -- even when Research Mode is "off". Try it with "github.com" or "bitbucket.org", and then visit the respective site with research mode "off". </span> </a> </label> <input type="text" class="form-control ignoreSaveButtonListen"> <label class="input-group-addon btn btn-default"> add </label> </div> </th> </tr> </thead> <tbody>';
+              _ref = popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch;
+              for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
+                whitelistSubString = _ref[index];
+                researchModeHtml += '<tr> <th scope="row" style="width:35px;"> ' + (index + 1) + ' </th> <td> ' + whitelistSubString + ' </td> <td style="width:35px;"> <button class="btn btn-xs btn-default"> <span title="remove" data-whitelistStringToRemove="' + whitelistSubString + '" class="glyphicon glyphicon-remove removeWhitelistString" aria-hidden="true" style="color:#E65F5F;" ></span> </button> </td> </tr>';
+              }
+              researchModeHtml += '</tbody> </table> <br>Auto-Off Timer set for: ' + timerOnlyUsefulWhenMessage + '<br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + auto20 + ' value="20"> 20 min</label> <br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + auto60 + ' value="60"> 1 hr</label> <br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + autoAlways + ' value="always"> Always On</label> <br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + autoCustom + ' value="custom"> Custom</label> &nbsp; &nbsp; <input ' + timerDisabled + ' id="autoCustomValue" type="text" value="' + autoCustomValue + '" size="4" disabled /> minutes';
               $("#researchModeDrop").html(researchModeHtml);
               servicesHtml = '';
-              _ref = popupParcel.kiwi_servicesInfo;
-              for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
-                service = _ref[index];
+              _ref1 = popupParcel.kiwi_servicesInfo;
+              for (index = _j = 0, _len1 = _ref1.length; _j < _len1; index = ++_j) {
+                service = _ref1[index];
                 if (service.active === "on") {
                   activeCheck = " checked='checked' ";
                   notActiveCheck = "";
@@ -714,37 +681,35 @@
                 }
                 servicesHtml += '<br> <div class="serviceListing listing"> <table><tbody><tr> <td class="upDownButtons">';
                 if (index !== 0) {
-                  servicesHtml += '<span class="glyphicon glyphicon-chevron-up" id="' + service.name + '_moveServiceUp" aria-hidden="true"></span>';
+                  servicesHtml += '<span title="Move ' + service.title + ' results above ' + popupParcel.kiwi_servicesInfo[index - 1].title + '" class="glyphicon glyphicon-chevron-up" id="' + service.name + '_moveServiceUp" aria-hidden="true"></span>';
                 }
                 if (index !== 0 && index !== popupParcel.kiwi_servicesInfo.length - 1) {
                   servicesHtml += '<br><br>';
                 }
                 if (index !== popupParcel.kiwi_servicesInfo.length - 1) {
-                  servicesHtml += '<span class="glyphicon glyphicon-chevron-down" id="' + service.name + '_moveServiceDown" aria-hidden="true"></span>';
+                  servicesHtml += '<span title="Move ' + service.title + ' results below ' + popupParcel.kiwi_servicesInfo[index + 1].title + '"  class="glyphicon glyphicon-chevron-down" id="' + service.name + '_moveServiceDown" aria-hidden="true"></span>';
                 }
                 servicesHtml += '</td> <td class="serviceInfo">' + service.title + ' - using: <a href="' + service.broughtToYouByURL + '">' + service.broughtToYouByTitle + '</a><br> <div style="padding-left:15px;"> status: on <input type="radio" name="' + service.name + '_serviceStatus" value="on" ' + activeCheck + '> - off <input type="radio" name="' + service.name + '_serviceStatus" value="off" ' + notActiveCheck + '> <br><br>Results are deemed notable (capitilizes badge letter) if:';
                 if (service.name === 'gnews') {
-                  console.log(" if service.name == 'gnews'  servicesHtml ");
-                  console.debug(service);
                   servicesHtml += '<br><br> the topic has had <input id="' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit" type="text" size="4" value="' + service.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit + '"/> or more related stories published within the last <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> hours <br> <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div> number of News Clusters  <input id="' + service.name + '_numberOfRelatedItemsWithClusterURL" type="text" size="4" value="' + service.notableConditions.numberOfRelatedItemsWithClusterURL + '"/> </div> </td> </tr></tbody></table> </div>';
-                  console.log('trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or');
                 } else {
                   servicesHtml += '<br> URL is an exact match, and: <br> it has been <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting <br> <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div> a post has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments </div> </td> </tr></tbody></table> </div>';
-                  console.log('trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or');
                 }
               }
-              servicesHtml += "<div class='serviceListing listing' style='padding:15px; margin-top: 30px;'> Wouldn't it be awesome if we could add some more services to opt-in to?&nbsp;&nbsp; All that's needed are friendly APIs!&nbsp; <a href='https://twitter.com/spencenow' target='_blank'>Tweet me</a> if you're interested in adding one! </div>";
+              servicesHtml += "<div class='serviceListing listing' style='padding:15px; margin-top: 30px;'> Wouldn't it be awesome if we could add some more services to opt-in to?&nbsp;&nbsp; All that's needed are friendly APIs!&nbsp; <a href='https://twitter.com/spencenow' target='_blank'>Tweet me</a> if you're interested in adding one! </div> <br>";
               return $("#servicesInfoDrop").html(servicesHtml);
             };
           })(this),
           bind: (function(_this) {
             return function(popupParcel) {
-              var allInputs, autoTimerRadios, downButton, index, postError, saveButtons, service, upButton, _bindDown, _bindUp, _i, _len, _ref;
+              var addWhitelistString_button, allInputs, autoTimerRadios, downButton, index, postError, removeWhitelistStringButtons, saveButtons, service, upButton, _bindDown, _bindUp, _i, _len, _ref;
               saveButtons = $(_this.DOMselector + " .userPreferencesSave");
-              saveButtons.attr('disabled', 'disabled');
+              removeWhitelistStringButtons = $(_this.DOMselector + " .removeWhitelistString");
               autoTimerRadios = $(_this.DOMselector + " input:radio[name='researchAutoOffType']");
-              allInputs = $(_this.DOMselector + ' input');
-              _this.elsToUnbind = _this.elsToUnbind.concat(allInputs, saveButtons, autoTimerRadios);
+              allInputs = $(_this.DOMselector + ' input:not(.ignoreSaveButtonListen)');
+              addWhitelistString_button = $(_this.DOMselector + " #addWhiteListString label");
+              _this.elsToUnbind = _this.elsToUnbind.concat(allInputs, saveButtons, autoTimerRadios, removeWhitelistStringButtons, addWhitelistString_button);
+              saveButtons.attr('disabled', 'disabled');
               allInputs.bind('change', function() {
                 return $(".userPreferencesSave").removeAttr('disabled');
               });
@@ -804,13 +769,40 @@
                 }
               }
               postError = function(userErrMsg) {
-                console.log('trying to post error ' + userErrMsg);
                 return $(_this.DOMselector + " .userErrMsg").html("<br>" + userErrMsg);
               };
+              removeWhitelistStringButtons.bind('click', function(ev) {
+                var newWhitelistAnyMatchArray, parcel, whitelistSubString;
+                whitelistSubString = $(ev.target).attr('data-whitelistStringToRemove');
+                console.debug(popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch);
+                console.debug(whitelistSubString);
+                newWhitelistAnyMatchArray = _.without(popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch, whitelistSubString);
+                popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch = newWhitelistAnyMatchArray;
+                parcel = {
+                  refreshView: 'userPreferences',
+                  keyName: 'kiwi_userPreferences',
+                  newValue: popupParcel.kiwi_userPreferences,
+                  localOrSync: 'sync',
+                  msg: 'kiwiPP_post_save_a_la_carte'
+                };
+                return sendParcel(parcel);
+              });
+              addWhitelistString_button.bind('click', function(ev) {
+                var parcel, whitelistSubString_toAdd;
+                whitelistSubString_toAdd = $(_this.DOMselector + " #addWhiteListString input").val();
+                popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch.push(whitelistSubString_toAdd);
+                parcel = {
+                  refreshView: 'userPreferences',
+                  keyName: 'kiwi_userPreferences',
+                  newValue: popupParcel.kiwi_userPreferences,
+                  localOrSync: 'sync',
+                  msg: 'kiwiPP_post_save_a_la_carte'
+                };
+                return sendParcel(parcel);
+              });
               return saveButtons.bind('click', function() {
                 var active, allowedAutoOffTypes, autoOffTimerType, autoOffTimerValue, hoursSincePosted, num_comments, numberOfRelatedItemsWithClusterURL, numberOfStoriesFoundWithinTheHoursSincePostedLimit, parcel, researchModeHTMLval, _j, _k, _len1, _len2, _ref1, _ref2;
                 researchModeHTMLval = $("input:radio[name='research']:checked").val();
-                console.log('researchModeHTMLval is ' + researchModeHTMLval);
                 if (researchModeHTMLval !== 'on' && researchModeHTMLval !== 'off') {
                   postError('research mode must be "on" or "off"');
                   return 0;
@@ -864,7 +856,6 @@
                     }
                   }
                 }
-                console.log('1234');
                 popupParcel.kiwi_userPreferences.researchModeOnOff = researchModeHTMLval;
                 if (autoOffTimerType !== 'custom') {
                   popupParcel.kiwi_userPreferences.autoOffTimerType = autoOffTimerType;
@@ -878,8 +869,6 @@
                   active = $("input:radio[name='" + service.name + "_serviceStatus']:checked").val();
                   popupParcel.kiwi_servicesInfo[index].active = active;
                   hoursSincePosted = $('#' + service.name + '_hoursNotable').val();
-                  console.log(popupParcel.kiwi_servicesInfo[index].name);
-                  console.log("hoursSincePosted = $('#' + service.name + '_hoursNotable').val() " + hoursSincePosted);
                   popupParcel.kiwi_servicesInfo[index].notableConditions.hoursSincePosted = parseFloat(hoursSincePosted);
                   if (service.name === 'gnews') {
                     numberOfRelatedItemsWithClusterURL = $('#' + service.name + '_numberOfRelatedItemsWithClusterURL').val();
@@ -892,8 +881,6 @@
                   }
                 }
                 popupParcel.view = 'userPreferences';
-                console.log('4567');
-                console.debug(popupParcel);
                 parcel = {
                   refreshView: popupParcel.view,
                   newPopupParcel: popupParcel,
@@ -930,12 +917,12 @@
         __normal__: {
           paint: (function(_this) {
             return function(popupParcel) {
-              return console.log('painting ' + _this.name);
+              return typeof console !== "undefined" && console !== null ? console.log('painting ' + _this.name) : void 0;
             };
           })(this),
           bind: (function(_this) {
             return function(popupParcel) {
-              return console.log('binding ' + _this.name);
+              return typeof console !== "undefined" && console !== null ? console.log('binding ' + _this.name) : void 0;
             };
           })(this)
         }
@@ -965,12 +952,12 @@
         __normal__: {
           paint: (function(_this) {
             return function(popupParcel) {
-              return console.log('painting ' + _this.name);
+              return typeof console !== "undefined" && console !== null ? console.log('painting ' + _this.name) : void 0;
             };
           })(this),
           bind: (function(_this) {
             return function(popupParcel) {
-              return console.log('binding ' + _this.name);
+              return typeof console !== "undefined" && console !== null ? console.log('binding ' + _this.name) : void 0;
             };
           })(this)
         }
@@ -998,10 +985,8 @@
         renderState = null;
       }
       this.renderStateTransitions = this.__renderStateTransitions__();
-      console.log('hehehehee init: (popupParcel, renderState = null) =>');
       this.unbindView();
       renderState = renderState != null ? renderstate : "collapsed";
-      console.log(' renderState = if renderState? then renderstate else "collapsed" ' + renderState);
       return this.render(popupParcel, 'collapsed');
     };
 
@@ -1010,14 +995,12 @@
       if (fromState == null) {
         fromState = null;
       }
-      console.log('in render for kiwi');
       __renderStates__callback = (function(_this) {
         return function(popupParcel, renderState) {
           return KiwiSlice.__super__.render.call(_this, popupParcel, renderState);
         };
       })(this);
       if ((fromState != null) && (this.renderStateTransitions[fromState + "__to__" + renderState] != null)) {
-        console.log('yep, has renderstate');
         return this.renderStateTransitions[fromState + "__to__" + renderState](popupParcel, renderState, __renderStates__callback);
       } else {
         return KiwiSlice.__super__.render.call(this, popupParcel, renderState);
@@ -1056,16 +1039,13 @@
           paint: (function(_this) {
             return function(popupParcel) {
               var kiwiSliceHTML;
-              console.log('painting ' + _this.name);
-              kiwiSliceHTML = '<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter"> <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> <a class=" btn btn-mini btn-default" style="font-size:.8em;" target="_blank" href="http://www.metafruit.com/kiwi/">MetaFruit <span class="glyphicon glyphicon-apple"></span></a> <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button> <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button> </div> <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
-              $(_this.DOMselector).html(kiwiSliceHTML);
-              return console.log(kiwiSliceHTML);
+              kiwiSliceHTML = '<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter"> <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> <a class="btn btn-mini btn-default" style="font-size:.8em;" target="_blank" href="http://www.metafruit.com/kiwi/">MetaFruit <span class="glyphicon glyphicon-apple"></span></a> <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button> <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button> </div> <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
+              return $(_this.DOMselector).html(kiwiSliceHTML);
             };
           })(this),
           bind: (function(_this) {
             return function(popupParcel) {
               var clearKiwiURLCacheButton, elActivateTransition, refreshURLresultsButton;
-              console.log('binding ' + _this.name);
               elActivateTransition = $(_this.DOMselector + " #sliceActivateTransition");
               clearKiwiURLCacheButton = $(_this.DOMselector + " #clearKiwiURLCache");
               refreshURLresultsButton = $(_this.DOMselector + " #refreshURLresults");
@@ -1079,7 +1059,6 @@
               });
               $('body').mouseup(function(e) {
                 var container;
-                console.log('test test test');
                 container = $(_this.DOMselector);
                 if (!container.is(e.target) && container.has(e.target).length === 0) {
                   $('body').unbind('mouseup');
@@ -1123,7 +1102,6 @@
         })(this),
         'collapsed__to__open': (function(_this) {
           return function(popupParcel, renderState, __renderStates__callback) {
-            console.log("'collapsed__to__open': (popupParcel, renderState, __renderStates__callback) =>");
             $(_this.DOMselector + " #sliceActivateTransition").addClass('rotateCounterClockwise');
             $(_this.DOMselector + " #sliceActivateTransition").animate({
               "bottom": '15px',
@@ -1131,11 +1109,10 @@
             }, {
               duration: 500,
               complete: function() {
-                console.log('we are done with animation');
                 return __renderStates__callback(popupParcel, renderState);
               }
             });
-            $(_this.DOMselector).prepend('<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter" style="opacity: 0;"> <button type="button" class="goTo_creditsView btn btn-mini btn-default ">credits</button> <a class=" btn btn-mini btn-default" style="" target="_blank" href="http://www.metafruit.com/kiwi/">MetaFruit <span class="glyphicon glyphicon-apple"></span></a> <button class="btn btn-mini btn-default " id="clearKiwiURLCache">clear cache</button> <button class="btn btn-mini btn-default " id="refreshURLresults">refresh</button> </div>');
+            $(_this.DOMselector).prepend('<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter" style="opacity: 0;"> <button type="button" class="goTo_creditsView btn btn-mini btn-default ">credits</button> <a class=" btn btn-mini btn-default" style="font-size:.8em;" target="_blank" href="http://www.metafruit.com/kiwi/">MetaFruit <span class="glyphicon glyphicon-apple"></span></a> <button class="btn btn-mini btn-default " id="clearKiwiURLCache">clear cache</button> <button class="btn btn-mini btn-default " id="refreshURLresults">refresh</button> </div>');
             return $(_this.DOMselector + " #transition_open_showMe").animate({
               'opacity': 1
             }, 499);
@@ -1173,7 +1150,7 @@
       }
       preppedHTMLstring += '<div style="float:right; padding-top: 9px;">&nbsp;&nbsp; sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select> </div> </div>';
       if ((service_PreppedResults != null) && service_PreppedResults.length > 0) {
-        preppedHTMLstring += 'Searched for: "<strong>' + service_PreppedResults[0].kiwi_searchedFor + '</strong>"<br>';
+        preppedHTMLstring += '<div style="padding:7px;"> &nbsp;&nbsp; Searched for: "<strong>' + service_PreppedResults[0].kiwi_searchedFor + '</strong>" </div>';
       }
       if (kiwi_userPreferences.sortByPref === 'attention') {
         service_PreppedResults = _.sortBy(service_PreppedResults, 'clusterUrl');
@@ -1182,10 +1159,6 @@
         service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_created_at');
         service_PreppedResults.reverse();
       }
-      console.log('if kiwi_userPreferences.sortByPref is ');
-      console.log(kiwi_userPreferences.sortByPref);
-      console.log('console.debug serviceResults.service_PreppedResults');
-      console.debug(service_PreppedResults);
       for (index = _i = 0, _len = service_PreppedResults.length; _i < _len; index = ++_i) {
         listing = service_PreppedResults[index];
         listingClass = index > 10 && service_PreppedResults.length > 14 ? ' hidden_listing' : '';
@@ -1216,7 +1189,7 @@
     recentTag = currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4 ? "<span class='recentListingTag'>Recent: </span>" : "";
     commentHtml += '<div class="listing ' + listingClass + ' " style="position:relative;">' + recentTag;
     if ((listing.over_18 != null) && listing.over_18 === true) {
-      commentHtml += '<span class="nsfw">NSFW</span>For story: ' + listing.story_title + '<br>';
+      commentHtml += '<span class="nsfw">NSFW</span> For story: ' + listing.story_title + '<br>';
     } else {
       commentHtml += "For story: <a target='_blank' href='" + serviceInfoObject.permalinkBase + listing.story_id + "'>" + listing.story_title + '</a><br>';
     }
@@ -1266,7 +1239,7 @@
           }
           preppedHTMLstring += '<a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '"><span style="color:black;">' + recentTag;
           if ((listing.over_18 != null) && listing.over_18 === true) {
-            preppedHTMLstring += '<span class="nsfw">NSFW</span>' + listing.title + '<br>';
+            preppedHTMLstring += '<span class="nsfw">NSFW</span> ' + listing.title + '<br>';
           } else {
             preppedHTMLstring += listing.title + '<br>';
           }
@@ -1275,7 +1248,7 @@
           if (listing.subreddit != null) {
             preppedHTMLstring += '<br><span> <a target="_blank" href="' + serviceInfoObject.permalinkBase + '/r/' + listing.subreddit + '"> subreddit: ' + listing.subreddit + '</a></span> <div style="float:right;"> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author + '</a> </div>';
           }
-          preppedHTMLstring += '<br><br></div>';
+          preppedHTMLstring += '<br></div>';
         } else {
           fuzzyMatchBool = true;
         }
@@ -1296,7 +1269,6 @@
         listingClass = '';
       }
       preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;"> fuzzy matches: <br></div> <span class="fuzzyMatches">';
-      console.log('fuzzy matches 12312312 ' + serviceInfoObject.name);
       for (index = _j = 0, _len1 = service_PreppedResults.length; _j < _len1; index = ++_j) {
         listing = service_PreppedResults[index];
         listingClass = index > 10 && service_PreppedResults.length > 14 ? ' hidden_listing ' : '';
@@ -1308,7 +1280,7 @@
           }
           preppedHTMLstring += '<a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '"><span style="color:black;">' + recentTag;
           if ((listing.over_18 != null) && listing.over_18 === true) {
-            preppedHTMLstring += '<span class="nsfw">NSFW</span>' + listing.title + '<br>';
+            preppedHTMLstring += '<span class="nsfw">NSFW</span> ' + listing.title + '<br>';
           } else {
             preppedHTMLstring += listing.title + '<br>';
           }
@@ -1331,90 +1303,11 @@
     for (_i = 0, _len = buttonEls.length; _i < _len; _i++) {
       el = buttonEls[_i];
       _results.push($(el).bind('click', function(ev) {
-        console.log('clicked ' + viewName);
         return switchViews[viewName].render(viewData);
       }));
     }
     return _results;
   };
-
-  receiveParcel = function(parcel) {
-    if (parcel.msg == null) {
-      return false;
-    }
-    switch (parcel.msg) {
-      case 'kiwiPP_popupParcel_ready':
-        return chrome.tabs.query({
-          currentWindow: true,
-          active: true
-        }, function(tabs) {
-          var tabUrl;
-          if (tabs.length > 0 && tabs[0].status === "complete") {
-            if (tabs[0].url.indexOf('chrome-devtools://') !== 0) {
-              tabUrl = tabs[0].url;
-              if (tabs[0].url === parcel.forUrl) {
-                console.log("when 'popupParcel_ready' parcel");
-                console.debug(parcel);
-                return initialize(parcel.popupParcel);
-              }
-            } else {
-              console.log('chrome-devtools:// ');
-              return 0;
-            }
-          }
-        });
-    }
-  };
-
-  sendParcel = function(parcel) {
-    var port;
-    console.log('wtf sent');
-    port = chrome.extension.connect({
-      name: "kiwi_fromBackgroundToPopup"
-    });
-    return chrome.tabs.query({
-      currentWindow: true,
-      active: true
-    }, function(tabs) {
-      if (tabs.length > 0 && tabs[0].status === "complete") {
-        if (tabs[0].url.indexOf('chrome-devtools://') !== 0) {
-          parcel.forUrl = tabs[0].url;
-          if (parcel.msg == null) {
-            return false;
-          }
-          switch (parcel.msg) {
-            case 'kiwiPP_refreshSearchQuery':
-              return port.postMessage(parcel);
-            case 'kiwiPP_post_customSearch':
-              return port.postMessage(parcel);
-            case 'kiwiPP_request_popupParcel':
-              return port.postMessage(parcel);
-            case 'kiwiPP_post_savePopupParcel':
-              return port.postMessage(parcel);
-            case 'kiwiPP_post_save_a_la_carte':
-              return port.postMessage(parcel);
-            case 'kiwiPP_clearAllURLresults':
-              return port.postMessage(parcel);
-            case 'kiwiPP_refreshURLresults':
-              return port.postMessage(parcel);
-            case 'kiwiPP_researchUrlOverrideButton':
-              return port.postMessage(parcel);
-          }
-        } else {
-          console.log('chrome-devtools:// ');
-          return 0;
-        }
-      }
-    });
-  };
-
-  chrome.extension.onConnect.addListener(function(port) {
-    if (port.name === 'kiwi_fromBackgroundToPopup') {
-      return port.onMessage.addListener(function(pkg) {
-        return receiveParcel(pkg);
-      });
-    }
-  });
 
   moveArrayElement = function(array, from, to) {
     array.splice(to, 0, array.splice(from, 1)[0]);
@@ -1476,10 +1369,81 @@
     return decodeURI(oTarget.search.replace(new RegExp("^(?:.*[&\\?]" + encodeURI(sVar).replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
   };
 
-  console.log('trying to send123');
+  receiveParcel = function(parcel) {
+    if (parcel.msg == null) {
+      return false;
+    }
+    switch (parcel.msg) {
+      case 'kiwiPP_popupParcel_ready':
+        return chrome.tabs.query({
+          currentWindow: true,
+          active: true
+        }, function(tabs) {
+          var tabUrl;
+          if (tabs.length > 0 && tabs[0].status === "complete") {
+            if (tabs[0].url.indexOf('chrome-devtools://') !== 0) {
+              tabUrl = tabs[0].url;
+              if (tabs[0].url === parcel.forUrl) {
+                return initialize(parcel.popupParcel);
+              }
+            } else {
+              return 0;
+            }
+          }
+        });
+    }
+  };
 
-  $().ready(sendParcel({
+  sendParcel = function(parcel) {
+    var port;
+    port = chrome.extension.connect({
+      name: "kiwi_fromBackgroundToPopup"
+    });
+    return chrome.tabs.query({
+      currentWindow: true,
+      active: true
+    }, function(tabs) {
+      if (tabs.length > 0 && tabs[0].status === "complete") {
+        if (tabs[0].url.indexOf('chrome-devtools://') !== 0) {
+          parcel.forUrl = tabs[0].url;
+          if (parcel.msg == null) {
+            return false;
+          }
+          switch (parcel.msg) {
+            case 'kiwiPP_refreshSearchQuery':
+              return port.postMessage(parcel);
+            case 'kiwiPP_post_customSearch':
+              return port.postMessage(parcel);
+            case 'kiwiPP_request_popupParcel':
+              return port.postMessage(parcel);
+            case 'kiwiPP_post_savePopupParcel':
+              return port.postMessage(parcel);
+            case 'kiwiPP_post_save_a_la_carte':
+              return port.postMessage(parcel);
+            case 'kiwiPP_clearAllURLresults':
+              return port.postMessage(parcel);
+            case 'kiwiPP_refreshURLresults':
+              return port.postMessage(parcel);
+            case 'kiwiPP_researchUrlOverrideButton':
+              return port.postMessage(parcel);
+          }
+        } else {
+          return 0;
+        }
+      }
+    });
+  };
+
+  chrome.extension.onConnect.addListener(function(port) {
+    if (port.name === 'kiwi_fromBackgroundToPopup') {
+      return port.onMessage.addListener(function(pkg) {
+        return receiveParcel(pkg);
+      });
+    }
+  });
+
+  sendParcel({
     'msg': 'kiwiPP_request_popupParcel'
-  }));
+  });
 
 }).call(this);

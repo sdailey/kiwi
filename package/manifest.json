@@ -4,7 +4,7 @@
   "name": "Kiwi Conversations",
   "short_name": "Kiwi Conversations",
   "description": "Kiwi Conversations searches community sites to find forum comment threads about the url you're visiting.",
-  "version": "0.9.81",
+  "version": "0.9.94",
 
   "permissions": [
     "tabs",

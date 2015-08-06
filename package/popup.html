@@ -15,7 +15,7 @@
     <script src="vendor/bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
     <script src="vendor/behigh-bootstrap_dropdown_enhancement/js/dropdowns-enhancement.js"></script>
     
-    <script src="popup.min.js"></script>
+    <script src="popup.js"></script>
     
     <style type="text/css">
       body {
@@ -42,6 +42,11 @@
         color: red;
       }
       
+      .whitelistTable {
+        
+        background-color: white;
+        z-index: 1;
+      }
       
       .listing {
         /*border-color: green;
@@ -74,11 +79,24 @@
         padding: 25px;
       }
         
+      .servicePreferences {
+        margin-left: 30px;
+        margin-right: 30px;
+        border-style: solid;
+        border-width: 1px;
+        border-top-width: 2px;
+        border-color: #ADADAD;
+      }
+      .servicePreferences .serviceListing {
+        margin-left:16px;
+        margin-right:16px;
+      }
       
       .kiwiSliceOpenPlatter {
         position: fixed;
         bottom: 24px;
         right: 62px;
+        height: 48px;
         padding: 9px;
         width:404px;
         padding-right: 34px;
@@ -313,14 +331,59 @@
               transform:rotate(360deg);
           }
       }
+      
+      
+      /* tooltip - slightly modified. originally from: http://www.menucool.com/tooltip/css-tooltip; */
+      a.tooltipCustom {
+        outline:none; 
+        text-decoration:none;
+      }
+      a.tooltipCustom strong {
+        line-height:25px;
+      }
+      a.tooltipCustom:hover {
+        text-decoration:none;
+      } 
+      a.tooltipCustom span {
+        font-size:.9em;
+        z-index:10; display:none; 
+        padding:6px 8px;
+        
+        
+        /*margin-top:60px; margin-left:-160px;*/
+        width:275px; 
+        line-height:16px;
+      }
+      
+      a.tooltipCustom:hover span {
+        z-index:100000;
+        display:inline-block;
+        position:absolute;
+        white-space: normal;
+        text-align: left;
+        /*bottom:84px;
+        left:-12px;*/
+        width: 375px;
+        border:2px solid #FFF;  color:#EEE;
+        background:#333; /* url(cssttp/css-tooltip-gradient-bg.png) repeat-x 0 0; */
+      }
+
+      /*CSS3 extras*/
+      a.tooltipCustom span
+      {
+        border-radius:2px;        
+        box-shadow: 0px 0px 8px 4px #666;
+        /*opacity: 0.8;*/
+      }
+      
     </style>
     
   </head>
   
   <body style="height: 580px; width: 500px;">
-    <div id="loading_View" style="display:none;">
+    <div id="loading_View" style="display:block; padding: 40px;">
       <br>
-      loading...
+      loading... (You're internet connection may be slow (check/fix it)! Try opening and closing the popup in a bit.)
       <br>
     </div>
     <div id="conversations_View" style="display:none;">
@@ -329,43 +392,6 @@
       <div id="customSearch_Widget"></div>
       <div style="margin-left: 20px; margin-right: 20px;"> <!-- padding-top: 60px; -->
         <div class="actionButtons">
-        
-          <!-- <div class="dropdown">
-            <button class="btn btn-mini btn-default" id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Dropdown trigger
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="dLabel">
-              <li>
-                <a href="#">Action</a>
-              </li>
-            </ul>
-          </div>
-        
-          <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-success">
-              <input type="checkbox" autocomplete="off" checked> Checkbox 1 (pre-checked)
-            </label>
-            <label class="btn btn-success">
-              <input type="checkbox" autocomplete="off"> Checkbox 2
-            </label>
-            <label class="btn btn-success">
-              <input type="checkbox" autocomplete="off"> Checkbox 3
-            </label>
-          </div> -->
-          
-          <!-- 
-          <div class="btn-group">
-            <button class="btn btn-success btn-mini active">Hacker News</button>
-            <button data-toggle="dropdown" class="btn btn-success dropdown-toggle active" data-placeholder="false"><span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li><input type="checkbox" id="ID" name="NAME" value="VALUE"><label for="ID">Label</label></li>
-              </ul>
-          </div>
-          
-          <button type="button" class="btn btn-mini btn-success active"> Reddit </button> 
-          <button type="button" class="btn btn-mini btn-success active"> Google News </button> 
-           -->
           
           <span id="previousSearchLink"></span>
           <span id="researchModeDisabledButtons"></span>
@@ -382,13 +408,16 @@
         
         <div id="alertsDrop"></div>
         
-        
+          <div style='width:100%; text-align:center; margin-top:20px;'>
+            ~ <span class="glyphicon glyphicon-grain" style="color:green;"></span> ~
+          </div>
+        <br><br>
+        <div style='width:100%; text-align:center;'> thanks for using Kiwi Conversations! </div>
+        <br>
+        <br>
         
       </div>
           
-      
-      
-      
     </div>
     
     
@@ -402,13 +431,8 @@
       <br>
       <br>
       <span class="userErrMsg"></span>
-      <br><span id="servicesInfoDrop"> </span>
-      
-      <span class="userErrMsg"></span>
       <br>
-      <div style="margin: 30px;margin-bottom: 45px; margin-top:20px; padding: 35px;" class="bg-warning">
-        
-        
+      <div style="margin: 30px;margin-bottom:5px; margin-top:20px; padding: 35px;border-style: solid; border-color: #ADADAD;border-width: 1px;" class="bg-warning">
         <span id="researchModeDrop"></span>
         <br><br>
         <div id="autoOffTimer" ></div>
@@ -417,6 +441,27 @@
           <button class="btn btn-mini btn-default userPreferencesSave"> save preferences </button> <span class="userErrMsg"></span>
         </div>
       </div>
+      
+      <span class="userErrMsg"></span>
+      <br>
+        <div class="servicePreferences">
+          <div style="width:100%; text-align: center; padding-top: 20px; font-size: 1.3em;">
+            Conversation Sources
+          </div>
+          <span id="servicesInfoDrop"> 
+          
+          
+          </span>
+        </div>
+      <br>
+        <div style='width:100%; text-align:center; margin-top:20px;'>
+          ~ <span class="glyphicon glyphicon-grain" style="color:green;"></span> ~
+        </div>
+      <br><br>
+      <div style='width:100%; text-align:center;'> thanks for using Kiwi Conversations! </div>
+      
+      <br><br>
+      
     </div>
     
     <div id='credits_View' style='display:none;'>
@@ -468,20 +513,19 @@
       You can find me <a href="https://twitter.com/spencenow" target="_blank">@spencenow</a> on the tweters.
       
       </div>
+      
+        
+      <div style='width:100%; text-align:center; margin-top:20px;'>
+        ~ <span class="glyphicon glyphicon-grain" style="color:green;"></span> ~
+      </div>
+      <br><br>
+      <div style='width:100%; text-align:center;'> thanks for using Kiwi Conversations! </div>
+      
+      <br><br>
+      
     </div>
     
     <div id="kiwiSlice_ViewFixedBottom"> </div>
-    <!-- <div id='alertsView' style='display:none;'>
-      alertsView
-      <br>
-      <button class="goTo_conversationsView">View Conversations for this Url</button><br>
-      <br>
-        
-      <button class="goTo_userPreferencesView">View User Preferences</button> <br>
-    </div>
-     -->
-    
-    
      
   </body>
   

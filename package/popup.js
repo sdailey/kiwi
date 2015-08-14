@@ -14,6 +14,8 @@
 
   initialize = function(popupParcel) {
     var view, viewName;
+    console.log('in init with popupParcel');
+    console.debug(popupParcel);
     if (getURLParam(window.location, 'optionsOnly') !== '') {
       preferencesOnlyPage = true;
       switchViews.userPreferences.render(popupParcel);
@@ -519,12 +521,16 @@
                     resultsHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>';
                   }
                 } else {
-                  if (serviceInfoObject.submitTitle != null) {
-                    submitUrl = serviceInfoObject.submitUrl;
-                    submitTitle = serviceInfoObject.submitTitle;
-                    resultsHTML += '<div>No matches for conversations on ' + serviceInfoObject.title + '... <br> &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>';
+                  if (serviceInfoObject.active === 'on') {
+                    if (serviceInfoObject.submitTitle != null) {
+                      submitUrl = serviceInfoObject.submitUrl;
+                      submitTitle = serviceInfoObject.submitTitle;
+                      resultsHTML += '<div>No matches for conversations on ' + serviceInfoObject.title + '... <br> &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>';
+                    } else {
+                      resultsHTML += '<div>No results for ' + serviceInfoObject.title + '</div>';
+                    }
                   } else {
-                    resultsHTML += '<div>No results for ' + serviceInfoObject.title + '</div>';
+                    resultsHTML += '<div>' + serviceInfoObject.title + ' has been toggled "off" in settings. <br> &nbsp;&nbsp;&nbsp;<button class="goTo_userPreferencesView btn btn-xs btn-default" style="position:relative; bottom:2px;"> go to settings </button> to toggle back on. </div>';
                   }
                 }
               }
@@ -1179,6 +1185,93 @@
     },
     reddit: function(serviceInfoObject, service_PreppedResults, kiwi_userPreferences) {
       return tailorRedditAndHNresults_returnHtml(serviceInfoObject, service_PreppedResults, kiwi_userPreferences);
+    },
+    productHunt: function(serviceInfoObject, service_PreppedResults, kiwi_userPreferences) {
+      var currentTime, fuzzyMatchBool, gridLayoutBool, index, listing, listingClass, maker, makerUsernames, preppedHTMLstring, recentTag, _i, _j, _len, _len1, _ref, _ref1, _time;
+      preppedHTMLstring = '';
+      currentTime = Date.now();
+      fuzzyMatchBool = false;
+      preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'> <div class='serviceResultsHeaderBar'> <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span> </div>';
+      if (service_PreppedResults.length < 1) {
+        preppedHTMLstring += ' no results <br>';
+        return preppedHTMLstring;
+      } else {
+        service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_num_comments');
+        service_PreppedResults.reverse();
+      }
+      for (index = _i = 0, _len = service_PreppedResults.length; _i < _len; index = ++_i) {
+        listing = service_PreppedResults[index];
+        listingClass = index > 10 && service_PreppedResults.length > 14 ? ' hidden_listing ' : '';
+        if (listing.comment_text != null) {
+          preppedHTMLstring += _tailorHNcomment(listing, serviceInfoObject, listingClass);
+        } else {
+          if ((listing.kiwi_created_at != null) && currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4) {
+            recentTag = "<span class='recentListingTag'>Recent: </span>";
+          } else {
+            recentTag = "";
+          }
+          if (listing.kiwi_makers.length > 3) {
+            gridLayoutBool = false;
+          } else {
+            gridLayoutBool = true;
+          }
+          preppedHTMLstring += '<div class="listing ' + listingClass + '">';
+          if (gridLayoutBool) {
+            preppedHTMLstring += '<div style="display:inline-table; width: 60%; padding-right:8px;">';
+          } else {
+            preppedHTMLstring += '<div>';
+          }
+          preppedHTMLstring += '<a class="listingTitle" target="_blank" href="' + listing.kiwi_discussion_url + '"> <div style="color:black; padding:4px; padding-bottom: 8px; font-size: 1.1em;">' + recentTag + '<b>' + listing.name + '</b> </div> <div style="color:#4D586F; padding-left:18px;"> <div style="padding-bottom:4px;">"' + listing.tagline + '"</div>';
+          preppedHTMLstring += '<div style="padding-bottom:4px;">' + listing.kiwi_num_comments + ' comments, ' + listing.kiwi_score + ' upvotes </div>';
+          if (listing.kiwi_created_at != null) {
+            _time = formatTime(listing.kiwi_created_at);
+            preppedHTMLstring += '' + _time;
+          }
+          preppedHTMLstring += '</div></a></div>';
+          if (gridLayoutBool) {
+            preppedHTMLstring += '<div style="display:inline-table; width: 39%;">';
+          } else {
+            preppedHTMLstring += '<div style="padding: 8px;">';
+          }
+          makerUsernames = [];
+          if ((listing.kiwi_makers != null) && listing.kiwi_makers.length > 0) {
+            preppedHTMLstring += '<div><div style="padding-bottom:2px;"><b>made by</b>: </div>';
+            _ref = listing.kiwi_makers;
+            for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+              maker = _ref[_j];
+              if (gridLayoutBool) {
+                preppedHTMLstring += '<div style="padding-bottom: 4px;">';
+              } else {
+                preppedHTMLstring += '<div style="padding-bottom: 4px; padding-left: 10px;">';
+              }
+              preppedHTMLstring += '<a target="_blank" href="' + serviceInfoObject.userPageBaselink + maker.username + '" style="color:#727E98;">' + maker.name;
+              if ((maker.headline != null) && maker.headline !== "") {
+                preppedHTMLstring += ', "' + maker.headline + '"';
+              }
+              preppedHTMLstring += '</a>';
+              if (maker.website_url != null) {
+                preppedHTMLstring += ' <a href="' + maker.website_url + '" target="_blank"><span class="glyphicon glyphicon-log-in" style="color:blue;"></span> </a>';
+              }
+              if (listing.kiwi_author_username === maker.username) {
+                preppedHTMLstring += " (also submitted post)";
+              }
+              preppedHTMLstring += '</div>';
+            }
+            preppedHTMLstring += '</div>';
+            makerUsernames.push(maker.username);
+          }
+          if (_ref1 = listing.kiwi_author_username, __indexOf.call(makerUsernames, _ref1) < 0) {
+            preppedHTMLstring += '<div style=""> <b>submitted by:</b> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.kiwi_author_username + '" style="color:#727E98;">' + listing.kiwi_author_name;
+            if ((listing.kiwi_author_headline != null) && listing.kiwi_author_headline !== "") {
+              preppedHTMLstring += ', "' + listing.kiwi_author_headline + '"';
+            }
+            preppedHTMLstring += '</a></div>';
+          }
+          preppedHTMLstring += '</div></div>';
+        }
+      }
+      preppedHTMLstring += "</div>";
+      return preppedHTMLstring;
     }
   };
 
@@ -1216,7 +1309,7 @@
       preppedHTMLstring += ' no results <br>';
       return preppedHTMLstring;
     } else if ((service_PreppedResults[0].comment_text == null) && kiwi_userPreferences.sortByPref === 'attention') {
-      service_PreppedResults = _.sortBy(service_PreppedResults, 'num_comments');
+      service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_num_comments');
       service_PreppedResults.reverse();
     } else if (kiwi_userPreferences.sortByPref === 'attention') {
       service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_score');
@@ -1244,7 +1337,7 @@
             preppedHTMLstring += listing.title + '<br>';
           }
           _time = formatTime(listing.kiwi_created_at);
-          preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</span></a>';
+          preppedHTMLstring += listing.kiwi_num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</span></a>';
           if (listing.subreddit != null) {
             preppedHTMLstring += '<br><span> <a target="_blank" href="' + serviceInfoObject.permalinkBase + '/r/' + listing.subreddit + '"> subreddit: ' + listing.subreddit + '</a></span> <div style="float:right;"> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author + '</a> </div>';
           }
@@ -1284,7 +1377,7 @@
           } else {
             preppedHTMLstring += listing.title + '<br>';
           }
-          preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes ' + formatTime(listing.kiwi_created_at) + '</span> <br> for Url: <span class="altURL">' + listing.url + '</span> </a>';
+          preppedHTMLstring += listing.kiwi_num_comments + ' comments, ' + listing.kiwi_score + ' upvotes ' + formatTime(listing.kiwi_created_at) + '</span> <br> for Url: <span class="altURL">' + listing.url + '</span> </a>';
           if (listing.subreddit != null) {
             preppedHTMLstring += '<br><span> <a target="_blank" href="' + serviceInfoObject.permalinkBase + '/r/' + listing.subreddit + '"> subreddit: ' + listing.subreddit + '</a></span> <div style="float:right;"> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author + '</a></div>';
           }
@@ -1396,6 +1489,7 @@
 
   sendParcel = function(parcel) {
     var port;
+    console.log('wtf sent');
     port = chrome.extension.connect({
       name: "kiwi_fromBackgroundToPopup"
     });

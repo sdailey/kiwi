@@ -6,7 +6,8 @@ renderedBool = false
 preferencesOnlyPage = false
 
 initialize = (popupParcel) ->
-  # console.log 'in init'
+  console.log 'in init with popupParcel'
+  console.debug popupParcel
   
   if getURLParam(window.location, 'optionsOnly') != ''
     preferencesOnlyPage = true
@@ -545,16 +546,26 @@ class Conversations extends SwitchView
             if service_PreppedResults.length > 14
               resultsHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>'
           else
-            if serviceInfoObject.submitTitle?
-              submitUrl = serviceInfoObject.submitUrl
-              submitTitle = serviceInfoObject.submitTitle
-              resultsHTML += '<div>No matches for conversations on ' + serviceInfoObject.title + '... <br> 
-                &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>'
+          
+            if serviceInfoObject.active is 'on'
+              if serviceInfoObject.submitTitle?
+                
+                submitUrl = serviceInfoObject.submitUrl
+                submitTitle = serviceInfoObject.submitTitle
+                resultsHTML += '<div>No matches for conversations on ' + serviceInfoObject.title + '... <br> 
+                  &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>'
+                
+              else
+                
+                resultsHTML += '<div>No results for ' + serviceInfoObject.title + '</div>'
+            else  
               
-            else
+              resultsHTML += '<div>' + serviceInfoObject.title + ' has been toggled "off" in settings. <br>
+                &nbsp;&nbsp;&nbsp;<button class="goTo_userPreferencesView btn btn-xs btn-default" style="position:relative; bottom:2px;">
+                  go to settings 
+                </button> to toggle back on.
+              </div>'
               
-              resultsHTML += '<div>No results for ' + serviceInfoObject.title + '</div>'
-        
         
         preppedHTMLstring += "<div style='width: 100%; text-align: center;'>" + resultsSummaryArray.join(" - ") + "</div><br>"
         preppedHTMLstring += resultsHTML
@@ -1255,8 +1266,6 @@ switchViews =
   
 tailorResults = 
   gnews: (serviceInfoObject, service_PreppedResults, kiwi_userPreferences) ->
-    # preppedHTMLstring = ''
-    # for listing, index in service_PreppedResults
     
     currentTime = Date.now()
     
@@ -1296,13 +1305,8 @@ tailorResults =
     
     # console.log 'console.debug serviceResults.service_PreppedResults'
     # console.debug service_PreppedResults
-    
-    
-    
-    
       
     for listing, index in service_PreppedResults
-      
       
       listingClass = if (index > 10 and service_PreppedResults.length > 14) then ' hidden_listing' else ''
       
@@ -1329,7 +1333,174 @@ tailorResults =
     
   reddit: (serviceInfoObject, service_PreppedResults, kiwi_userPreferences) ->
     return tailorRedditAndHNresults_returnHtml(serviceInfoObject, service_PreppedResults, kiwi_userPreferences)
+  
+  
+  productHunt:  (serviceInfoObject, service_PreppedResults, kiwi_userPreferences) ->
     
+    preppedHTMLstring = ''
+    
+    currentTime = Date.now()
+    
+    # comments_count: 30
+    # created_at: "2015-08-13T06:03:40.625-07:00"
+    # discussion_url: "http://www.producthunt.com/tech/buffer-for-video"
+    # id: 30839
+    
+    
+    
+    
+    fuzzyMatchBool = false
+    
+    preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'>
+      
+      <div class='serviceResultsHeaderBar'>
+        <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span>
+      </div>'
+    
+      # recency doesn't make sense for PH
+    # if kiwi_userPreferences.sortByPref == 'attention'
+    #   selectedString_attention = 'selected'
+    #   selectedString_recency = ''
+    # else
+    #   selectedString_attention = ''
+    #   selectedString_recency = 'selected'
+      
+        
+    
+    if service_PreppedResults.length < 1
+      preppedHTMLstring += ' no results <br>'
+      return preppedHTMLstring
+    else
+      service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_num_comments')
+      service_PreppedResults.reverse()
+    
+    
+    for listing, index in service_PreppedResults
+      listingClass = if (index > 10 and service_PreppedResults.length > 14) then ' hidden_listing ' else ''
+      if listing.comment_text?
+        
+        preppedHTMLstring += _tailorHNcomment(listing, serviceInfoObject, listingClass)
+        
+      else
+        if (listing.kiwi_created_at? and currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4)
+          recentTag = "<span class='recentListingTag'>Recent: </span>"
+        else
+          recentTag = ""
+        
+        # preppedHTMLstring += '<div class="listing ' + listingClass + '" style="position:relative;">' + recentTag + '
+        #   <div style="float:right;">
+        #     <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.author + '"> by ' + listing.author  + '</a>
+        #   </div>
+        #   <a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '">'
+        
+        if listing.kiwi_makers.length > 3
+          gridLayoutBool = false
+        else  
+          gridLayoutBool = true
+        
+        preppedHTMLstring += '<div class="listing ' + listingClass + '">'
+        
+          # kiwi_created_at: 1439471020625
+          
+          # kiwi_author_headline: "Community @ProductHunt. "
+          # kiwi_author_name: "Ben Tossell"
+          # kiwi_author_username: "bentossell"
+          # kiwi_discussion_url: "http://www.producthunt.com/tech/buffer-for-video"
+          # kiwi_makers: Array[9]
+            
+          #   headline: "Co-founder/CEO, Buffer"
+          #   name: "Joel Gascoigne"
+          #   profile_url: "http://www.producthunt.com/@joelgascoigne"
+          #   username: "joelgascoigne"
+          #   website_url: "http://joel.is"
+            
+          # kiwi_num_comments: 30
+          # kiwi_score: 244
+          
+          # name: "Buffer for Video"
+          # tagline: "All-in-one video scheduling & management for social media"
+          
+          # redirect_url: "http://www.producthunt.com/r/4918f991fdd705/30839?app_id=1674"
+          # screenshot_url: Object
+        
+        if gridLayoutBool
+          preppedHTMLstring +=  '<div style="display:inline-table; width: 60%; padding-right:8px;">'
+        else
+          preppedHTMLstring +=  '<div>'
+          
+        preppedHTMLstring += '
+          <a class="listingTitle" target="_blank" href="' + listing.kiwi_discussion_url + '">
+            <div style="color:black; padding:4px; padding-bottom: 8px; font-size: 1.1em;">' + recentTag + '
+              <b>' + listing.name + '</b>
+            </div>
+            <div style="color:#4D586F; padding-left:18px;">
+              <div style="padding-bottom:4px;">"' + listing.tagline + '"</div>'
+          
+        preppedHTMLstring += '<div style="padding-bottom:4px;">
+            ' + listing.kiwi_num_comments + ' comments, ' + listing.kiwi_score + ' upvotes
+          </div>'
+        
+        if listing.kiwi_created_at?
+          _time = formatTime(listing.kiwi_created_at)
+          preppedHTMLstring += '' + _time
+        
+        preppedHTMLstring += '</div></a></div>'
+        
+        if gridLayoutBool
+          preppedHTMLstring +=  '<div style="display:inline-table; width: 39%;">'
+        else
+          preppedHTMLstring +=  '<div style="padding: 8px;">'
+        
+        makerUsernames = []
+        
+        if listing.kiwi_makers? and listing.kiwi_makers.length > 0
+          
+          
+          
+          preppedHTMLstring += '<div><div style="padding-bottom:2px;"><b>made by</b>: </div>'
+             
+          for maker in listing.kiwi_makers
+            
+            if gridLayoutBool
+              preppedHTMLstring += '<div style="padding-bottom: 4px;">'
+            else
+              preppedHTMLstring += '<div style="padding-bottom: 4px; padding-left: 10px;">'
+            
+            preppedHTMLstring += '<a target="_blank" href="' + serviceInfoObject.userPageBaselink + maker.username + '" style="color:#727E98;">' + maker.name 
+            if maker.headline? and maker.headline != ""
+              preppedHTMLstring += ', "' + maker.headline + '"'
+            preppedHTMLstring += '</a>'
+              
+            if maker.website_url?
+              preppedHTMLstring += ' <a href="' + maker.website_url + '" target="_blank"><span class="glyphicon glyphicon-log-in" style="color:blue;"></span> </a>'
+            
+            if listing.kiwi_author_username == maker.username
+              preppedHTMLstring += " (also submitted post)"
+            preppedHTMLstring += '</div>'
+            
+          preppedHTMLstring += '</div>'
+          
+          makerUsernames.push maker.username
+          
+        if listing.kiwi_author_username not in makerUsernames
+          preppedHTMLstring +=  '<div style="">
+            <b>submitted by:</b> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.kiwi_author_username + '"
+               style="color:#727E98;">' + listing.kiwi_author_name  
+              
+          if listing.kiwi_author_headline? and listing.kiwi_author_headline != ""
+            preppedHTMLstring += ', "' + listing.kiwi_author_headline + '"'
+            
+          preppedHTMLstring += '</a></div>'
+        
+        
+        preppedHTMLstring += '</div></div>'
+    
+    preppedHTMLstring += "</div>"
+    return preppedHTMLstring
+    
+    
+    
+    # return '{{ do not have layout yet, ' + service_PreppedResults.length + ' results }}'
 
 _tailorHNcomment = (listing, serviceInfoObject, listingClass) ->
   currentTime = Date.now()
@@ -1369,7 +1540,6 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
   
   currentTime = Date.now()
   # kiwi_exact_match
-  
     # fuzzy matches
   
   # linkify stuff
@@ -1401,7 +1571,7 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
   
   else if !service_PreppedResults[0].comment_text? and kiwi_userPreferences.sortByPref is 'attention'
     
-    service_PreppedResults = _.sortBy(service_PreppedResults, 'num_comments')
+    service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_num_comments')
     service_PreppedResults.reverse()
   else if kiwi_userPreferences.sortByPref is 'attention'
     service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_score')
@@ -1442,7 +1612,7 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
         
         _time = formatTime(listing.kiwi_created_at)
         
-        preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</span></a>'
+        preppedHTMLstring += listing.kiwi_num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</span></a>'
         
         if listing.subreddit?
           preppedHTMLstring +=  '<br><span> 
@@ -1495,7 +1665,7 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
         else
           preppedHTMLstring += listing.title + '<br>'
         
-        preppedHTMLstring += listing.num_comments + ' comments, ' + listing.kiwi_score + ' upvotes ' + formatTime(listing.kiwi_created_at) + '</span>
+        preppedHTMLstring += listing.kiwi_num_comments + ' comments, ' + listing.kiwi_score + ' upvotes ' + formatTime(listing.kiwi_created_at) + '</span>
         <br>
         for Url: <span class="altURL">' + listing.url + '</span>
         </a>'
@@ -1621,7 +1791,7 @@ receiveParcel  = (parcel) ->
 
  
 sendParcel = (parcel) ->
-  # console.log 'wtf sent'
+  console.log 'wtf sent'
   port = chrome.extension.connect({name: "kiwi_fromBackgroundToPopup"})
   
   # chrome.tabs.getSelected(null,(tab) ->

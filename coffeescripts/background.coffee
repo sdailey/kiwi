@@ -43,6 +43,9 @@ kiwi_reddit_token_refresh_interval = null
   # timestamp:
   # intervalId:
 
+kiwi_productHunt_token_refresh_interval = null
+  # timestamp:
+  # intervalId:
 
 tempResponsesStore = {}
   # forUrl: < url >
@@ -52,6 +55,253 @@ tempResponsesStore = {}
     #   service_PreppedResults:
     #   forUrl: url
 
+popupParcel = {}
+# proactively set if each services' preppedResults are ready.
+  # will be set with available results if queried by popup.
+  # {
+    # forUrl:
+    # allPreppedResults:
+    # kiwi_servicesInfo:
+    # kiwi_alerts:
+    # kiwi_userPreferences:
+  # }
+
+# tlds = [
+#   '.com','.fr','.de','.co.uk',
+#   '.net','.int','.edu','.gov','.mil','.co','.io',
+#   '.au','.br','.cn','.dk','.es','.fi','.gb','.gr','.hk','.in','.it','.is','.jp','.ke','.no','.nl','.vn'
+# ]
+
+defaultUserPreferences = {
+
+  fontSize: .8
+  researchModeOnOff: 'off'
+  autoOffAtUTCmilliTimestamp: null
+  autoOffTimerType: 'always' # 'custom','always','20','60'
+  autoOffTimerValue: null
+
+  installedTime: Date.now()
+
+  sortByPref: 'attention' # 'recency'   # "attention" means 'comments' if story, 'points' if comment, 'clusterUrl' if news
+
+  urlSubstring_whitelists:
+    anyMatch: []
+    beginsWith: []
+    endingIn: []
+    unless: [
+      # ['twitter.com/','/status/'] # unless /status/
+    ]
+
+    # suggested values to all users  -- any can be overriden with the "Research this URL" button
+      # unfortunately, because of Chrome's discouragement of storing sensitive
+      # user info with chrome.storage, blacklists are fixed for now . see: https://news.ycombinator.com/item?id=9993030
+  urlSubstring_blacklists:
+    anyMatch: [
+      'facebook.com'
+
+      'news.ycombinator.com'
+      'reddit.com'
+
+      'imgur.com'
+
+      'www.google.com'
+      'docs.google'
+      'drive.google'
+      'accounts.google'
+      '.slack.com/'
+      '//t.co'
+      '//bit.ly'
+      '//goo.gl'
+      '//mail.google'
+      '//mail.yahoo.com'
+      'hotmail.com'
+      'outlook.com'
+
+      '/wp-admin'
+
+      'chrome://'
+      'chrome-extension://'
+
+      'chrome-devtools://'  # hardcoded block
+    ]
+    beginsWith: [
+      "about:"
+      'chrome://'
+    ]
+    endingIn: [
+      # - ending in: # (or with '/' at end)
+      'youtube.com'
+    ]
+    unless: [
+      ['twitter.com/','/status/'] # unless /status/    # so that people checking their homepage doesn't count
+    ]
+}
+
+defaultServicesInfo = [
+
+    name:"hackerNews"
+    title: "Hacker News"
+    abbreviation: "H"
+
+    queryApi:"https://hn.algolia.com/api/v1/search?restrictSearchableAttributes=url&query="
+
+    broughtToYouByTitle:"Algolia Hacker News API"
+    broughtToYouByURL:"https://hn.algolia.com/api"
+
+    permalinkBase: 'https://news.ycombinator.com/item?id='
+    userPageBaselink: 'https://news.ycombinator.com/user?id='
+
+    submitTitle: 'Be the first to submit on Hacker News!'
+    submitUrl: 'https://news.ycombinator.com/submit'
+
+    active: 'on'
+
+    notableConditions:
+      hoursSincePosted: 4 # an exact match is less than 5 hours old
+      num_comments: 10  # an exact match has 10 comments
+
+    updateBadgeOnlyWithExactMatch: true
+
+    customSearchApi: "https://hn.algolia.com/api/v1/search?query="
+    customSearchTags__convention: {'string':'&tags=','delimeter':','}
+    customSearchTags:
+      story:
+        title: "stories"
+        string: "story"
+        include: true
+      commentPolls:
+        title: "comments or polls"
+        string:"(comment,poll,pollopt)"
+        include: false
+      showHnAskHn:
+        title: "Show HN or Ask HN"
+        string:"(show_hn,ask_hn)"
+        include: false
+
+    # customSearch
+    # queryApi  https://hn.algolia.com/api/v1/search?query=
+      # tags= filter on a specific tag. Available tags:
+      # story
+      # comment
+      # poll
+      # pollopt
+      # show_hn
+      # ask_hn
+      # front_page
+      # author_:USERNAME
+      # story_:ID
+
+      # author_pg,(story,poll)   filters on author=pg AND (type=story OR type=poll).
+
+  ,
+
+    name:"reddit"
+    title: "Reddit"
+    abbreviation: "R"
+
+    queryApi:"https://www.reddit.com/submit.json?url="
+
+
+    broughtToYouByTitle:"Reddit API"
+
+    broughtToYouByURL:"https://github.com/reddit/reddit/wiki/API"
+
+    permalinkBase: 'https://www.reddit.com'
+
+    userPageBaselink: 'https://www.reddit.com/user/'
+
+    submitTitle: 'Be the first to submit on Reddit!'
+    submitUrl: 'https://www.reddit.com/submit'
+
+
+    active: 'on'
+
+    notableConditions:
+      hoursSincePosted: 1 # an exact match is less than 5 hours old
+      num_comments: 30   # an exact match has 30 comments
+
+    updateBadgeOnlyWithExactMatch: true
+
+    customSearchApi: "https://www.reddit.com/search.json?q="
+
+    customSearchTags: {}
+
+  ,
+
+    name:"productHunt"
+    title: "Product Hunt"
+    abbreviation: "P"
+
+    queryApi:"https://api.producthunt.com/v1/posts/all?search[url]="
+
+    broughtToYouByTitle:"Product Hunt API"
+
+    broughtToYouByURL:"https://github.com/producthunt/producthunt-api/wiki/Product-Hunt-APIs"
+
+    permalinkBase: 'https://producthunt.com/'
+
+    userPageBaselink: 'https://www.producthunt.com/@'
+
+    submitTitle: 'Be the first to submit to Product Hunt!'
+    submitUrl: 'https://www.producthunt.com/tech/new'
+
+    active: 'on'
+
+    notableConditions:
+      hoursSincePosted: 4 # an exact match is less than 5 hours old
+      num_comments: 10   # an exact match has 30 comments
+
+      # 'featured'
+
+
+    updateBadgeOnlyWithExactMatch: true
+
+      # uses Algolia index, not a typical rest api
+    customSearchApi: ""
+    customSearchTags: {}
+
+  ,
+    name:"gnews"
+    title: "Google News"
+    abbreviation: "G"
+
+    broughtToYouByTitle:"Google News Search"
+
+    broughtToYouByURL:"https://developers.google.com/news-search/v1/devguide"
+
+    permalinkBase: ''
+    userPageBaselink: ''
+
+    active: 'on'
+
+
+    submitTitle: null
+    submitUrl: null
+
+    notableConditions:
+      numberOfRelatedItemsWithClusterURL: 2 # (or more)
+
+      numberOfStoriesFoundWithinTheHoursSincePostedLimit: 4 # (or more)
+
+      hoursSincePosted: 3
+    customSearchTags: {}
+
+  # {
+  #  <voat, lobste.rs, metafilter, layervault, seenthis -- get on this! ping me @spencenow if an API surfaces. producthunt has been imp'ed! > :D
+  # },
+
+]
+
+# ~~~ starting out with negotiating oAuth tokens and initializing necessary api objects ~~~ #
+
+algoliaPHclient = null
+algoliaPHindex = null
+
+initAlgoliaPHcustomSearch = ->
+  algoliaPHclient = algoliasearch('0H4SMABBSG', '9670d2d619b9d07859448d7628eea5f3')
+  algoliaPHindex = algoliaPHclient.initIndex('Post_production')
+
+initAlgoliaPHcustomSearch()
 
 randomishDeviceId = ->   # to be held in localStorage
   randomClientLength = getRandom(21,29)
@@ -109,37 +359,121 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
         )
 
     fail: (data) ->
-      #console.log 'reddit failed to authenticate client, try again in 5 min'
+      console.log 'reddit failed to authenticate client, try again in 5 min'
       setTimeout( ->
         requestRedditOathToken(kiwi_reddit_oauth)
       , 1000 * 60 * 5
       )
-      
+
   $.ajax( queryObj )
 
+requestProductHuntOauthToken = (kiwi_productHunt_oauth) ->
+  currentTime = Date.now()
+  queryObj =
+    type: "POST"
+
+    data: {
+      "client_id": kiwi_productHunt_oauth.client_id
+      "client_secret": kiwi_productHunt_oauth.client_secret
+      "grant_type" : "client_credentials"
+    }
+
+    url: 'https://api.producthunt.com/v1/oauth/token'
+    headers: {
+      # 'Accept': 'application/json'
+      # 'Content-Type': 'application/json'
+      # 'Origin':''
+      # 'Host': 'api.producthunt.com'
+      # 'X-Requested-With': 'csrf suck it ' + getRandom(1,10000000)
+    }
+    cache: false
+    # async: true
+    complete: (data) ->
+
+      console.log 'yaya PH here'
+      console.debug data
+
+      if data.responseJSON? and data.responseJSON.access_token? and data.responseJSON.expires_in? and data.responseJSON.token_type == "bearer"
+
+        token_lifespan_timestamp = currentTime + data.responseJSON.expires_in * 1000
+        setObj = {}
+        setObj['kiwi_productHunt_oauth'] =
+          token: data.responseJSON.access_token
+          scope: "public"
+          token_type: 'bearer'
+          token_lifespan_timestamp: token_lifespan_timestamp
+          client_id: kiwi_productHunt_oauth.client_id
+          client_secret: kiwi_productHunt_oauth.client_secret
+
+        chrome.storage.local.set(setObj, (_data) ->
+          console.log ' set product hunt oauth'
+          setTimeout_forProductHuntRefresh(token_lifespan_timestamp, setObj.kiwi_productHunt_oauth)
+
+        )
+
+    fail: (data) ->
+      console.log 'product hunt failed to authenticate client, try again in 3 min'
+      setTimeout( ->
+        requestProductHuntOauthToken(kiwi_productHunt_oauth)
+      , 1000 * 60 * 3
+      )
+
+  $.ajax( queryObj )
 
 # authenticate with Reddit's OAUTH2, so we can be a good webizen
 chrome.storage.local.get(null, (allItemsInLocalStorage) ->
   currentTime = Date.now()
 
-  setObj = {}
-  setObj['kiwi_reddit_oauth'] =
+  # console.log ' trying yo '
+
+  temp__kiwi_productHunt_oauth =
+    token: null
+    token_type: null
+    token_lifespan_timestamp: null
+
+    client_id: "" # your client id here
+    client_secret: "" # your secret id here
+
+  if !allItemsInLocalStorage.kiwi_productHunt_oauth? or !allItemsInLocalStorage.kiwi_productHunt_oauth.token?
+    console.log 'ph oauth does not exist in localStorage'
+
+    requestProductHuntOauthToken(temp__kiwi_productHunt_oauth)
+
+  if !allItemsInLocalStorage.kiwi_productHunt_oauth? or !allItemsInLocalStorage.kiwi_productHunt_oauth.token?
+    # do nothing
+
+  else if (allItemsInLocalStorage.kiwi_productHunt_oauth.token_lifespan_timestamp? and
+      currentTime > allItemsInLocalStorage.kiwi_productHunt_oauth.token_lifespan_timestamp) or
+      !allItemsInLocalStorage.kiwi_productHunt_oauth.token_lifespan_timestamp?
+
+    #console.log "3 setObj['kiwi_productHunt_oauth'] ="
+
+    requestProductHuntOauthToken(temp__kiwi_productHunt_oauth)
+
+  else if allItemsInLocalStorage.kiwi_productHunt_oauth.token_lifespan_timestamp? and allItemsInLocalStorage.kiwi_productHunt_oauth?
+
+    #console.log "4 setObj['kiwi_productHunt_oauth'] ="
+
+    token_timestamp = allItemsInLocalStorage.kiwi_productHunt_oauth.token_lifespan_timestamp
+
+    if !kiwi_productHunt_token_refresh_interval? or kiwi_productHunt_token_refresh_interval.timestamp != token_timestamp
+
+      setTimeout_forProductHuntRefresh(token_timestamp, allItemsInLocalStorage.kiwi_productHunt_oauth)
+
+  temp__kiwi_reddit_oauth =
     token: null
     token_type: null
     token_lifespan_timestamp: null
     client_id: "" # your client id here
     device_id: randomishDeviceId()
 
+  if !allItemsInLocalStorage.kiwi_reddit_oauth? or !allItemsInLocalStorage.kiwi_reddit_oauth.token?
+
+    requestRedditOathToken(temp__kiwi_reddit_oauth)
 
   if !allItemsInLocalStorage.kiwi_reddit_oauth? or !allItemsInLocalStorage.kiwi_reddit_oauth.token?
 
-    #console.log "2 setObj['kiwi_reddit_oauth'] ="
-
-    chrome.storage.local.set(setObj, (data) ->
-
-      requestRedditOathToken(setObj.kiwi_reddit_oauth)
-
-    )
+    # do nothing
 
   else if (allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp? and
       currentTime > allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp) or
@@ -147,7 +481,7 @@ chrome.storage.local.get(null, (allItemsInLocalStorage) ->
 
     #console.log "3 setObj['kiwi_reddit_oauth'] ="
 
-    requestRedditOathToken(setObj.kiwi_reddit_oauth)
+    requestRedditOathToken(temp__kiwi_reddit_oauth)
 
   else if allItemsInLocalStorage.kiwi_reddit_oauth.token_lifespan_timestamp? and allItemsInLocalStorage.kiwi_reddit_oauth?
 
@@ -161,6 +495,20 @@ chrome.storage.local.get(null, (allItemsInLocalStorage) ->
 
 )
 
+setTimeout_forProductHuntRefresh = (token_timestamp, kiwi_productHunt_oauth) ->
+  currentTime = Date.now()
+  if kiwi_productHunt_token_refresh_interval? and kiwi_productHunt_token_refresh_interval.timestamp?
+    clearTimeout(kiwi_productHunt_token_refresh_interval.intervalId)
+
+  timeoutDelay = token_timestamp - currentTime
+
+  timeoutIntervalId = setTimeout( ->
+      requestProductHuntOauthToken(kiwi_productHunt_oauth)
+    , timeoutDelay )
+
+  kiwi_productHunt_token_refresh_interval =
+    timestamp: token_timestamp
+    intervalId: timeoutIntervalId
 
 setTimeout_forRedditRefresh = (token_timestamp, kiwi_reddit_oauth) ->
   currentTime = Date.now()
@@ -191,85 +539,7 @@ onGoogleLoad = ->
 
 google.setOnLoadCallback(onGoogleLoad);
 
-popupParcel = {}
-# proactively set if each services' preppedResults are ready.
-  # will be set with available results if queried by popup.
-  # {
-    # forUrl:
-    # allPreppedResults:
-    # kiwi_servicesInfo:
-    # kiwi_alerts:
-    # kiwi_userPreferences:
-  # }
 
-# tlds = [
-#   '.com','.fr','.de','.co.uk',
-#   '.net','.int','.edu','.gov','.mil','.co','.io',
-#   '.au','.br','.cn','.dk','.es','.fi','.gb','.gr','.hk','.in','.it','.is','.jp','.ke','.no','.nl','.vn'
-# ]
-
-defaultUserPreferences = {
-
-  fontSize: .8
-  researchModeOnOff: 'off'
-  autoOffAtUTCmilliTimestamp: null
-  autoOffTimerType: 'always' # 'custom','always','20','60'
-  autoOffTimerValue: null
-
-  sortByPref: 'attention' # 'recency'   # "attention" means 'comments' if story, 'points' if comment, 'clusterUrl' if news
-
-  urlSubstring_whitelists:
-    anyMatch: []
-    beginsWith: []
-    endingIn: []
-    unless: [
-      # ['twitter.com/','/status/'] # unless /status/
-    ]
-
-    # suggested values to all users  -- any can be overriden with the "Research this URL" button
-      # unfortunately, because of Chrome's discouragement of storing sensitive
-      # user info with chrome.storage, blacklists are fixed for now . see: https://news.ycombinator.com/item?id=9993030
-  urlSubstring_blacklists:
-    anyMatch: [
-      'facebook.com'
-
-      'news.ycombinator.com'
-      'reddit.com'
-
-      'imgur.com'
-
-      'www.google.com'
-      'docs.google'
-      'drive.google'
-      'accounts.google'
-      '.slack.com/'
-      '//t.co'
-      '//bit.ly'
-      '//goo.gl'
-      '//mail.google'
-      '//mail.yahoo.com'
-      'hotmail.com'
-      'outlook.com'
-
-      '/wp-admin'
-
-      'chrome://'
-      'chrome-extension://'
-
-      'chrome-devtools://'  # hardcoded block
-    ]
-    beginsWith: [
-      "about:"
-      'chrome://'
-    ]
-    endingIn: [
-      # - ending in: # (or with '/' at end)
-      'youtube.com'
-    ]
-    unless: [
-      ['twitter.com/','/status/'] # unless /status/    # so that people checking their homepage doesn't count
-    ]
-}
 
 is_url_blocked = (blockedLists, url) ->
   return doesURLmatchSubstringLists(blockedLists, url)
@@ -307,124 +577,6 @@ doesURLmatchSubstringLists = (urlSubstringLists, url) ->
 
   return false
 
-defaultServicesInfo = [
-
-    name:"hackerNews"
-    title: "Hacker News"
-    abbreviation: "H"
-
-    queryApi:"https://hn.algolia.com/api/v1/search?restrictSearchableAttributes=url&query="
-    broughtToYouByTitle:"Algolia Hacker News API"
-    broughtToYouByURL:"https://hn.algolia.com/api"
-
-    permalinkBase: 'https://news.ycombinator.com/item?id='
-    userPageBaselink: 'https://news.ycombinator.com/user?id='
-
-    submitTitle: 'Be the first to submit on Hacker News!'
-    submitUrl: 'https://news.ycombinator.com/submit'
-
-    active: 'off'
-
-    notableConditions:
-      hoursSincePosted: 4 # an exact match is less than 5 hours old
-      num_comments: 10  # an exact match has 10 comments
-
-    updateBadgeOnlyWithExactMatch: true
-
-    customSearchApi: "https://hn.algolia.com/api/v1/search?query="
-    customSearchTags__convention: {'string':'&tags=','delimeter':','}
-    customSearchTags:
-      story:
-        title: "stories"
-        string: "story"
-        include: true
-      commentPolls:
-        title: "comments or polls"
-        string:"(comment,poll,pollopt)"
-        include: false
-      showHnAskHn:
-        title: "Show HN or Ask HN"
-        string:"(show_hn,ask_hn)"
-        include: false
-
-
-    # customSearch
-    # queryApi  https://hn.algolia.com/api/v1/search?query=
-      # tags= filter on a specific tag. Available tags:
-      # story
-      # comment
-      # poll
-      # pollopt
-      # show_hn
-      # ask_hn
-      # front_page
-      # author_:USERNAME
-      # story_:ID
-
-      # author_pg,(story,poll)   filters on author=pg AND (type=story OR type=poll).
-
-  ,
-
-    name:"reddit"
-    title: "Reddit"
-    abbreviation: "R"
-
-    queryApi:"https://www.reddit.com/submit.json?url="
-
-    broughtToYouByTitle:"Reddit API"
-
-    broughtToYouByURL:"https://github.com/reddit/reddit/wiki/API"
-
-    permalinkBase: 'https://www.reddit.com'
-
-    userPageBaselink: 'https://www.reddit.com/user/'
-
-    submitTitle: 'Be the first to submit on Reddit!'
-    submitUrl: 'https://www.reddit.com/submit'
-
-    active: 'on'
-
-    notableConditions:
-      hoursSincePosted: 1 # an exact match is less than 5 hours old
-      num_comments: 30   # an exact match has 30 comments
-
-    updateBadgeOnlyWithExactMatch: true
-
-    customSearchApi: "https://www.reddit.com/search.json?q="
-
-    customSearchTags: {}
-
-  ,
-    name:"gnews"
-    title: "Google News"
-    abbreviation: "G"
-
-    broughtToYouByTitle:"Google News Search"
-
-    broughtToYouByURL:"https://developers.google.com/news-search/v1/devguide"
-
-    permalinkBase: ''
-    userPageBaselink: ''
-
-    active: 'on'
-
-
-    submitTitle: null
-    submitUrl: null
-
-    notableConditions:
-      numberOfRelatedItemsWithClusterURL: 2 # (or more)
-
-      numberOfStoriesFoundWithinTheHoursSincePostedLimit: 4 # (or more)
-
-      hoursSincePosted: 3
-    customSearchTags: {}
-
-  # {
-  #   <voat, lobste.rs, metafilter, layervault, seenthis, producthunt -- get on this! ping me @spencenow if an API surfaces>  :D
-  # },
-
-]
 
 # lastQueryTimestamp # to throttle
 
@@ -482,8 +634,8 @@ chrome.extension.onConnect.addListener((port) ->
       switch dataFromPopup.msg
 
         when 'kiwiPP_post_customSearch'
-          #console.log 'when kiwiPP_post_customSearch1'
-          #console.debug dataFromPopup
+          console.log 'when kiwiPP_post_customSearch1'
+          console.debug dataFromPopup
           # dataFromPopup.servicesToSearch
 
           if dataFromPopup.customSearchRequest? and dataFromPopup.customSearchRequest.queryString? and
@@ -492,7 +644,7 @@ chrome.extension.onConnect.addListener((port) ->
             chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
 
               if allItemsInSyncedStorage['kiwi_servicesInfo']?
-                # #console.log 'when kiwiPP_post_customSearch3'
+                #console.log 'when kiwiPP_post_customSearch3'
                 for serviceInfoObject in allItemsInSyncedStorage['kiwi_servicesInfo']
 
                   #console.log 'when kiwiPP_post_customSearch4 for ' + serviceInfoObject.name
@@ -500,6 +652,8 @@ chrome.extension.onConnect.addListener((port) ->
 
                     if serviceInfoObject.name is 'gnews'
                       dispatchGnewsQuery__customSearch(dataFromPopup.customSearchRequest.queryString, dataFromPopup.customSearchRequest.servicesToSearch, serviceInfoObject, allItemsInSyncedStorage['kiwi_servicesInfo'])
+                    else if serviceInfoObject.name is 'productHunt'
+                      dispatchProductHuntQuery__customSearch(dataFromPopup.customSearchRequest.queryString, dataFromPopup.customSearchRequest.servicesToSearch, serviceInfoObject, allItemsInSyncedStorage['kiwi_servicesInfo'])
                     else if serviceInfoObject.customSearchApi? and serviceInfoObject.customSearchApi != ''
                       dispatchQuery__customSearch(dataFromPopup.customSearchRequest.queryString, dataFromPopup.customSearchRequest.servicesToSearch, serviceInfoObject, allItemsInSyncedStorage['kiwi_servicesInfo'])
 
@@ -886,6 +1040,8 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
 
 
 
+
+
   chrome.storage.local.get(null, (allItemsInLocalStorage) ->
     queryObj = {
       type: "GET"
@@ -903,14 +1059,27 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
 
           queryResult: queryResult
 
-
         setPreppedServiceResults(responsePackage, servicesInfo)
     }
+
     if service_info.name is 'reddit' and allItemsInLocalStorage.kiwi_reddit_oauth?
-      #console.log 'we are trying with oauth!'
-      #console.debug allItemsInLocalStorage.kiwi_reddit_oauth
+      # console.log 'we are trying with oauth!'
+      # console.debug allItemsInLocalStorage.kiwi_reddit_oauth
       queryObj.headers =
-        'Authorization': "'bearer " + allItemsInLocalStorage.kiwi_reddit_oauth + "'"
+        'Authorization': "'bearer " + allItemsInLocalStorage.kiwi_reddit_oauth.token + "'"
+
+    console.log 'name is ' + service_info.name
+    console.log 'trying for ' + service_info.queryApi + encodeURIComponent(currentUrl)
+
+    if service_info.name is 'productHunt' and allItemsInLocalStorage.kiwi_productHunt_oauth?
+      # console.log 'trying PH with'
+      # console.debug allItemsInLocalStorage.kiwi_productHunt_oauth
+      queryObj.headers =
+        'Authorization': "Bearer " + allItemsInLocalStorage.kiwi_productHunt_oauth.token
+        'Accept': 'application/json'
+        'Content-Type': 'application/json'
+        # 'Origin':''
+        # 'Host': 'api.producthunt.com'
 
     $.ajax( queryObj )
   )
@@ -961,6 +1130,63 @@ dispatchGnewsQuery__customSearch = (customSearchQuery, servicesToSearch, service
     )
     newsSearch.execute(customSearchQuery);
 
+
+
+dispatchProductHuntQuery__customSearch = (customSearchQuery, servicesToSearch, service_info, servicesInfo) ->
+
+  currentTime = Date.now()
+
+  console.log ' trying dispatchProductHuntQuery__customSearch '
+  # if !algoliaPHclient? or !algoliaPHindex?
+    # ^^ these are local resources, should always be present
+
+    # self imposed rate limiting per api
+  if !serviceQueryTimestamps[service_info.name]?
+
+    serviceQueryTimestamps[service_info.name] = currentTime
+
+  else
+    if (currentTime - serviceQueryTimestamps[service_info.name]) < queryThrottleSeconds * 1000
+
+      #wait a couple seconds before querying service
+      #console.log 'too soon on dispatch, waiting a couple seconds'
+      setTimeout(->
+          dispatchQuery__customSearch(customSearchQuery, servicesToSearch, service_info, servicesInfo)
+        , 2000
+      )
+
+      return 0
+
+    else
+      serviceQueryTimestamps[service_info.name] = currentTime
+
+
+  algoliaPHindex.search(customSearchQuery, (err, content) ->
+    # // err is either `null` or an `Error` object, with a `message` property
+    # // content is either the result of the command or `undefined`
+
+    if (err)
+      console.error(err)
+      return
+
+    if content? and content.hits?
+      queryResult = content.hits
+    else
+      queryResult = []
+
+    responsePackage =
+      servicesInfo: servicesInfo
+      serviceName: service_info.name
+      queryResult: queryResult
+      servicesToSearch: servicesToSearch
+      customSearchQuery: customSearchQuery
+
+    setPreppedServiceResults__customSearch(responsePackage, servicesInfo)
+
+  )
+
+
+
 dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info, servicesInfo) ->
 
   currentTime = Date.now()
@@ -968,6 +1194,7 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
   # self imposed rate limiting per api
   if !serviceQueryTimestamps[service_info.name]?
     serviceQueryTimestamps[service_info.name] = currentTime
+
   else
     if (currentTime - serviceQueryTimestamps[service_info.name]) < queryThrottleSeconds * 1000
 
@@ -980,8 +1207,6 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
       return 0
     else
       serviceQueryTimestamps[service_info.name] = currentTime
-
-
 
   queryUrl = service_info.customSearchApi + encodeURIComponent(customSearchQuery)
 
@@ -1026,6 +1251,16 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
       queryObj.headers =
         'Authorization': "'bearer " + allItemsInLocalStorage.kiwi_reddit_oauth + "'"
 
+    if service_info.name is 'productHunt' and allItemsInLocalStorage.kiwi_productHunt_oauth?
+      # console.log 'trying PH with'
+      # console.debug allItemsInLocalStorage.kiwi_productHunt_oauth
+      queryObj.headers =
+        'Authorization': "Bearer " + allItemsInLocalStorage.kiwi_productHunt_oauth.token
+        'Accept': 'application/json'
+        'Content-Type': 'application/json'
+        # 'Origin':''
+        # 'Host': 'api.producthunt.com'
+
     $.ajax( queryObj )
   )
 
@@ -1035,7 +1270,6 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
 
   # the popup should always have enough to render with a properly set popupParcel.
 setPreppedServiceResults__customSearch = (responsePackage, servicesInfo) ->
-  #console.log 'yolo 6'
 
   currentTime = Date.now()
 
@@ -1288,6 +1522,177 @@ setPreppedServiceResults = (responsePackage, servicesInfo) ->
 #returns an array of 'preppedResults' for url - just the keys we care about from the query-response
 parseResults =
 
+
+  productHunt: (resultsObj, searchQueryString, serviceInfo, customSearchBool = false) ->
+    console.log 'resultsObj'
+    console.log 'for: ' + searchQueryString
+    console.debug resultsObj
+
+    console.log 'customSearchBool ' + customSearchBool
+    # ~~~~~~~ #
+
+    matchedListings = []
+    if customSearchBool is false # so, normal URL-based queries
+
+        # created_at: "2014-08-18T06:40:47.000-07:00"
+        # discussion_url: "http://www.producthunt.com/tech/product-hunt-api-beta"
+
+        # comments_count: 13
+        # votes_count: 514
+        # name: "Product Hunt API (beta)"
+
+        # featured: true
+
+        # id: 6970
+
+        # maker_inside: true
+
+        # tagline: "Make stuff with us. Signup for early access to the PH API :)"
+
+        # user:
+        #   headline: "Tech at Product Hunt 💃"
+        #   profile_url: "http://www.producthunt.com/@andreasklinger"
+        #   name: "Andreas Klinger"
+        #   username: "andreasklinger"
+        #   website_url: "http://klinger.io"
+
+      if resultsObj.posts? and _.isArray(resultsObj.posts) is true
+
+        for post in resultsObj.posts
+
+          listingKeys = [
+            'created_at','discussion_url','comments_count','redirect_url','votes_count','name',
+            'featured','id','user','screenshot_url','tagline','maker_inside','makers'
+          ]
+
+          preppedResult = _.pick(post, listingKeys)
+
+          preppedResult.kiwi_created_at = Date.parse(preppedResult.created_at)
+
+          preppedResult.kiwi_discussion_url = preppedResult.discussion_url
+
+          if preppedResult.user? and preppedResult.user.name?
+            preppedResult.kiwi_author_name = preppedResult.user.name.trim()
+          else
+            preppedResult.kiwi_author_name = ""
+
+          if preppedResult.user? and preppedResult.user.username?
+            preppedResult.kiwi_author_username = preppedResult.user.username
+          else
+            preppedResult.kiwi_author_username = ""
+
+          if preppedResult.user? and preppedResult.user.headline?
+            preppedResult.kiwi_author_headline = preppedResult.user.headline.trim()
+          else
+            preppedResult.kiwi_author_headline = ""
+
+          preppedResult.kiwi_makers = []
+
+          for maker, index in post.makers
+            makerObj = {}
+            makerObj.headline = maker.headline
+            makerObj.name = maker.name
+            makerObj.username = maker.username
+            makerObj.profile_url = maker.profile_url
+            makerObj.website_url = maker.website_url
+
+            preppedResult.kiwi_makers.push makerObj
+
+
+          preppedResult.kiwi_exact_match = true # PH won't return fuzzy matches
+
+          preppedResult.kiwi_score = preppedResult.votes_count
+          preppedResult.kiwi_num_comments = preppedResult.comments_count
+          preppedResult.kiwi_permaId = preppedResult.permalink
+
+          matchedListings.push preppedResult
+    else # custom string queries
+
+
+      # comment_count
+      # vote_count
+
+      # name
+
+      # url #
+
+      # tagline
+
+      # category
+      #   tech
+
+
+      # product_makers
+      #   headline
+      #   name
+      #   username
+      #   is_maker
+
+      # console.log ' else # custom string queries ' + _.isArray(resultsObj) #
+      if resultsObj? and _.isArray(resultsObj)
+        console.log ' yoyoyoy1 '
+        for searchMatch in resultsObj
+
+          listingKeys = [
+            'author'
+            'url',
+            'tagline',
+            'product_makers'
+            'comment_count',
+            'vote_count',
+            'name',
+
+            'id',
+            'user',
+            'screenshot_url',
+
+          ]
+
+          preppedResult = _.pick(searchMatch, listingKeys)
+
+          preppedResult.kiwi_created_at = null  # algolia doesn't provide created at value :<
+
+          preppedResult.kiwi_discussion_url = "http://www.producthunt.com/" + preppedResult.url
+
+          if preppedResult.author? and preppedResult.author.name?
+            preppedResult.kiwi_author_name = preppedResult.author.name.trim()
+          else
+            preppedResult.kiwi_author_name = ""
+
+          if preppedResult.author? and preppedResult.author.username?
+            preppedResult.kiwi_author_username = preppedResult.author.username
+          else
+            preppedResult.kiwi_author_username = ""
+
+          if preppedResult.author? and preppedResult.author.headline?
+            preppedResult.kiwi_author_headline = preppedResult.author.headline.trim()
+          else
+            preppedResult.kiwi_author_headline = ""
+
+          preppedResult.kiwi_makers = []
+
+          for maker, index in searchMatch.product_makers
+            makerObj = {}
+            makerObj.headline = maker.headline
+            makerObj.name = maker.name
+            makerObj.username = maker.username
+            makerObj.profile_url = maker.profile_url
+            makerObj.website_url = maker.website_url
+
+            preppedResult.kiwi_makers.push makerObj
+
+          preppedResult.kiwi_exact_match = true # PH won't return fuzzy matches
+
+          preppedResult.kiwi_score = preppedResult.vote_count
+          preppedResult.kiwi_num_comments = preppedResult.comment_count
+          preppedResult.kiwi_permaId = preppedResult.permalink
+
+
+          matchedListings.push preppedResult
+
+    return matchedListings
+
+
   reddit: (resultsObj, searchQueryString, serviceInfo, customSearchBool = false) ->
 
     matchedListings = []
@@ -1315,7 +1720,7 @@ parseResults =
               preppedResult.kiwi_exact_match = true
 
             preppedResult.kiwi_score = preppedResult.score
-
+            preppedResult.kiwi_num_comments = preppedResult.num_comments
             preppedResult.kiwi_permaId = preppedResult.permalink
 
             _matchedListings.push preppedResult
@@ -1355,6 +1760,8 @@ parseResults =
           preppedResult.kiwi_exact_match = true
 
         preppedResult.kiwi_score = preppedResult.points
+
+        preppedResult.kiwi_num_comments = preppedResult.num_comments
 
         preppedResult.kiwi_permaId = preppedResult.objectID
 
@@ -1628,7 +2035,7 @@ refreshBadge = (servicesInfo, resultsObjForCurrentUrl) ->
         for listing in resultsObjForCurrentUrl[service.name].service_PreppedResults
           if listing.kiwi_exact_match
             exactMatch = true
-            if listing.num_comments? and listing.num_comments >= service.notableConditions.num_comments
+            if listing.kiwi_num_comments? and listing.kiwi_num_comments >= service.notableConditions.num_comments
               noteworthy = true
               break
             if (currentTime - listing.kiwi_created_at) < service.notableConditions.hoursSincePosted * 3600000
@@ -2117,7 +2524,7 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
       # that has since been negated by nesting the callback, but why not leave the check here?
     overrideSameURLCheck_popupOpen = false
 
-  # #console.log 'wtf 1 kiwi_urlsResultsCache ' + overrideSameURLCheck_popupOpen
+  # #console.log 'wtf 1 kiwi_urlsResultsCache ' + o2verrideSameURLCheck_popupOpen
   if overrideSameURLCheck_popupOpen # for when a user turns researchModeOnOff "on" or refreshes results from popup
     popupOpen = true
   else

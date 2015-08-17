@@ -37,6 +37,54 @@ kiwi_customSearchResults = {}  # stores temporarily so if they close popup, they
     # <serviceName>
       # results
 
+kiwi_userMessages = {
+  "redditDown":
+    "baseValue":"reddit's API is unavailable, so results may not appear from this service for some time"
+    "name":"redditDown"
+    "sentAndAcknowledgedInstanceObjects": []
+      # {
+      #   "sentTimestamp"
+      #   "userAcknowledged": <timestamp>
+      #   "urgencyLevel"
+      # } ...
+  "productHuntDown":
+    "name":"productHuntDown"
+    "baseValue":"Product Hunt's API has not been consistently available, so results may not reliably appear from this service."
+    "sentAndAcknowledgedInstanceObjects": []
+    
+  "productHuntDown__customSearch":
+    "name":"productHuntDown__customSearch"
+    "baseValue":"Product Hunt's custom search API has not been consistently available, so results may not reliably appear from this service."
+    "sentAndAcknowledgedInstanceObjects": []
+      # {
+      #   "timestamp"
+      #   "userAcknowledged": <timestamp>
+      #   "urgencyLevel"
+      # } ...
+      # {
+      #   "timestamp"
+      #   "userAcknowledged": <timestamp>
+      #   "urgencyLevel"
+      # } ...
+      
+  "hackerNewsDown":
+    "name":"hackerNewsDown"
+    "baseValue":"Hacker News' API has not been consistently available, so results may not reliably appear from this service."
+    "sentAndAcknowledgedInstanceObjects": []
+      # {
+      #   "timestamp"
+      #   "userAcknowledged": <timestamp>
+      #   "urgencyLevel"
+      # } ...
+      
+  "generalConnectionFailure":
+    "name":"generalConnectionFailure"
+    "baseValue":"There has been a network connection issue. Check your internet connection / try again in a few minutes :)"
+    "sentAndAcknowledgedInstanceObjects": []
+  
+  
+}
+
 kiwi_autoOffClearInterval = null
 
 kiwi_reddit_token_refresh_interval = null
@@ -65,6 +113,8 @@ popupParcel = {}
     # kiwi_customSearchResults:
     # kiwi_alerts:
     # kiwi_userPreferences:
+    # kiwi_unackedUserMessages:
+      # unacknowledged user messages
   # }
 
 # tlds = [
@@ -323,6 +373,76 @@ defaultServicesInfo = [
   
 ]
 
+
+send_kiwi_userMessage = (messageName, urgencyLevel, extraNote = null) ->
+  
+  currentTime = Date.now()
+  sendMessageBool = true
+  
+  # messageName
+  
+  # if the same message has been sent in last five minutes, don't worry.
+  
+  messageObj = kiwi_userMessages[messageName]
+  for sentInstance in messageObj.sentAndAcknowledgedInstanceObjects
+    if sentInstance.userAcknowledged? and (currentTime - sentInstance.userAcknowledged < 1000 * 60 * 20)
+      sendMessageBool = false
+      
+    else if !sentInstance.userAcknowledged?
+      sendMessageBool = false
+      
+  
+  if sendMessageBool is true
+    
+    
+    kiwi_userMessages[messageName].sentAndAcknowledgedInstanceObjects.push {
+      "sentTimestamp": currentTime
+      "userAcknowledged": null # <timestamp>
+    }
+    
+    if kiwi_urlsResultsCache[tabUrl]?
+      
+      _set_popupParcel(kiwi_urlsResultsCache[tabUrl], tabUrl, true)
+        
+    else if tempResponsesStore? and tempResponsesStore.forUrl == tabUrl        
+      _set_popupParcel(tempResponsesStore.services, tabUrl, true)
+      
+    else
+      _set_popupParcel({}, tabUrl, true)
+    
+    # # kiwi_userMessages = {
+    # #   "redditDown":
+    # #     "baseValue":"reddit's API is unavailable, so results may not appear from this service for some time"
+    # #     "sentAndAcknowledgedInstanceObjects": []
+    # #       # {
+    # #       #   "sentTimestamp"
+    # #       #   "userAcknowledged": null # <timestamp>
+    # #       # } ...
+    
+    # # popupParcel = {}
+    # # # proactively set if each services' preppedResults are ready.
+    # #   # will be set with available results if queried by popup.
+    # #   # {
+    # #     # forUrl:
+    # #     # allPreppedResults:
+    # #     # kiwi_servicesInfo:
+    # #     # kiwi_customSearchResults:
+    # #     # kiwi_alerts:
+    # #     # kiwi_userPreferences:
+    # #     # kiwi_unackedUserMessages:
+    
+    # #       # unacknowledged user messages
+    # #   # }
+    
+    # for messageName, messageObj of kiwi_userMessages
+    #   for sentInstance in sentAndAcknowledgedInstanceObjects
+    #     if sentInstance.userAcknowledged is null
+    #       setObj_popupParcel.kiwi_userMessages.push messageObj
+  
+getRandom = (min, max) ->
+  return min + Math.floor(Math.random() * (max - min + 1))
+
+
 shuffle_array = (array) ->
   currentIndex = array.length;
 
@@ -341,6 +461,32 @@ shuffle_array = (array) ->
 
   return array
 
+randomishDeviceId = ->   # to be held in localStorage
+  randomClientLength = getRandom(21,29)
+  characterCounter = 0 
+  randomString = ""
+  while characterCounter <= randomClientLength
+    characterCounter++
+    randomASCIIcharcode = getRandom(33,125)
+    #console.log randomASCIIcharcode
+    randomString += String.fromCharCode(randomASCIIcharcode)
+  
+  return randomString
+
+temp__kiwi_reddit_oauth =
+  token: null
+  token_type: null
+  token_lifespan_timestamp: null
+  client_id: "" # your client id here
+  device_id: randomishDeviceId()
+
+temp__kiwi_productHunt_oauth =
+  token: null
+  token_type: null
+  token_lifespan_timestamp: null
+  
+  client_id: "" # your client id here
+  client_secret: "" # your secret id here
 
 randomizeDefaultConversationSiteOrder = ->
   conversationSiteServices = []
@@ -362,23 +508,48 @@ randomizeDefaultConversationSiteOrder()
 
 # ~~~ starting out with negotiating oAuth tokens and initializing necessary api objects ~~~ # 
 
+setTimeout_forProductHuntRefresh = (token_timestamp, kiwi_productHunt_oauth, ignoreTimeoutDelayComparison = false) ->
+  currentTime = Date.now()
+  
+  timeoutDelay = token_timestamp - currentTime
+  
+  if kiwi_productHunt_token_refresh_interval? and kiwi_productHunt_token_refresh_interval.timestamp? and ignoreTimeoutDelayComparison is false
+    if timeoutDelay > kiwi_productHunt_token_refresh_interval.timestamp - currentTime
+      # console.log 'patience, we will be trying again soon'
+      return 0
+      
+  if kiwi_productHunt_token_refresh_interval? and kiwi_productHunt_token_refresh_interval.timestamp?
+    clearTimeout(kiwi_productHunt_token_refresh_interval.intervalId)
+  
+  
+  timeoutIntervalId = setTimeout( -> 
+      requestProductHuntOauthToken(kiwi_productHunt_oauth)
+    , timeoutDelay )
+  
+  kiwi_productHunt_token_refresh_interval =
+    timestamp: token_timestamp
+    intervalId: timeoutIntervalId
 
-randomishDeviceId = ->   # to be held in localStorage
-  randomClientLength = getRandom(21,29)
+setTimeout_forRedditRefresh = (token_timestamp, kiwi_reddit_oauth, ignoreTimeoutDelayComparison = false) ->
+  currentTime = Date.now()
   
-  characterCounter = 0 
+  timeoutDelay = token_timestamp - currentTime
   
-  randomString = ""
+  if kiwi_reddit_token_refresh_interval? and kiwi_reddit_token_refresh_interval.timestamp? and ignoreTimeoutDelayComparison is false
+    if timeoutDelay > kiwi_reddit_token_refresh_interval.timestamp - currentTime
+      # console.log 'patience, we will be trying again soon'
+      return 0
   
-  while characterCounter <= randomClientLength
-    characterCounter++
-    
-    randomASCIIcharcode = getRandom(33,125)
-    #console.log randomASCIIcharcode
-    randomString += String.fromCharCode(randomASCIIcharcode)
+  if kiwi_reddit_token_refresh_interval? and kiwi_reddit_token_refresh_interval.timestamp?
+    clearTimeout(kiwi_reddit_token_refresh_interval.intervalId)
   
-  return randomString
+  timeoutIntervalId = setTimeout( -> 
+      requestRedditOathToken(kiwi_reddit_oauth)
+    , timeoutDelay )
   
+  kiwi_reddit_token_refresh_interval =
+    timestamp: token_timestamp
+    intervalId: timeoutIntervalId  
 
 requestRedditOathToken = (kiwi_reddit_oauth) ->
   # console.log 'trying'
@@ -392,6 +563,24 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
     }
     
     url: 'https://www.reddit.com/api/v1/access_token'
+    
+    statusCode:
+      503: ->
+        tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+        setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth)
+        # send_kiwi_userMessage("redditDown")
+        # console.log('unavailable!')
+      502: ->
+        tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+        setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth)
+        # send_kiwi_userMessage("redditDown")
+        # console.log('Fail!')
+      401: ->
+        tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+        setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth)
+        # send_kiwi_userMessage("redditDown")
+        # console.log('unauthenticated1')
+    
     headers: { 
       'Authorization':    'Basic ' + btoa(kiwi_reddit_oauth.client_id + ":") 
       'Content-Type':     'application/x-www-form-urlencoded'
@@ -401,7 +590,6 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
     async: true
     success: (data) ->
       if data.access_token? and data.expires_in? and data.token_type == "bearer"
-        
         # console.log 'response from reddit!'
         # console.debug data
         
@@ -416,16 +604,16 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
         
         chrome.storage.local.set(setObj, (data) ->
           
-          setTimeout_forRedditRefresh(token_lifespan_timestamp, setObj.kiwi_reddit_oauth)
+          setTimeout_forRedditRefresh(token_lifespan_timestamp, setObj.kiwi_reddit_oauth, true)
           
         )
         
     fail: (data) ->
       # console.log 'reddit failed to authenticate client, try again in 5 min'
-      setTimeout( ->
-        requestRedditOathToken(kiwi_reddit_oauth)
-      , 1000 * 60 * 5
-      )
+      tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+      setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth)
+      send_kiwi_userMessage("generalConnectionFailure")
+      # console.log('unauthenticated')
       
   $.ajax( queryObj )
 
@@ -440,6 +628,24 @@ requestProductHuntOauthToken = (kiwi_productHunt_oauth) ->
       "client_secret": kiwi_productHunt_oauth.client_secret
       "grant_type" : "client_credentials"
     }
+    
+    statusCode:
+      503: ->
+        tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+        setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth)
+        # send_kiwi_userMessage("productHuntDown")
+        # console.log('unavailable!')
+      502: ->
+        tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+        setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth)
+        # send_kiwi_userMessage("productHuntDown")
+        # console.log('Fail!')
+      401: ->
+        tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+        setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth)
+        # send_kiwi_userMessage("productHuntDown")
+        # console.log('unauthenticated')
+          
     
     url: 'https://api.producthunt.com/v1/oauth/token'
     headers: {}
@@ -464,16 +670,15 @@ requestProductHuntOauthToken = (kiwi_productHunt_oauth) ->
         
         chrome.storage.local.set(setObj, (_data) ->
           # console.log ' set product hunt oauth'
-          setTimeout_forProductHuntRefresh(token_lifespan_timestamp, setObj.kiwi_productHunt_oauth)
+          setTimeout_forProductHuntRefresh(token_lifespan_timestamp, setObj.kiwi_productHunt_oauth, true)
           
         )
         
     fail: (data) ->
       # console.log 'product hunt failed to authenticate client, try again in 3 min'
-      setTimeout( ->
-        requestProductHuntOauthToken(kiwi_productHunt_oauth)
-      , 1000 * 60 * 3
-      )
+      tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+      send_kiwi_userMessage("generalConnectionFailure")
+      setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth)
       
   $.ajax( queryObj )
 
@@ -482,14 +687,6 @@ chrome.storage.local.get(null, (allItemsInLocalStorage) ->
   currentTime = Date.now()
   
   # console.log ' trying yo ' 
-  
-  temp__kiwi_productHunt_oauth =
-    token: null
-    token_type: null
-    token_lifespan_timestamp: null
-    
-    client_id: "" # your client id here
-    client_secret: "" # your secret id here
     
   if !allItemsInLocalStorage.kiwi_productHunt_oauth? or !allItemsInLocalStorage.kiwi_productHunt_oauth.token?
     # console.log 'ph oauth does not exist in localStorage'
@@ -516,13 +713,6 @@ chrome.storage.local.get(null, (allItemsInLocalStorage) ->
     if !kiwi_productHunt_token_refresh_interval? or kiwi_productHunt_token_refresh_interval.timestamp != token_timestamp
       
       setTimeout_forProductHuntRefresh(token_timestamp, allItemsInLocalStorage.kiwi_productHunt_oauth)
-  
-  temp__kiwi_reddit_oauth =
-    token: null
-    token_type: null
-    token_lifespan_timestamp: null
-    client_id: "" # your client id here
-    device_id: randomishDeviceId()
     
   if !allItemsInLocalStorage.kiwi_reddit_oauth? or !allItemsInLocalStorage.kiwi_reddit_oauth.token?
     
@@ -551,45 +741,9 @@ chrome.storage.local.get(null, (allItemsInLocalStorage) ->
       setTimeout_forRedditRefresh(token_timestamp, allItemsInLocalStorage.kiwi_reddit_oauth)
 )
 
-setTimeout_forProductHuntRefresh = (token_timestamp, kiwi_productHunt_oauth) ->
-  currentTime = Date.now()
-  if kiwi_productHunt_token_refresh_interval? and kiwi_productHunt_token_refresh_interval.timestamp?
-    clearTimeout(kiwi_productHunt_token_refresh_interval.intervalId)
-  
-  timeoutDelay = token_timestamp - currentTime
-  
-  timeoutIntervalId = setTimeout( -> 
-      requestProductHuntOauthToken(kiwi_productHunt_oauth)
-    , timeoutDelay )
-  
-  kiwi_productHunt_token_refresh_interval =
-    timestamp: token_timestamp
-    intervalId: timeoutIntervalId
 
-setTimeout_forRedditRefresh = (token_timestamp, kiwi_reddit_oauth) ->
-  currentTime = Date.now()
-  if kiwi_reddit_token_refresh_interval? and kiwi_reddit_token_refresh_interval.timestamp?
-    clearTimeout(kiwi_reddit_token_refresh_interval.intervalId)
-  
-  timeoutDelay = token_timestamp - currentTime
-  
-  timeoutIntervalId = setTimeout( -> 
-      requestRedditOathToken(kiwi_reddit_oauth)
-    , timeoutDelay )
-  
-  kiwi_reddit_token_refresh_interval =
-    timestamp: token_timestamp
-    intervalId: timeoutIntervalId
 
-# for custom string PH searches 
-algoliaPHclient = null
-algoliaPHindex = null
 
-initAlgoliaPHcustomSearch = ->
-  algoliaPHclient = algoliasearch('0H4SMABBSG', '9670d2d619b9d07859448d7628eea5f3')
-  algoliaPHindex = algoliaPHclient.initIndex('Post_production')
-
-initAlgoliaPHcustomSearch()
 
 # go ahead and start to load search api for GNews
 if google? 
@@ -687,7 +841,6 @@ _save_a_la_carte = (parcel) ->
 
 
 chrome.extension.onConnect.addListener((port) ->
-  
   if port.name is 'kiwi_fromBackgroundToPopup'
     popupOpen = true
     
@@ -698,6 +851,24 @@ chrome.extension.onConnect.addListener((port) ->
       
       switch dataFromPopup.msg
         
+        when 'kiwiPP_acknowledgeMessage'
+          
+          currentTime = Date.now()
+          
+          for sentInstance, index in kiwi_userMessages[dataFromPopup.messageToAcknowledge].sentAndAcknowledgedInstanceObjects
+            if !sentInstance.userAcknowledged?
+              kiwi_userMessages[dataFromPopup.messageToAcknowledge].sentAndAcknowledgedInstanceObjects[index] = currentTime
+              
+          if kiwi_urlsResultsCache[tabUrl]?
+      
+            _set_popupParcel(kiwi_urlsResultsCache[tabUrl], tabUrl, true)
+              
+          else if tempResponsesStore? and tempResponsesStore.forUrl == tabUrl        
+            _set_popupParcel(tempResponsesStore.services, tabUrl, true)
+            
+          else
+            _set_popupParcel({}, tabUrl, true)
+          
         when 'kiwiPP_post_customSearch'
           # console.log 'when kiwiPP_post_customSearch1'
           # console.debug dataFromPopup
@@ -1103,17 +1274,60 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
     else
       serviceQueryTimestamps[service_info.name] = currentTime
   
-  
-  
-    
-  
   chrome.storage.local.get(null, (allItemsInLocalStorage) ->
     queryObj = {
       type: "GET"
       url: service_info.queryApi + encodeURIComponent(currentUrl)
+      statusCode: {
+        503: ->
+          responsePackage = {
+            forUrl: currentUrl,
+            servicesInfo: servicesInfo,
+            serviceName: service_info.name,
+            queryResult: null
+          };
+          # console.log('unavailable!');
+          if kiwi_userMessages[service_info.name + "Down"]?
+            send_kiwi_userMessage(service_info.name + "Down")
+          setPreppedServiceResults(responsePackage, servicesInfo);
+        
+        502: ->
+          responsePackage = {
+            forUrl: currentUrl,
+            servicesInfo: servicesInfo,
+            serviceName: service_info.name,
+            queryResult: null
+          };
+          # console.log('Fail!');
+          if kiwi_userMessages[service_info.name + "Down"]?
+            send_kiwi_userMessage(service_info.name + "Down")
+          setPreppedServiceResults(responsePackage, servicesInfo);
+        
+        401: ->
+          responsePackage = {
+            forUrl: currentUrl,
+            servicesInfo: servicesInfo,
+            serviceName: service_info.name,
+            queryResult: null
+          };
+          # console.log('unauthenticated');
+          setPreppedServiceResults(responsePackage, servicesInfo);
+          
+          if kiwi_userMessages[service_info.name + "Down"]?
+            send_kiwi_userMessage(service_info.name + "Down")
+            
+          if service_info.name is 'productHunt'
+            tryAgainTimestamp = currentTime + (1000 * 60 * 2)
+            setTimeout_forProductHuntRefresh(tryAgainTimestamp, temp__kiwi_productHunt_oauth)
+          else if service_info.name is 'reddit'
+            tryAgainTimestamp = currentTime + (1000 * 60 * 2)
+            setTimeout_forRedditRefresh(tryAgainTimestamp, temp__kiwi_reddit_oauth)
+        
+      },
       success: (queryResult) ->
         #console.log 'response yoyoyo'
         #console.debug queryResult
+        
         responsePackage =
           
           forUrl: currentUrl
@@ -1124,6 +1338,7 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
           
           queryResult: queryResult
         
+        
         setPreppedServiceResults(responsePackage, servicesInfo)
     }
     
@@ -1132,6 +1347,23 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
       # console.debug allItemsInLocalStorage.kiwi_reddit_oauth
       queryObj.headers =
         'Authorization': "'bearer " + allItemsInLocalStorage.kiwi_reddit_oauth.token + "'"
+    else if service_info.name is 'reddit' and !allItemsInLocalStorage.kiwi_reddit_oauth?
+      responsePackage = {
+        forUrl: currentUrl,
+        servicesInfo: servicesInfo,
+        serviceName: service_info.name,
+        queryResult: null
+      };
+      # console.log('unauthenticated');
+      setPreppedServiceResults(responsePackage, servicesInfo)
+      
+      if kiwi_userMessages[service_info.name + "Down"]?
+        send_kiwi_userMessage(service_info.name + "Down")
+      
+      tryAgainTimestamp = currentTime + (1000 * 60 * 2)
+      setTimeout_forRedditRefresh(tryAgainTimestamp, temp__kiwi_reddit_oauth)
+      
+      return 0
     
     # console.log 'name is ' + service_info.name
     # console.log 'trying for ' + service_info.queryApi + encodeURIComponent(currentUrl)
@@ -1143,9 +1375,30 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
         'Authorization': "Bearer " + allItemsInLocalStorage.kiwi_productHunt_oauth.token
         'Accept': 'application/json'
         'Content-Type': 'application/json'
-        # 'Origin':'' 
+        # 'Origin':''
         # 'Host': 'api.producthunt.com'
-    
+        
+    else if service_info.name is 'productHunt' and !allItemsInLocalStorage.kiwi_productHunt_oauth? 
+      
+      # call out and to a reset / refresh timer thingy
+      responsePackage = {
+        forUrl: currentUrl,
+        servicesInfo: servicesInfo,
+        serviceName: service_info.name,
+        queryResult: null
+      };
+      # console.log('unauthenticated');
+      setPreppedServiceResults(responsePackage, servicesInfo)
+      
+      if kiwi_userMessages[service_info.name + "Down"]?
+        send_kiwi_userMessage(service_info.name + "Down")
+      
+      tryAgainTimestamp = currentTime + (1000 * 60 * 2)
+      setTimeout_forProductHuntRefresh(tryAgainTimestamp, temp__kiwi_productHunt_oauth)
+      
+      return 0
+      
+      
     $.ajax( queryObj )
   )
    
@@ -1225,6 +1478,9 @@ dispatchProductHuntQuery__customSearch = (customSearchQuery, servicesToSearch, s
     else
       serviceQueryTimestamps[service_info.name] = currentTime
   
+  # # for custom string PH searches 
+  algoliaPHclient = algoliasearch('0H4SMABBSG', '9670d2d619b9d07859448d7628eea5f3')
+  algoliaPHindex = algoliaPHclient.initIndex('Post_production')
   
   algoliaPHindex.search(customSearchQuery, (err, content) ->
     # // err is either `null` or an `Error` object, with a `message` property
@@ -1232,6 +1488,18 @@ dispatchProductHuntQuery__customSearch = (customSearchQuery, servicesToSearch, s
 
     if (err) 
       console.error(err)
+      
+      responsePackage =
+        servicesInfo: servicesInfo
+        serviceName: service_info.name
+        queryResult: null
+        servicesToSearch: servicesToSearch
+        customSearchQuery: customSearchQuery
+      setPreppedServiceResults__customSearch(responsePackage, servicesInfo)
+      
+      if kiwi_userMessages["productHuntDown__customSearch"]?
+        send_kiwi_userMessage('productHuntDown__customSearch')
+      
       return
     
     if content? and content.hits?
@@ -1285,28 +1553,68 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
       #console.log queryUrl
       # tagObject might one day accept special parameters like author name, etc
       
-      
   chrome.storage.local.get(null, (allItemsInLocalStorage) ->
     queryObj = {
       type: "GET"
       url: queryUrl
+      statusCode: {
+        503: ->
+          responsePackage = {
+            servicesInfo: servicesInfo
+            serviceName: service_info.name
+            queryResult: null
+            servicesToSearch: servicesToSearch
+            customSearchQuery: customSearchQuery
+          };
+          # console.log('unavailable!');
+          if kiwi_userMessages[service_info.name + "Down"]?
+            send_kiwi_userMessage(service_info.name + "Down")
+          setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
+        
+        502: ->
+          responsePackage = {
+            servicesInfo: servicesInfo
+            serviceName: service_info.name
+            queryResult: null
+            servicesToSearch: servicesToSearch
+            customSearchQuery: customSearchQuery
+          };
+          # console.log('Fail!');
+          if kiwi_userMessages[service_info.name + "Down"]?
+            send_kiwi_userMessage(service_info.name + "Down")
+          setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
+        
+        401: ->
+          responsePackage = {
+            servicesInfo: servicesInfo
+            serviceName: service_info.name
+            queryResult: null
+            servicesToSearch: servicesToSearch
+            customSearchQuery: customSearchQuery
+          };
+          # console.log('unauthenticated');
+          setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
+          
+          if kiwi_userMessages[service_info.name + "Down"]?
+            send_kiwi_userMessage(service_info.name + "Down")
+            
+          if service_info.name is 'productHunt'
+            tryAgainTimestamp = currentTime + (1000 * 60 * 2)
+            setTimeout_forProductHuntRefresh(tryAgainTimestamp, temp__kiwi_productHunt_oauth)
+          else if service_info.name is 'reddit'
+            tryAgainTimestamp = currentTime + (1000 * 60 * 2)
+            setTimeout_forRedditRefresh(tryAgainTimestamp, temp__kiwi_reddit_oauth)
+        }
       success: (queryResult) ->
         #console.log 'response yoyoyo'
         #console.debug queryResult
-        responsePackage =
-          
-          servicesInfo: servicesInfo
-          
-          serviceName: service_info.name
-          
-          queryResult: queryResult
-          
-          servicesToSearch: servicesToSearch
-          
-          customSearchQuery: customSearchQuery
         
-        #console.log 'responsePackage'
-        #console.debug responsePackage
+        responsePackage =
+          servicesInfo: servicesInfo
+          serviceName: service_info.name
+          queryResult: queryResult
+          servicesToSearch: servicesToSearch
+          customSearchQuery: customSearchQuery
         
         setPreppedServiceResults__customSearch(responsePackage, servicesInfo)
     }
@@ -1316,18 +1624,28 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
       queryObj.headers =
         'Authorization': "'bearer " + allItemsInLocalStorage.kiwi_reddit_oauth.token + "'"
     
+    else if service_info.name is 'reddit' and !allItemsInLocalStorage.kiwi_reddit_oauth?
+      
+      responsePackage =
+        servicesInfo: servicesInfo
+        serviceName: service_info.name
+        queryResult: null
+        servicesToSearch: servicesToSearch
+        customSearchQuery: customSearchQuery
+      
+      #console.log 'responsePackage'
+      #console.debug responsePackage
+      
+      setPreppedServiceResults__customSearch(responsePackage, servicesInfo)
+      if kiwi_userMessages[service_info.name + "Down"]?
+        send_kiwi_userMessage(service_info.name + "Down")
+      
+      # console.log('unauthenticated');
+      return 0
     
-    # if service_info.name is 'productHunt' and allItemsInLocalStorage.kiwi_productHunt_oauth? 
-    #   # console.log 'trying PH with'
-    #   # console.debug allItemsInLocalStorage.kiwi_productHunt_oauth
-    #   queryObj.headers =
-    #     'Authorization': "Bearer " + allItemsInLocalStorage.kiwi_productHunt_oauth.token
-    #     'Accept': 'application/json'
-    #     'Content-Type': 'application/json'
-        # 'Origin':'' 
-        # 'Host': 'api.producthunt.com'
     
     $.ajax( queryObj )
+    
   )
   
   
@@ -1469,6 +1787,37 @@ _set_popupParcel = (setWith_urlResults = {}, forUrl, sendPopupParcel, renderView
     
     setObj_popupParcel.urlBlocked = false
     
+    
+    # kiwi_userMessages = {
+    #   "redditDown":
+    #     "baseValue":"reddit's API is unavailable, so results may not appear from this service for some time"
+    #     "sentAndAcknowledgedInstanceObjects": []
+    #       # {
+    #       #   "sentTimestamp"
+    #       #   "userAcknowledged": null # <timestamp>
+    #       # } ...
+    
+    # popupParcel = {}
+    # # proactively set if each services' preppedResults are ready.
+    #   # will be set with available results if queried by popup.
+    #   # {
+    #     # forUrl:
+    #     # allPreppedResults:
+    #     # kiwi_servicesInfo:
+    #     # kiwi_customSearchResults:
+    #     # kiwi_alerts:
+    #     # kiwi_userPreferences:
+    #     # kiwi_unackedUserMessages:
+    
+    #       # unacknowledged user messages
+    #   # }
+    
+    setObj_popupParcel.kiwi_userMessages = []
+    for messageName, messageObj of kiwi_userMessages
+      for sentInstance in messageObj.sentAndAcknowledgedInstanceObjects
+        if sentInstance.userAcknowledged is null
+          setObj_popupParcel.kiwi_userMessages.push messageObj
+    
     isUrlBlocked = is_url_blocked(allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists, tabUrl)
     if isUrlBlocked == true
       setObj_popupParcel.urlBlocked = true
@@ -1598,6 +1947,10 @@ parseResults =
     # ~~~~~~~ #
     
     matchedListings = []
+    
+    if ( resultsObj == null ) 
+      return matchedListings
+    
     if customSearchBool is false # so, normal URL-based queries
       
         # created_at: "2014-08-18T06:40:47.000-07:00"
@@ -1761,7 +2114,9 @@ parseResults =
   reddit: (resultsObj, searchQueryString, serviceInfo, customSearchBool = false) ->
     
     matchedListings = []
-    
+    if ( resultsObj == null ) 
+      return matchedListings
+      
     # occasionally Reddit will decide to return an array instead of an object, so...
       # in response to user's feedback, see: https://news.ycombinator.com/item?id=9994202
     forEachQueryObject = (resultsObj, _matchedListings) ->
@@ -1806,6 +2161,8 @@ parseResults =
   hackerNews: (resultsObj, searchQueryString, serviceInfo, customSearchBool = false) ->
     
     matchedListings = []
+    if ( resultsObj == null ) 
+      return matchedListings
     #console.log ' hacker news #console.debug resultsObj'
     #console.debug resultsObj
     # if resultsObj.nbHits? and resultsObj.nbHits > 0 and resultsObj.hits? and resultsObj.hits.length is resultsObj.nbHits
@@ -1836,6 +2193,8 @@ parseResults =
   
   gnews: (resultsObj, searchQueryString, serviceInfo, customSearchBool = false) ->
     
+    if ( resultsObj == null ) 
+      return matchedListings
     if customSearchBool == false
       forUrl = searchQueryString
       matchedListings = []
@@ -1843,7 +2202,6 @@ parseResults =
       #console.debug resultsObj
       
       for child in resultsObj
-        
         
         listingKeys = ['clusterUrl','publisher','content','publishedDate','unescapedUrl','titleNoFormatting']
         
@@ -2695,7 +3053,7 @@ chrome.tabs.onActivated.addListener( ->
   )
 
 chrome.tabs.onUpdated.addListener((tabId , info) ->
-    updateBadgeText('')
+    # updateBadgeText('')
     if tabTitleObject? and tabTitleObject.forUrl == tabUrl and !tabTitleObject.tabTitle?
       if (info.status == "complete") 
         initIfNewURL(true)
@@ -2714,8 +3072,6 @@ if tabTitleObject == null
   initIfNewURL(true)
 
 
-getRandom = (min, max) ->
-  return min + Math.floor(Math.random() * (max - min + 1))
 
 
 #make it less unique and shorter

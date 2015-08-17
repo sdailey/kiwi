@@ -31,6 +31,8 @@ class Widget # basic building block
     @totalRenders = 0
     @DOMselector = @parentView.DOMselector + " #" + @name + "_Widget"
     
+    @Widgets = {}
+    
     @bindAllGoToViewButtons = (viewData) =>
       # console.log '@bindAllGoToViewButtons = (viewData) =>'
       # console.log @DOMname
@@ -48,6 +50,9 @@ class Widget # basic building block
         el.unbind()
       @elsToUnbind = []
       
+      for widget in @Widgets
+        widget.unbindWidget()
+      
     @render = (renderState, popupParcel) =>
       @totalRenders++
       @unbindWidget(@name)
@@ -60,13 +65,89 @@ class Widget # basic building block
     
     @renderStates = @__renderStates__()
     return @
-    
-class CustomSearch extends Widget
+
+
+
+class MessageCenter extends Widget
   constructor: (@name, @parentView, @widgetOpenBool) ->
     # console.debug @__renderStates__
+    # console.log ' trying '
+    
     super @name, @parentView, @__renderStates__
     
   init: (popupParcel) ->
+    @unbindWidget()
+    
+    @render('showMessages',popupParcel)
+    
+  __renderStates__: =>
+    showMessages: 
+      paint: (popupParcel) =>
+        # console.log 'messagesHTML = ""
+          # console.debug popupParcel'
+        messagesHTML = ""
+        # console.debug popupParcel
+        
+        
+        
+        
+        
+        
+        if popupParcel.kiwi_userMessages.length > 0
+          
+          messagesHTML += '<div style="padding-top:4px; padding-bottom:10px;">' 
+          for messageObj in popupParcel.kiwi_userMessages
+            messagesHTML += '<div class="bg-warning" style="margin:6px; padding:8px; text-align:justify;"> 
+              <button style="float:right; margin:8px; padding:4px; padding-right:6px; padding-left:6px;" class="btn btn-xs btn-default acknowledgeMessage" data-messageToAcknowledge="' + messageObj.name + '" > 
+                <span title="remove" data-messageToAcknowledge="' + messageObj.name + '"
+                    class="glyphicon glyphicon-remove" aria-hidden="true"
+                    style="color:#E65F5F;"
+                  ></span>
+              </button>
+              ' + messageObj.baseValue + ' &nbsp;
+              
+              </div>'
+          messagesHTML += '<div style="width:100%; text-align:center;"> <b>message priority</b>: urgent. &nbsp;&nbsp; 
+              please acknowledge the message(s) by clicking the "x" button(s). Thanks! :)
+            </div></div>'
+          
+        $(@DOMselector).html(messagesHTML)
+        
+        # $(@DOMselector + " .notFixed").css({'height':fixedHeight + "px"})
+        
+      bind: (popupParcel) =>
+        
+        if popupParcel.kiwi_userMessages.length > 0
+          
+          
+          # console.log 'bind: (popupParcel) =>'
+          ackMessageButtons = $(@DOMselector + ' .acknowledgeMessage')
+          
+          @elsToUnbind = @elsToUnbind.concat ackMessageButtons
+          
+          ackMessageButtons.bind 'click', (ev) =>
+            # console.log "trying for ackMessageButtons.bind 'click', (ev) =>"
+            messageToAcknowledge = $(ev.target).attr('data-messageToAcknowledge')
+            # console.log 'messageToAcknowledge ' + messageToAcknowledge
+            # console.debug popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch
+            # console.debug whitelistSubString
+            
+            
+            parcel =
+              messageToAcknowledge: messageToAcknowledge
+              msg: 'kiwiPP_acknowledgeMessage'
+            
+            sendParcel(parcel)
+        
+        
+class CustomSearch extends Widget
+  constructor: (@name, @parentView, @widgetOpenBool) ->
+    # console.debug @__renderStates__
+    
+    super @name, @parentView, @__renderStates__
+    
+  init: (popupParcel) ->
+    @Widgets = {messageCenter: new MessageCenter 'messageCenter', @, false}
     @unbindWidget()
     if @widgetOpenBool == false
       @render('collapsed',popupParcel)
@@ -89,7 +170,9 @@ class CustomSearch extends Widget
         if popupParcel.kiwi_customSearchResults.queryString? and popupParcel.kiwi_customSearchResults.queryString != ''
           openedCustomSearchHTML += "<div style='padding-top: 12px;'><a id='openPreviousSearch'>see custom results for '" + popupParcel.kiwi_customSearchResults.queryString + "'
             </a> &nbsp;&nbsp;&nbsp;&nbsp; <a id='clearPreviousSearch'>clear</a></div>"
-        openedCustomSearchHTML += "</div>
+        openedCustomSearchHTML += "
+          <div id='messageCenter_Widget'></div>
+        </div>
           <div class='notFixed'></div>"
         $(@DOMselector).html(openedCustomSearchHTML)
         
@@ -99,6 +182,11 @@ class CustomSearch extends Widget
           fixedElHeight = $(@DOMselector + " .topSearchBar").outerHeight()
           # console.log 'console.log fixedElHeight closed'
           # console.log fixedElHeight
+          
+          if popupParcel.kiwi_userMessages? and popupParcel.kiwi_userMessages.length > 0
+            fixedElHeight += 70 + popupParcel.kiwi_userMessages.length * 60
+            
+          
           if fixedElHeight == 0
             setTimeout -> # defer to next browser event tick
                 duplicateFixedHeight()
@@ -107,6 +195,7 @@ class CustomSearch extends Widget
             $(@DOMselector + " .notFixed").css({'height':fixedElHeight + "px"})
         
         duplicateFixedHeight()
+        @Widgets.messageCenter.render('showMessages', popupParcel)
         # $(@DOMselector + " .notFixed").css({'height':fixedHeight + "px"})
         
       bind: (popupParcel) =>
@@ -220,10 +309,12 @@ class CustomSearch extends Widget
             </button>
           </div>  
         </div>'
-        openedCustomSearchHTML += '</div>
+        openedCustomSearchHTML += '
+          <div id="messageCenter_Widget">asdfasd</div>
+        </div>
           <div class="notFixed"></div>
           <div id="customSearchResults"></div>
-            '
+        '
         
         
         resultsSummaryArray = []
@@ -266,6 +357,10 @@ class CustomSearch extends Widget
           fixedElHeight = $(@DOMselector + " .topSearchBar").outerHeight()
           # console.log 'console.log fixedElHeight opened'
           # console.log fixedElHeight
+          
+          if popupParcel.kiwi_userMessages? and popupParcel.kiwi_userMessages.length > 0
+            fixedElHeight += 70 + popupParcel.kiwi_userMessages.length * 60
+          
           if fixedElHeight == 0
             setTimeout -> # defer to next browser event tick
                 duplicateFixedHeight()
@@ -274,6 +369,7 @@ class CustomSearch extends Widget
             $(@DOMselector + " .notFixed").css({'height':fixedElHeight + "px"})
         
         duplicateFixedHeight()
+        @Widgets.messageCenter.render('showMessages', popupParcel)
        
       bind: (popupParcel) =>
         
@@ -990,8 +1086,8 @@ class UserPreferences extends SwitchView
           
           whitelistSubString = $(ev.target).attr('data-whitelistStringToRemove')
           
-          console.debug popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch
-          console.debug whitelistSubString
+          # console.debug popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch
+          # console.debug whitelistSubString
           
           newWhitelistAnyMatchArray = _.without(popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch, whitelistSubString);
           
@@ -1864,6 +1960,9 @@ sendParcel = (parcel) ->
         switch parcel.msg
           when 'kiwiPP_refreshSearchQuery'
             port.postMessage(parcel)  
+            
+          when 'kiwiPP_acknowledgeMessage'
+            port.postMessage(parcel)
           when 'kiwiPP_post_customSearch'
             # console.log 'trying to post custom search'
             # console.debug parcel

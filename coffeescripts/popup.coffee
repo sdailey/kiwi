@@ -97,7 +97,7 @@ class CustomSearch extends Widget
         
         duplicateFixedHeight = =>
           fixedElHeight = $(@DOMselector + " .topSearchBar").outerHeight()
-          # console.log 'console.log fixedElHeight'
+          # console.log 'console.log fixedElHeight closed'
           # console.log fixedElHeight
           if fixedElHeight == 0
             setTimeout -> # defer to next browser event tick
@@ -251,7 +251,7 @@ class CustomSearch extends Widget
         else
           customSearchResultsHTML += '<div id="customSearchResultsDrop"><br>No results to show... make a search! :) </div><br>'
         
-        customSearchResultsHTML = "<div style='width: 100%; text-align: center;'>" + resultsSummaryArray.join(" - ") + "</div>" + customSearchResultsHTML
+        customSearchResultsHTML = "<div style='width: 100%; text-align: center;font-size:.9em;'>" + resultsSummaryArray.join(" - ") + "</div>" + customSearchResultsHTML
         
         
         customSearchResultsHTML += "<br>"
@@ -264,11 +264,10 @@ class CustomSearch extends Widget
         
         duplicateFixedHeight = =>
           fixedElHeight = $(@DOMselector + " .topSearchBar").outerHeight()
-          fixedElTableHeight = $(@DOMselector + " .topSearchBar table").outerHeight()
-          # console.log 'console.log fixedElHeight'
+          # console.log 'console.log fixedElHeight opened'
           # console.log fixedElHeight
-          if fixedElTableHeight == 0
-            setTimeout ->  # defer to next browser event tick
+          if fixedElHeight == 0
+            setTimeout -> # defer to next browser event tick
                 duplicateFixedHeight()
               , 0
           else
@@ -292,23 +291,23 @@ class CustomSearch extends Widget
         
         showHidden = $(@DOMselector + " .showHidden")
         
-        jumpToServiceCustomResults = $("#customSearchResults .jumpTo")
+        jumpToServiceCustomResults = $(@DOMselector + " #customSearchResults .jumpTo")
         
         @elsToUnbind = @elsToUnbind.concat(customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesButtons, 
           customSearch_sortByPref, showHidden, jumpToServiceCustomResults, modifySearch)
         
         
         modifySearch.bind 'click', ->
-          $("#customSearchQueryInput").focus()
+          $(@DOMselector + " #customSearchQueryInput").focus()
         
-        jumpToServiceCustomResults.bind 'click', (ev) ->
+        jumpToServiceCustomResults.bind 'click', (ev) =>
           serviceIndex = parseInt($(ev.target).data('serviceindex'))
           
-          pxFromTop = $($("#customSearchResults .serviceResultsHeaderBar")[serviceIndex]).offset().top
+          pxFromTop = $($(@DOMselector + " #customSearchResults .serviceResultJumpTo")[serviceIndex]).offset().top
           
-          offsetBy = $($("#customSearchResults .serviceResultsHeaderBar")[serviceIndex]).outerHeight() + 40
+          # offsetBy = $($(@DOMselector + " #customSearchResults .serviceResultJumpTo")[serviceIndex]).outerHeight() + 40
           
-          $('body').scrollTop(pxFromTop - offsetBy)
+          $('body').scrollTop(pxFromTop - 100)
         
         showHidden.bind 'click', (ev) =>
           # console.log "showHidden.bind 'click', (ev) ->"
@@ -520,12 +519,10 @@ class Conversations extends SwitchView
               <button class='goTo_userPreferencesView btn btn-xs btn-default' style='position:relative; bottom:2px;'>
                 change settings 
               </button>
-          </div>
-          <br>"
+          </div>"
           
         $("#researchModeDisabledButtons").html(researchModeDisabledButtonsHTML)
         
-        preppedHTMLstring = '<h3 style="position:relative; top:-10px;">Results for this URL:</h3>'
         
         resultsSummaryArray = []
         
@@ -539,9 +536,10 @@ class Conversations extends SwitchView
             service_PreppedResults = popupParcel.allPreppedResults[serviceInfoObject.name].service_PreppedResults
             
             totalResults += service_PreppedResults.length
-            resultsSummaryArray.push("<a class='jumpTo' data-serviceindex='" + index + "'>" + serviceInfoObject.title + " (" + service_PreppedResults.length + ")</a>")
+            brandedTitle = if (serviceInfoObject.name is 'reddit') then "for " + serviceInfoObject.title else serviceInfoObject.title
+            resultsSummaryArray.push("<a class='jumpTo' data-serviceindex='" + index + "'>" + brandedTitle + " (" + service_PreppedResults.length + ")</a>")
             
-            resultsHTML += tailorResults[serviceInfoObject.name](serviceInfoObject,service_PreppedResults, popupParcel.kiwi_userPreferences)
+            resultsHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences)
             
             if service_PreppedResults.length > 14
               resultsHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>'
@@ -552,7 +550,7 @@ class Conversations extends SwitchView
                 
                 submitUrl = serviceInfoObject.submitUrl
                 submitTitle = serviceInfoObject.submitTitle
-                resultsHTML += '<div>No matches for conversations on ' + serviceInfoObject.title + '... <br> 
+                resultsHTML += '<div class="serviceResultJumpTo">No conversation matches for ' + serviceInfoObject.title + '... <br> 
                   &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>'
                 
               else
@@ -566,20 +564,33 @@ class Conversations extends SwitchView
                 </button> to toggle back on.
               </div>'
               
+        preppedHTMLstring = ''
         
-        preppedHTMLstring += "<div style='width: 100%; text-align: center;'>" + resultsSummaryArray.join(" - ") + "</div><br>"
-        preppedHTMLstring += resultsHTML
-        
+        if (popupParcel.urlBlocked == true and Object.keys(popupParcel.allPreppedResults).length < 2)  
+          # do nothing
+          preppedHTMLstring += "<div style='width: 100%; text-align: justify; padding:20px; font-size:.9em; opacity:.9;'>
+              <em>
+                Certain super-high traffic URLs 
+                (or weird urls (like 'about:config' and chrome new tab pages)) have been
+                excluded from auto-search out of respect for the APIs of the conversation sites. you can still manually
+                search them by hitting the green button
+              </em>
+            </div><br>"
+        else if ((totalResults > 0 and popupParcel.kiwi_userPreferences.researchModeOnOff == 'off') or 
+            popupParcel.kiwi_userPreferences.researchModeOnOff == 'on' or
+            Object.keys(popupParcel.allPreppedResults).length > 1)
+          preppedHTMLstring = '<br><h3 style="position:relative; top:-10px;">Results for this URL:</h3>'
+          preppedHTMLstring += "<div style='width: 100%; text-align: center;font-size:.9em;'>" + resultsSummaryArray.join(" - ") + "</div><br>"
+          preppedHTMLstring += resultsHTML
+          
         $("#resultsByService").html(preppedHTMLstring)
         $(@DOMselector + " .hidden_listing").hide()
         # console.log 'console.log $("#resultsByService").outerHeight()'
         # console.log $("#resultsByService").outerHeight()
         
-        if totalResults < 4 and @totalRenders < 2
+        if totalResults < 4 and @totalRenders < 4
           fixedViews.kiwiSlice.render(popupParcel, "open")
           
-        
-        
         setTimeout( -> # to reign in a chrome rendering issue
             # renderExtensionHeight(@DOMselector, 1)
             $($('input')[0]).blur()
@@ -605,19 +616,20 @@ class Conversations extends SwitchView
         
         customSearchOpen = $(@DOMselector + " .customSearchOpen")
         
-        jumpToService = $("#resultsByService .jumpTo")
+        jumpToService = $(@DOMselector + " #resultsByService .jumpTo")
         
         @elsToUnbind = @elsToUnbind.concat(conversations_sortByPref, showHidden, researchUrlOverrideButton, customSearchOpen, jumpToService)
           
-        jumpToService.bind 'click', (ev) ->
+        jumpToService.bind 'click', (ev) =>
           serviceIndex = parseInt($(ev.target).data('serviceindex'))
           
           # console.log serviceIndex
-          pxFromTop = $($("#resultsByService .serviceResultsHeaderBar")[serviceIndex]).offset().top
-          
-          offsetBy = $($("#resultsByService .serviceResultsHeaderBar")[serviceIndex]).outerHeight() + 40
-          
-          $('body').scrollTop(pxFromTop - offsetBy)
+          pxFromTop = $($(@DOMselector + " #resultsByService .serviceResultJumpTo")[serviceIndex]).offset().top
+          # console.log 'pxFromTop = $($(@DOMselector + " #resultsByService .serviceResultJumpTo")[serviceIndex]).offset().top'
+          # console.log $($(@DOMselector + " #resultsByService .serviceResultJumpTo")[serviceIndex]).offset().top
+          # offsetBy = $($(@DOMselector + " #resultsByService .serviceResultJumpTo")[serviceIndex]).outerHeight() + 40
+          # console.log $($(@DOMselector + " #resultsByService .serviceResultJumpTo")[serviceIndex]).outerHeight() + 40
+          $('body').scrollTop(pxFromTop - 100)
           
         
         customSearchOpen.bind 'click', ->
@@ -710,8 +722,9 @@ class UserPreferences extends SwitchView
                  instead, you can check URLs on a case-by-case basis (and still be able to do custom searches)
               </span>
             </a> 
-            on <input type="radio" name="research" value="on" ' + researchOnString + '> - 
-            off <input type="radio" name="research" value="off" ' + researchOffString + '> 
+            
+            <label style="font-weight: normal;" for="researchmodeON"> on </label> <input id="researchmodeON" type="radio" name="research" value="on" ' + researchOnString + '> - 
+            <label style="font-weight: normal;" for="researchmodeOFF"> off </label> <input id="researchmodeOFF" type="radio" name="research" value="off" ' + researchOffString + '> 
             &nbsp;&nbsp;<button class="btn btn-mini btn-default userPreferencesSave"> save preferences </button><br>'
         
         if popupParcel.kiwi_userPreferences.researchModeOnOff is 'off'
@@ -773,8 +786,8 @@ class UserPreferences extends SwitchView
               <th scope="row" style="width:35px;"> ' + (index + 1) + ' </th>
               <td> ' + whitelistSubString + ' </td>
               <td style="width:35px;"> 
-                <button class="btn btn-xs btn-defaultremoveWhitelistString" data-whitelistStringToRemove="' + whitelistSubString + '" > 
-                  <span title="remove" 
+                <button class="btn btn-xs btn-default removeWhitelistString" data-whitelistStringToRemove="' + whitelistSubString + '" > 
+                  <span title="remove" data-whitelistStringToRemove="' + whitelistSubString + '"
                       class="glyphicon glyphicon-remove" aria-hidden="true"
                       style="color:#E65F5F;"
                     ></span>
@@ -820,20 +833,49 @@ class UserPreferences extends SwitchView
           if index != popupParcel.kiwi_servicesInfo.length - 1 
             servicesHtml += '<span title="Move ' + service.title + ' results below ' + popupParcel.kiwi_servicesInfo[index + 1].title + '"  class="glyphicon glyphicon-chevron-down" id="' + service.name + '_moveServiceDown" aria-hidden="true"></span>'
           
+          brandedTitle = if (service.name is 'reddit') then "for " + service.title else service.title
+          brandingImage = ''
+          if service.brandingImage?
+            brandingImage = "&nbsp;<a target='_blank' href='" + service.broughtToYouByURL + "' style='text-decoration:none;'>
+              <img height='28' src='" + service.brandingImage + "'/></a>&nbsp;"
+          
           servicesHtml += '</td>
-            <td class="serviceInfo">' + service.title + ' - using: <a href="' + service.broughtToYouByURL + '">' + service.broughtToYouByTitle + '</a><br>
-              <div style="padding-left:15px;">
+            <td class="serviceInfo">'  + brandedTitle + ' - using: ' + brandingImage + ' <a target="_blank" href="' + service.broughtToYouByURL + '">' + service.broughtToYouByTitle + '</a><br>'
+          
+          if service.name == "productHunt"
+            
+            specificAPIlink = ", <a target='_blank' href='https://github.com/producthunt/producthunt-api/wiki/Product-Hunt-APIs#algolia-search-api'>for PH</a>"
+          
+          if service.customSearchBroughtToYouByTitle?
+            customSearchApiBrandingHTML = "<div class='bg-warning' style='margin:4px; margin-top:10px;padding:6px;'>
+                <em><div style='padding-bottom:2px;'>&nbsp;&nbsp;&nbsp;&nbsp;custom searches are using: </div>" + '
+                <div style="padding-bottom:4px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  <a target="_blank" href="' + service.customSearchBroughtToYouByURL + '">' + service.customSearchBroughtToYouByTitle + '</a> 
+                  ' + specificAPIlink + '
+                  </em>
+                </div>
+                </em>
+                
+              </div>'
+          else
+            customSearchApiBrandingHTML = "" 
+          
+          
+          servicesHtml += '<div style="padding-left:15px;">
                 status:
-                  on <input type="radio" name="' + service.name + '_serviceStatus" value="on" ' + activeCheck + '> - 
-                  off <input type="radio" name="' + service.name + '_serviceStatus" value="off" ' + notActiveCheck + '>
+                  <label style="font-weight: normal;" for="' + service.name + '_serviceStatusON"> on </label> <input id="' + service.name + '_serviceStatusON" type="radio" name="' + service.name + '_serviceStatus" value="on" ' + activeCheck + ' /> - 
+                  <label style="font-weight: normal;" for="' + service.name + '_serviceStatusOFF"> off </label> <input id="' + service.name + '_serviceStatusOFF" type="radio" name="' + service.name + '_serviceStatus" value="off" ' + notActiveCheck + ' />
                 <br><br>Results are deemed notable (capitilizes badge letter) if:'
           
+          
+            
           if service.name == 'gnews'
             servicesHtml += '<br><br> the topic has had <input id="' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit" type="text" size="4" value="' + service.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit + '"/> or more related stories published within the last <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> hours <br> 
               <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div>
               
               number of News Clusters  <input id="' + service.name + '_numberOfRelatedItemsWithClusterURL" type="text" size="4" value="' + service.notableConditions.numberOfRelatedItemsWithClusterURL + '"/>
               </div>
+              ' + customSearchApiBrandingHTML + '
               </td>
             </tr></tbody></table>
             </div>'
@@ -846,6 +888,7 @@ class UserPreferences extends SwitchView
             <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div>
             a post has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments
               </div>
+              ' + customSearchApiBrandingHTML + '
               </td>
             </tr></tbody></table>
             </div>'
@@ -1269,9 +1312,11 @@ tailorResults =
     
     currentTime = Date.now()
     
-    preppedHTMLstring = "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'>
+    
+    preppedHTMLstring = "<div class='serviceResultsBox serviceResultJumpTo resultsBox__" + serviceInfoObject.name + "'>
       <div class='serviceResultsHeaderBar'>
-        <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span> &nbsp;&nbsp;<a class="customSearchOpen"> modify search</a>'
+        <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span> &nbsp;&nbsp;<a class="customSearchOpen"> modify search</a>
+          <p>&nbsp&nbsp' + serviceInfoObject.brandingSlogan + '</p>'
       
     if kiwi_userPreferences.sortByPref == 'attention'
       selectedString_attention = 'selected'
@@ -1280,7 +1325,7 @@ tailorResults =
       selectedString_attention = ''
       selectedString_recency = 'selected'
       
-    preppedHTMLstring += '<div style="float:right; padding-top: 9px;">&nbsp;&nbsp; sorted by: 
+    preppedHTMLstring += '<div style="position: absolute;padding-top: 20px;top: 0px;right: 0px;">&nbsp;&nbsp; sorted by: 
         <select class="conversations_sortByPref">
           <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option>
           <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option>
@@ -1314,7 +1359,7 @@ tailorResults =
       
       preppedHTMLstring += '<div class="listing ' + listingClass + '" style="position:relative;">' + recentTag + '
         <a class="listingTitle" target="_blank" href="' + listing.unescapedUrl + '">
-          ' + listing.titleNoFormatting + '<br>'
+          <b>' + listing.titleNoFormatting + '</b><br>'
       
       _time = formatTime(listing.kiwi_created_at)
       
@@ -1351,11 +1396,15 @@ tailorResults =
     
     fuzzyMatchBool = false
     
-    preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'>
-      
-      <div class='serviceResultsHeaderBar'>
-        <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span>
-      </div>'
+    brandingDisplay = ''
+    if serviceInfoObject.brandingImage?
+      brandingDisplay = '<img style="margin-left:7px;" title="' + serviceInfoObject.title + '" height="28" src="' + serviceInfoObject.brandingImage + '"/> 
+      &nbsp;&nbsp; <span class="serviceResultsTitles" style="color:black; position: relative;top: 6px;">' + serviceInfoObject.title + '</span>'
+    else
+      brandingDisplay = "<span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span>'
+    
+    preppedHTMLstring += "<div class='serviceResultsBox serviceResultJumpTo resultsBox__" + serviceInfoObject.name + "'>
+      <div class='serviceResultsHeaderBar'>" + brandingDisplay + "</div>"
     
       # recency doesn't make sense for PH
     # if kiwi_userPreferences.sortByPref == 'attention'
@@ -1455,8 +1504,6 @@ tailorResults =
         
         if listing.kiwi_makers? and listing.kiwi_makers.length > 0
           
-          
-          
           preppedHTMLstring += '<div><div style="padding-bottom:2px;"><b>made by</b>: </div>'
              
           for maker in listing.kiwi_makers
@@ -1483,14 +1530,20 @@ tailorResults =
           makerUsernames.push maker.username
           
         if listing.kiwi_author_username not in makerUsernames
+          if gridLayoutBool
+              gridLayoutAuthorDiv = '<div style="padding-bottom: 2px;">'
+            else
+              gridLayoutAuthorDiv = '<div style="padding-bottom: 2px; margin-left: 10px;">'
           preppedHTMLstring +=  '<div style="">
-            <b>submitted by:</b> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.kiwi_author_username + '"
-               style="color:#727E98;">' + listing.kiwi_author_name  
+            <div style="padding-bottom:2px;"><b>submitted by:</b></div>
+              ' + gridLayoutAuthorDiv + '<a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.kiwi_author_username + '"
+               style="color:#727E98;">' + listing.kiwi_author_name + '
+              ' 
               
           if listing.kiwi_author_headline? and listing.kiwi_author_headline != ""
             preppedHTMLstring += ', "' + listing.kiwi_author_headline + '"'
             
-          preppedHTMLstring += '</a></div>'
+          preppedHTMLstring += '</a></div></div>'
         
         
         preppedHTMLstring += '</div></div>'
@@ -1546,10 +1599,13 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
   
   fuzzyMatchBool = false
   
-  preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'>
-    
-    <div class='serviceResultsHeaderBar'>
-    <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span>'
+  preppedHTMLstring += "<div class='serviceResultsBox serviceResultJumpTo resultsBox__" + serviceInfoObject.name + "'>
+    <div class='serviceResultsHeaderBar'>"
+  
+  if serviceInfoObject.name == 'reddit'
+    preppedHTMLstring += "<span class='serviceResultsTitles'>for " + serviceInfoObject.title + ':</span>'
+  else
+    preppedHTMLstring += "<span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span>'
   
   if kiwi_userPreferences.sortByPref == 'attention'
     selectedString_attention = 'selected'
@@ -1606,9 +1662,9 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
         
         
         if listing.over_18? and listing.over_18 is true
-          preppedHTMLstring += '<span class="nsfw">NSFW</span> ' + listing.title + '<br>'
+          preppedHTMLstring += '<span class="nsfw">NSFW</span> <b>' + listing.title + '</b><br>'
         else
-          preppedHTMLstring += listing.title + '<br>'
+          preppedHTMLstring += '<b>' + listing.title + '</b><br>'
         
         _time = formatTime(listing.kiwi_created_at)
         
@@ -1661,9 +1717,9 @@ tailorRedditAndHNresults_returnHtml = (serviceInfoObject, service_PreppedResults
         preppedHTMLstring +=  '<a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '"><span style="color:black;">' + recentTag
         
         if listing.over_18? and listing.over_18 is true
-          preppedHTMLstring += '<span class="nsfw">NSFW</span> ' + listing.title + '<br>'
+          preppedHTMLstring += '<span class="nsfw">NSFW</span> <b>' + listing.title + '</b><br>'
         else
-          preppedHTMLstring += listing.title + '<br>'
+          preppedHTMLstring += '<b>' + listing.title + '</b><br>'
         
         preppedHTMLstring += listing.kiwi_num_comments + ' comments, ' + listing.kiwi_score + ' upvotes ' + formatTime(listing.kiwi_created_at) + '</span>
         <br>
@@ -1791,7 +1847,7 @@ receiveParcel  = (parcel) ->
 
  
 sendParcel = (parcel) ->
-  console.log 'wtf sent'
+  # console.log 'wtf sent'
   port = chrome.extension.connect({name: "kiwi_fromBackgroundToPopup"})
   
   # chrome.tabs.getSelected(null,(tab) ->
@@ -1809,6 +1865,8 @@ sendParcel = (parcel) ->
           when 'kiwiPP_refreshSearchQuery'
             port.postMessage(parcel)  
           when 'kiwiPP_post_customSearch'
+            # console.log 'trying to post custom search'
+            # console.debug parcel
             port.postMessage(parcel)  
           when 'kiwiPP_request_popupParcel'
             port.postMessage(parcel)

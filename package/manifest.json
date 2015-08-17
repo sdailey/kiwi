@@ -4,14 +4,12 @@
   "name": "Kiwi Conversations",
   "short_name": "Kiwi",
   "description": "Kiwi Conversations searches community sites to find forum comment threads about the url you're visiting.",
-  "version": "1.0.9",
+  "version": "1.1.4",
 
   "permissions": [
     "tabs",
     "storage"
   ],
-  
-  "options_page": "popup.html?optionsOnly=true",
   
   "background":{
     "scripts": [

@@ -223,16 +223,15 @@
               } else {
                 customSearchResultsHTML += '<div id="customSearchResultsDrop"><br>No results to show... make a search! :) </div><br>';
               }
-              customSearchResultsHTML = "<div style='width: 100%; text-align: center;'>" + resultsSummaryArray.join(" - ") + "</div>" + customSearchResultsHTML;
+              customSearchResultsHTML = "<div style='width: 100%; text-align: center;font-size:.9em;'>" + resultsSummaryArray.join(" - ") + "</div>" + customSearchResultsHTML;
               customSearchResultsHTML += "<br>";
               $(_this.DOMselector).html(openedCustomSearchHTML);
               $(_this.DOMselector + " #customSearchResults").html(customSearchResultsHTML);
               $(_this.DOMselector + " .hidden_listing").hide();
               duplicateFixedHeight = function() {
-                var fixedElHeight, fixedElTableHeight;
+                var fixedElHeight;
                 fixedElHeight = $(_this.DOMselector + " .topSearchBar").outerHeight();
-                fixedElTableHeight = $(_this.DOMselector + " .topSearchBar table").outerHeight();
-                if (fixedElTableHeight === 0) {
+                if (fixedElHeight === 0) {
                   return setTimeout(function() {
                     return duplicateFixedHeight();
                   }, 0);
@@ -256,17 +255,16 @@
               elsServicesButtons = $(_this.DOMselector + " button.servicesToSearch ");
               elsServicesActivePrefs = $(_this.DOMselector + " .customSearchServicePref input");
               showHidden = $(_this.DOMselector + " .showHidden");
-              jumpToServiceCustomResults = $("#customSearchResults .jumpTo");
+              jumpToServiceCustomResults = $(_this.DOMselector + " #customSearchResults .jumpTo");
               _this.elsToUnbind = _this.elsToUnbind.concat(customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesButtons, customSearch_sortByPref, showHidden, jumpToServiceCustomResults, modifySearch);
               modifySearch.bind('click', function() {
-                return $("#customSearchQueryInput").focus();
+                return $(this.DOMselector + " #customSearchQueryInput").focus();
               });
               jumpToServiceCustomResults.bind('click', function(ev) {
-                var offsetBy, pxFromTop, serviceIndex;
+                var pxFromTop, serviceIndex;
                 serviceIndex = parseInt($(ev.target).data('serviceindex'));
-                pxFromTop = $($("#customSearchResults .serviceResultsHeaderBar")[serviceIndex]).offset().top;
-                offsetBy = $($("#customSearchResults .serviceResultsHeaderBar")[serviceIndex]).outerHeight() + 40;
-                return $('body').scrollTop(pxFromTop - offsetBy);
+                pxFromTop = $($(_this.DOMselector + " #customSearchResults .serviceResultJumpTo")[serviceIndex]).offset().top;
+                return $('body').scrollTop(pxFromTop - 100);
               });
               showHidden.bind('click', function(ev) {
                 var serviceName;
@@ -495,17 +493,16 @@
         __normal__: {
           paint: (function(_this) {
             return function(popupParcel) {
-              var index, preppedHTMLstring, researchModeDisabledButtonsHTML, resultsHTML, resultsSummaryArray, serviceInfoObject, service_PreppedResults, submitTitle, submitUrl, totalResults, _i, _len, _ref;
+              var brandedTitle, index, preppedHTMLstring, researchModeDisabledButtonsHTML, resultsHTML, resultsSummaryArray, serviceInfoObject, service_PreppedResults, submitTitle, submitUrl, totalResults, _i, _len, _ref;
               _this.Widgets['customSearch'].init(popupParcel);
               researchModeDisabledButtonsHTML = '';
               if (popupParcel.urlBlocked === true || popupParcel.kiwi_userPreferences.researchModeOnOff === 'off' || ((popupParcel.oldUrl != null) && popupParcel.oldUrl === true)) {
                 researchModeDisabledButtonsHTML += "<br> <div style='width:100%;text-align: center;'><button class='btn btn-success' style='font-size: 1.1em;display: inline-block;' id='researchUrlOverride'>Research this Url</button></div> <br>";
               }
               if (popupParcel.kiwi_userPreferences.researchModeOnOff === 'off') {
-                researchModeDisabledButtonsHTML += "<br> <div style='width:100%; text-align:center;'> Research Mode is off: &nbsp; <button class='goTo_userPreferencesView btn btn-xs btn-default' style='position:relative; bottom:2px;'> change settings </button> </div> <br>";
+                researchModeDisabledButtonsHTML += "<br> <div style='width:100%; text-align:center;'> Research Mode is off: &nbsp; <button class='goTo_userPreferencesView btn btn-xs btn-default' style='position:relative; bottom:2px;'> change settings </button> </div>";
               }
               $("#researchModeDisabledButtons").html(researchModeDisabledButtonsHTML);
-              preppedHTMLstring = '<h3 style="position:relative; top:-10px;">Results for this URL:</h3>';
               resultsSummaryArray = [];
               resultsHTML = "";
               totalResults = 0;
@@ -515,7 +512,8 @@
                 if ((popupParcel.allPreppedResults[serviceInfoObject.name] != null) && popupParcel.allPreppedResults[serviceInfoObject.name].service_PreppedResults.length > 0) {
                   service_PreppedResults = popupParcel.allPreppedResults[serviceInfoObject.name].service_PreppedResults;
                   totalResults += service_PreppedResults.length;
-                  resultsSummaryArray.push("<a class='jumpTo' data-serviceindex='" + index + "'>" + serviceInfoObject.title + " (" + service_PreppedResults.length + ")</a>");
+                  brandedTitle = serviceInfoObject.name === 'reddit' ? "for " + serviceInfoObject.title : serviceInfoObject.title;
+                  resultsSummaryArray.push("<a class='jumpTo' data-serviceindex='" + index + "'>" + brandedTitle + " (" + service_PreppedResults.length + ")</a>");
                   resultsHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences);
                   if (service_PreppedResults.length > 14) {
                     resultsHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>';
@@ -525,7 +523,7 @@
                     if (serviceInfoObject.submitTitle != null) {
                       submitUrl = serviceInfoObject.submitUrl;
                       submitTitle = serviceInfoObject.submitTitle;
-                      resultsHTML += '<div>No matches for conversations on ' + serviceInfoObject.title + '... <br> &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>';
+                      resultsHTML += '<div class="serviceResultJumpTo">No conversation matches for ' + serviceInfoObject.title + '... <br> &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>';
                     } else {
                       resultsHTML += '<div>No results for ' + serviceInfoObject.title + '</div>';
                     }
@@ -534,11 +532,17 @@
                   }
                 }
               }
-              preppedHTMLstring += "<div style='width: 100%; text-align: center;'>" + resultsSummaryArray.join(" - ") + "</div><br>";
-              preppedHTMLstring += resultsHTML;
+              preppedHTMLstring = '';
+              if (popupParcel.urlBlocked === true && Object.keys(popupParcel.allPreppedResults).length < 2) {
+                preppedHTMLstring += "<div style='width: 100%; text-align: justify; padding:20px; font-size:.9em; opacity:.9;'> <em> Certain super-high traffic URLs (or weird urls (like 'about:config' and chrome new tab pages)) have been excluded from auto-search out of respect for the APIs of the conversation sites. you can still manually search them by hitting the green button </em> </div><br>";
+              } else if ((totalResults > 0 && popupParcel.kiwi_userPreferences.researchModeOnOff === 'off') || popupParcel.kiwi_userPreferences.researchModeOnOff === 'on' || Object.keys(popupParcel.allPreppedResults).length > 1) {
+                preppedHTMLstring = '<br><h3 style="position:relative; top:-10px;">Results for this URL:</h3>';
+                preppedHTMLstring += "<div style='width: 100%; text-align: center;font-size:.9em;'>" + resultsSummaryArray.join(" - ") + "</div><br>";
+                preppedHTMLstring += resultsHTML;
+              }
               $("#resultsByService").html(preppedHTMLstring);
               $(_this.DOMselector + " .hidden_listing").hide();
-              if (totalResults < 4 && _this.totalRenders < 2) {
+              if (totalResults < 4 && _this.totalRenders < 4) {
                 fixedViews.kiwiSlice.render(popupParcel, "open");
               }
               setTimeout(function() {
@@ -558,14 +562,13 @@
               researchUrlOverrideButton = $(_this.DOMselector + " #researchUrlOverride");
               conversations_sortByPref = $(_this.DOMselector + " .conversations_sortByPref");
               customSearchOpen = $(_this.DOMselector + " .customSearchOpen");
-              jumpToService = $("#resultsByService .jumpTo");
+              jumpToService = $(_this.DOMselector + " #resultsByService .jumpTo");
               _this.elsToUnbind = _this.elsToUnbind.concat(conversations_sortByPref, showHidden, researchUrlOverrideButton, customSearchOpen, jumpToService);
               jumpToService.bind('click', function(ev) {
-                var offsetBy, pxFromTop, serviceIndex;
+                var pxFromTop, serviceIndex;
                 serviceIndex = parseInt($(ev.target).data('serviceindex'));
-                pxFromTop = $($("#resultsByService .serviceResultsHeaderBar")[serviceIndex]).offset().top;
-                offsetBy = $($("#resultsByService .serviceResultsHeaderBar")[serviceIndex]).outerHeight() + 40;
-                return $('body').scrollTop(pxFromTop - offsetBy);
+                pxFromTop = $($(_this.DOMselector + " #resultsByService .serviceResultJumpTo")[serviceIndex]).offset().top;
+                return $('body').scrollTop(pxFromTop - 100);
               });
               customSearchOpen.bind('click', function() {
                 return $("#customSearchQueryInput").click();
@@ -624,7 +627,7 @@
         __normal__: {
           paint: (function(_this) {
             return function(popupParcel) {
-              var activeCheck, autoOffTimerType, autoOffTimerValue, currentTime, index, notActiveCheck, researchModeHtml, researchOffString, researchOnString, service, servicesHtml, timerDisabled, timerOnlyUsefulWhenMessage, whitelistSubString, _i, _j, _len, _len1, _ref, _ref1;
+              var activeCheck, autoOffTimerType, autoOffTimerValue, brandedTitle, brandingImage, currentTime, customSearchApiBrandingHTML, index, notActiveCheck, researchModeHtml, researchOffString, researchOnString, service, servicesHtml, specificAPIlink, timerDisabled, timerOnlyUsefulWhenMessage, whitelistSubString, _i, _j, _len, _len1, _ref, _ref1;
               $(_this.DOMselector + " .userErrMsg").html('');
               if (preferencesOnlyPage === true) {
                 $("#menuBar_preferences").hide();
@@ -656,7 +659,7 @@
           else if(autoOffTimerType == "always"){ autoAlways = " checked='checked' " }
           else if(autoOffTimerType == "custom"){ autoCustom = " checked='checked' "; autoCustomValue = autoOffTimerValue;}
         };
-              researchModeHtml += 'Research Mode: <a class="tooltipCustom" style="position: relative;"> <div style="display:inline; font-size:.9em;"><sup><em> ?</em></sup></div> <span style="bottom:34px; left:-114px;"> When the Research mode is "Off", Kiwi won\'t automatically search URLs as you surf; instead, you can check URLs on a case-by-case basis (and still be able to do custom searches) </span> </a> on <input type="radio" name="research" value="on" ' + researchOnString + '> - off <input type="radio" name="research" value="off" ' + researchOffString + '> &nbsp;&nbsp;<button class="btn btn-mini btn-default userPreferencesSave"> save preferences </button><br>';
+              researchModeHtml += 'Research Mode: <a class="tooltipCustom" style="position: relative;"> <div style="display:inline; font-size:.9em;"><sup><em> ?</em></sup></div> <span style="bottom:34px; left:-114px;"> When the Research mode is "Off", Kiwi won\'t automatically search URLs as you surf; instead, you can check URLs on a case-by-case basis (and still be able to do custom searches) </span> </a> <label style="font-weight: normal;" for="researchmodeON"> on </label> <input id="researchmodeON" type="radio" name="research" value="on" ' + researchOnString + '> - <label style="font-weight: normal;" for="researchmodeOFF"> off </label> <input id="researchmodeOFF" type="radio" name="research" value="off" ' + researchOffString + '> &nbsp;&nbsp;<button class="btn btn-mini btn-default userPreferencesSave"> save preferences </button><br>';
               if (popupParcel.kiwi_userPreferences.researchModeOnOff === 'off') {
                 researchModeHtml += '';
                 timerDisabled = ' disabled ';
@@ -670,7 +673,7 @@
               _ref = popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch;
               for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
                 whitelistSubString = _ref[index];
-                researchModeHtml += '<tr> <th scope="row" style="width:35px;"> ' + (index + 1) + ' </th> <td> ' + whitelistSubString + ' </td> <td style="width:35px;"> <button class="btn btn-xs btn-defaultremoveWhitelistString" data-whitelistStringToRemove="' + whitelistSubString + '" > <span title="remove" class="glyphicon glyphicon-remove" aria-hidden="true" style="color:#E65F5F;" ></span> </button> </td> </tr>';
+                researchModeHtml += '<tr> <th scope="row" style="width:35px;"> ' + (index + 1) + ' </th> <td> ' + whitelistSubString + ' </td> <td style="width:35px;"> <button class="btn btn-xs btn-default removeWhitelistString" data-whitelistStringToRemove="' + whitelistSubString + '" > <span title="remove" data-whitelistStringToRemove="' + whitelistSubString + '" class="glyphicon glyphicon-remove" aria-hidden="true" style="color:#E65F5F;" ></span> </button> </td> </tr>';
               }
               researchModeHtml += '</tbody> </table> <br>Auto-Off Timer set for: ' + timerOnlyUsefulWhenMessage + '<br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + auto20 + ' value="20"> 20 min</label> <br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + auto60 + ' value="60"> 1 hr</label> <br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + autoAlways + ' value="always"> Always On</label> <br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + autoCustom + ' value="custom"> Custom</label> &nbsp; &nbsp; <input ' + timerDisabled + ' id="autoCustomValue" type="text" value="' + autoCustomValue + '" size="4" disabled /> minutes';
               $("#researchModeDrop").html(researchModeHtml);
@@ -695,11 +698,25 @@
                 if (index !== popupParcel.kiwi_servicesInfo.length - 1) {
                   servicesHtml += '<span title="Move ' + service.title + ' results below ' + popupParcel.kiwi_servicesInfo[index + 1].title + '"  class="glyphicon glyphicon-chevron-down" id="' + service.name + '_moveServiceDown" aria-hidden="true"></span>';
                 }
-                servicesHtml += '</td> <td class="serviceInfo">' + service.title + ' - using: <a href="' + service.broughtToYouByURL + '">' + service.broughtToYouByTitle + '</a><br> <div style="padding-left:15px;"> status: on <input type="radio" name="' + service.name + '_serviceStatus" value="on" ' + activeCheck + '> - off <input type="radio" name="' + service.name + '_serviceStatus" value="off" ' + notActiveCheck + '> <br><br>Results are deemed notable (capitilizes badge letter) if:';
-                if (service.name === 'gnews') {
-                  servicesHtml += '<br><br> the topic has had <input id="' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit" type="text" size="4" value="' + service.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit + '"/> or more related stories published within the last <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> hours <br> <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div> number of News Clusters  <input id="' + service.name + '_numberOfRelatedItemsWithClusterURL" type="text" size="4" value="' + service.notableConditions.numberOfRelatedItemsWithClusterURL + '"/> </div> </td> </tr></tbody></table> </div>';
+                brandedTitle = service.name === 'reddit' ? "for " + service.title : service.title;
+                brandingImage = '';
+                if (service.brandingImage != null) {
+                  brandingImage = "&nbsp;<a target='_blank' href='" + service.broughtToYouByURL + "' style='text-decoration:none;'> <img height='28' src='" + service.brandingImage + "'/></a>&nbsp;";
+                }
+                servicesHtml += '</td> <td class="serviceInfo">' + brandedTitle + ' - using: ' + brandingImage + ' <a target="_blank" href="' + service.broughtToYouByURL + '">' + service.broughtToYouByTitle + '</a><br>';
+                if (service.name === "productHunt") {
+                  specificAPIlink = ", <a target='_blank' href='https://github.com/producthunt/producthunt-api/wiki/Product-Hunt-APIs#algolia-search-api'>for PH</a>";
+                }
+                if (service.customSearchBroughtToYouByTitle != null) {
+                  customSearchApiBrandingHTML = "<div class='bg-warning' style='margin:4px; margin-top:10px;padding:6px;'> <em><div style='padding-bottom:2px;'>&nbsp;&nbsp;&nbsp;&nbsp;custom searches are using: </div>" + '<div style="padding-bottom:4px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a target="_blank" href="' + service.customSearchBroughtToYouByURL + '">' + service.customSearchBroughtToYouByTitle + '</a>' + specificAPIlink + '</em> </div> </em> </div>';
                 } else {
-                  servicesHtml += '<br> URL is an exact match, and: <br> it has been <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting <br> <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div> a post has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments </div> </td> </tr></tbody></table> </div>';
+                  customSearchApiBrandingHTML = "";
+                }
+                servicesHtml += '<div style="padding-left:15px;"> status: <label style="font-weight: normal;" for="' + service.name + '_serviceStatusON"> on </label> <input id="' + service.name + '_serviceStatusON" type="radio" name="' + service.name + '_serviceStatus" value="on" ' + activeCheck + ' /> - <label style="font-weight: normal;" for="' + service.name + '_serviceStatusOFF"> off </label> <input id="' + service.name + '_serviceStatusOFF" type="radio" name="' + service.name + '_serviceStatus" value="off" ' + notActiveCheck + ' /> <br><br>Results are deemed notable (capitilizes badge letter) if:';
+                if (service.name === 'gnews') {
+                  servicesHtml += '<br><br> the topic has had <input id="' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit" type="text" size="4" value="' + service.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit + '"/> or more related stories published within the last <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> hours <br> <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div> number of News Clusters  <input id="' + service.name + '_numberOfRelatedItemsWithClusterURL" type="text" size="4" value="' + service.notableConditions.numberOfRelatedItemsWithClusterURL + '"/> </div>' + customSearchApiBrandingHTML + '</td> </tr></tbody></table> </div>';
+                } else {
+                  servicesHtml += '<br> URL is an exact match, and: <br> it has been <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting <br> <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div> a post has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments </div>' + customSearchApiBrandingHTML + '</td> </tr></tbody></table> </div>';
                 }
               }
               servicesHtml += "<div class='serviceListing listing' style='padding:15px; margin-top: 30px;'> Wouldn't it be awesome if we could add some more services to opt-in to?&nbsp;&nbsp; All that's needed are friendly APIs!&nbsp; <a href='https://twitter.com/spencenow' target='_blank'>Tweet me</a> if you're interested in adding one! </div> <br>";
@@ -1146,7 +1163,7 @@
     gnews: function(serviceInfoObject, service_PreppedResults, kiwi_userPreferences) {
       var currentTime, index, listing, listingClass, preppedHTMLstring, recentTag, selectedString_attention, selectedString_recency, _i, _len, _time;
       currentTime = Date.now();
-      preppedHTMLstring = "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'> <div class='serviceResultsHeaderBar'> <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span> &nbsp;&nbsp;<a class="customSearchOpen"> modify search</a>';
+      preppedHTMLstring = "<div class='serviceResultsBox serviceResultJumpTo resultsBox__" + serviceInfoObject.name + "'> <div class='serviceResultsHeaderBar'> <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span> &nbsp;&nbsp;<a class="customSearchOpen"> modify search</a> <p>&nbsp&nbsp' + serviceInfoObject.brandingSlogan + '</p>';
       if (kiwi_userPreferences.sortByPref === 'attention') {
         selectedString_attention = 'selected';
         selectedString_recency = '';
@@ -1154,7 +1171,7 @@
         selectedString_attention = '';
         selectedString_recency = 'selected';
       }
-      preppedHTMLstring += '<div style="float:right; padding-top: 9px;">&nbsp;&nbsp; sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select> </div> </div>';
+      preppedHTMLstring += '<div style="position: absolute;padding-top: 20px;top: 0px;right: 0px;">&nbsp;&nbsp; sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select> </div> </div>';
       if ((service_PreppedResults != null) && service_PreppedResults.length > 0) {
         preppedHTMLstring += '<div style="padding:7px;"> &nbsp;&nbsp; Searched for: "<strong>' + service_PreppedResults[0].kiwi_searchedFor + '</strong>" </div>';
       }
@@ -1169,7 +1186,7 @@
         listing = service_PreppedResults[index];
         listingClass = index > 10 && service_PreppedResults.length > 14 ? ' hidden_listing' : '';
         recentTag = currentTime - listing.kiwi_created_at < 1000 * 60 * 60 * 4 ? "<span class='recentListingTag'>Recent: </span>" : "";
-        preppedHTMLstring += '<div class="listing ' + listingClass + '" style="position:relative;">' + recentTag + '<a class="listingTitle" target="_blank" href="' + listing.unescapedUrl + '">' + listing.titleNoFormatting + '<br>';
+        preppedHTMLstring += '<div class="listing ' + listingClass + '" style="position:relative;">' + recentTag + '<a class="listingTitle" target="_blank" href="' + listing.unescapedUrl + '"> <b>' + listing.titleNoFormatting + '</b><br>';
         _time = formatTime(listing.kiwi_created_at);
         preppedHTMLstring += listing.publisher + ' -- ' + _time + '</a> <br>' + listing.content + '<br>';
         if (listing.clusterUrl !== '') {
@@ -1187,11 +1204,17 @@
       return tailorRedditAndHNresults_returnHtml(serviceInfoObject, service_PreppedResults, kiwi_userPreferences);
     },
     productHunt: function(serviceInfoObject, service_PreppedResults, kiwi_userPreferences) {
-      var currentTime, fuzzyMatchBool, gridLayoutBool, index, listing, listingClass, maker, makerUsernames, preppedHTMLstring, recentTag, _i, _j, _len, _len1, _ref, _ref1, _time;
+      var brandingDisplay, currentTime, fuzzyMatchBool, gridLayoutAuthorDiv, gridLayoutBool, index, listing, listingClass, maker, makerUsernames, preppedHTMLstring, recentTag, _i, _j, _len, _len1, _ref, _ref1, _time;
       preppedHTMLstring = '';
       currentTime = Date.now();
       fuzzyMatchBool = false;
-      preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'> <div class='serviceResultsHeaderBar'> <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span> </div>';
+      brandingDisplay = '';
+      if (serviceInfoObject.brandingImage != null) {
+        brandingDisplay = '<img style="margin-left:7px;" title="' + serviceInfoObject.title + '" height="28" src="' + serviceInfoObject.brandingImage + '"/> &nbsp;&nbsp; <span class="serviceResultsTitles" style="color:black; position: relative;top: 6px;">' + serviceInfoObject.title + '</span>';
+      } else {
+        brandingDisplay = "<span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span>';
+      }
+      preppedHTMLstring += "<div class='serviceResultsBox serviceResultJumpTo resultsBox__" + serviceInfoObject.name + "'> <div class='serviceResultsHeaderBar'>" + brandingDisplay + "</div>";
       if (service_PreppedResults.length < 1) {
         preppedHTMLstring += ' no results <br>';
         return preppedHTMLstring;
@@ -1261,11 +1284,16 @@
             makerUsernames.push(maker.username);
           }
           if (_ref1 = listing.kiwi_author_username, __indexOf.call(makerUsernames, _ref1) < 0) {
-            preppedHTMLstring += '<div style=""> <b>submitted by:</b> <a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.kiwi_author_username + '" style="color:#727E98;">' + listing.kiwi_author_name;
+            if (gridLayoutBool) {
+              gridLayoutAuthorDiv = '<div style="padding-bottom: 2px;">';
+            } else {
+              gridLayoutAuthorDiv = '<div style="padding-bottom: 2px; margin-left: 10px;">';
+            }
+            preppedHTMLstring += '<div style=""> <div style="padding-bottom:2px;"><b>submitted by:</b></div>' + gridLayoutAuthorDiv + '<a target="_blank" href="' + serviceInfoObject.userPageBaselink + listing.kiwi_author_username + '" style="color:#727E98;">' + listing.kiwi_author_name + '';
             if ((listing.kiwi_author_headline != null) && listing.kiwi_author_headline !== "") {
               preppedHTMLstring += ', "' + listing.kiwi_author_headline + '"';
             }
-            preppedHTMLstring += '</a></div>';
+            preppedHTMLstring += '</a></div></div>';
           }
           preppedHTMLstring += '</div></div>';
         }
@@ -1296,7 +1324,12 @@
     preppedHTMLstring = '';
     currentTime = Date.now();
     fuzzyMatchBool = false;
-    preppedHTMLstring += "<div class='serviceResultsBox resultsBox__" + serviceInfoObject.name + "'> <div class='serviceResultsHeaderBar'> <span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span>';
+    preppedHTMLstring += "<div class='serviceResultsBox serviceResultJumpTo resultsBox__" + serviceInfoObject.name + "'> <div class='serviceResultsHeaderBar'>";
+    if (serviceInfoObject.name === 'reddit') {
+      preppedHTMLstring += "<span class='serviceResultsTitles'>for " + serviceInfoObject.title + ':</span>';
+    } else {
+      preppedHTMLstring += "<span class='serviceResultsTitles'>" + serviceInfoObject.title + '</span>';
+    }
     if (kiwi_userPreferences.sortByPref === 'attention') {
       selectedString_attention = 'selected';
       selectedString_recency = '';
@@ -1332,9 +1365,9 @@
           }
           preppedHTMLstring += '<a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '"><span style="color:black;">' + recentTag;
           if ((listing.over_18 != null) && listing.over_18 === true) {
-            preppedHTMLstring += '<span class="nsfw">NSFW</span> ' + listing.title + '<br>';
+            preppedHTMLstring += '<span class="nsfw">NSFW</span> <b>' + listing.title + '</b><br>';
           } else {
-            preppedHTMLstring += listing.title + '<br>';
+            preppedHTMLstring += '<b>' + listing.title + '</b><br>';
           }
           _time = formatTime(listing.kiwi_created_at);
           preppedHTMLstring += listing.kiwi_num_comments + ' comments, ' + listing.kiwi_score + ' upvotes -- ' + _time + '</span></a>';
@@ -1373,9 +1406,9 @@
           }
           preppedHTMLstring += '<a class="listingTitle" target="_blank" href="' + serviceInfoObject.permalinkBase + listing.kiwi_permaId + '"><span style="color:black;">' + recentTag;
           if ((listing.over_18 != null) && listing.over_18 === true) {
-            preppedHTMLstring += '<span class="nsfw">NSFW</span> ' + listing.title + '<br>';
+            preppedHTMLstring += '<span class="nsfw">NSFW</span> <b>' + listing.title + '</b><br>';
           } else {
-            preppedHTMLstring += listing.title + '<br>';
+            preppedHTMLstring += '<b>' + listing.title + '</b><br>';
           }
           preppedHTMLstring += listing.kiwi_num_comments + ' comments, ' + listing.kiwi_score + ' upvotes ' + formatTime(listing.kiwi_created_at) + '</span> <br> for Url: <span class="altURL">' + listing.url + '</span> </a>';
           if (listing.subreddit != null) {
@@ -1489,7 +1522,6 @@
 
   sendParcel = function(parcel) {
     var port;
-    console.log('wtf sent');
     port = chrome.extension.connect({
       name: "kiwi_fromBackgroundToPopup"
     });

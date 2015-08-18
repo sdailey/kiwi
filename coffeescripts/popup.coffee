@@ -88,11 +88,6 @@ class MessageCenter extends Widget
         messagesHTML = ""
         # console.debug popupParcel
         
-        
-        
-        
-        
-        
         if popupParcel.kiwi_userMessages.length > 0
           
           messagesHTML += '<div style="padding-top:4px; padding-bottom:10px;">' 

@@ -565,21 +565,33 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
     url: 'https://www.reddit.com/api/v1/access_token'
     
     statusCode:
+      0: ->
+        tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+        setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth)
+        send_kiwi_userMessage("redditDown")
+        console.log('unavailable!2')
+      
+      504: ->
+        tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+        setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth)
+        send_kiwi_userMessage("redditDown")
+        console.log('unavailable!2')
+        
       503: ->
         tryAgainTimestamp = currentTime + (1000 * 60 * 3)
         setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth)
-        # send_kiwi_userMessage("redditDown")
-        # console.log('unavailable!')
+        send_kiwi_userMessage("redditDown")
+        console.log('unavailable!2')
       502: ->
         tryAgainTimestamp = currentTime + (1000 * 60 * 3)
         setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth)
-        # send_kiwi_userMessage("redditDown")
-        # console.log('Fail!')
+        send_kiwi_userMessage("redditDown")
+        console.log('Fail!2')
       401: ->
         tryAgainTimestamp = currentTime + (1000 * 60 * 3)
         setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth)
-        # send_kiwi_userMessage("redditDown")
-        # console.log('unauthenticated1')
+        send_kiwi_userMessage("redditDown")
+        console.log('unauthenticated2')
     
     headers: { 
       'Authorization':    'Basic ' + btoa(kiwi_reddit_oauth.client_id + ":") 
@@ -630,21 +642,32 @@ requestProductHuntOauthToken = (kiwi_productHunt_oauth) ->
     }
     
     statusCode:
+      0: ->
+        tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+        setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth)
+        send_kiwi_userMessage("productHuntDown")
+        console.log('unavailable!3')
+      504: ->
+        tryAgainTimestamp = currentTime + (1000 * 60 * 3)
+        setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth)
+        send_kiwi_userMessage("productHuntDown")
+        console.log('unavailable!3')
+      
       503: ->
         tryAgainTimestamp = currentTime + (1000 * 60 * 3)
         setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth)
-        # send_kiwi_userMessage("productHuntDown")
-        # console.log('unavailable!')
+        send_kiwi_userMessage("productHuntDown")
+        console.log('unavailable!3')
       502: ->
         tryAgainTimestamp = currentTime + (1000 * 60 * 3)
         setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth)
-        # send_kiwi_userMessage("productHuntDown")
-        # console.log('Fail!')
+        send_kiwi_userMessage("productHuntDown")
+        console.log('Fail!3')
       401: ->
         tryAgainTimestamp = currentTime + (1000 * 60 * 3)
         setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth)
-        # send_kiwi_userMessage("productHuntDown")
-        # console.log('unauthenticated')
+        send_kiwi_userMessage("productHuntDown")
+        console.log('unauthenticated3')
           
     
     url: 'https://api.producthunt.com/v1/oauth/token'
@@ -1279,6 +1302,28 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
       type: "GET"
       url: service_info.queryApi + encodeURIComponent(currentUrl)
       statusCode: {
+        0: ->
+          responsePackage = {
+            forUrl: currentUrl,
+            servicesInfo: servicesInfo,
+            serviceName: service_info.name,
+            queryResult: null
+          };
+          console.log('unavailable!4');
+          if kiwi_userMessages[service_info.name + "Down"]?
+            send_kiwi_userMessage(service_info.name + "Down")
+          setPreppedServiceResults(responsePackage, servicesInfo);
+        504: ->
+          responsePackage = {
+            forUrl: currentUrl,
+            servicesInfo: servicesInfo,
+            serviceName: service_info.name,
+            queryResult: null
+          };
+          console.log('unavailable!4');
+          if kiwi_userMessages[service_info.name + "Down"]?
+            send_kiwi_userMessage(service_info.name + "Down")
+          setPreppedServiceResults(responsePackage, servicesInfo);
         503: ->
           responsePackage = {
             forUrl: currentUrl,
@@ -1286,7 +1331,7 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
             serviceName: service_info.name,
             queryResult: null
           };
-          # console.log('unavailable!');
+          console.log('unavailable!4');
           if kiwi_userMessages[service_info.name + "Down"]?
             send_kiwi_userMessage(service_info.name + "Down")
           setPreppedServiceResults(responsePackage, servicesInfo);
@@ -1298,7 +1343,7 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
             serviceName: service_info.name,
             queryResult: null
           };
-          # console.log('Fail!');
+          console.log('Fail!4');
           if kiwi_userMessages[service_info.name + "Down"]?
             send_kiwi_userMessage(service_info.name + "Down")
           setPreppedServiceResults(responsePackage, servicesInfo);
@@ -1310,7 +1355,7 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
             serviceName: service_info.name,
             queryResult: null
           };
-          # console.log('unauthenticated');
+          console.log('unauthenticated4');
           setPreppedServiceResults(responsePackage, servicesInfo);
           
           if kiwi_userMessages[service_info.name + "Down"]?
@@ -1348,17 +1393,17 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
       queryObj.headers =
         'Authorization': "'bearer " + allItemsInLocalStorage.kiwi_reddit_oauth.token + "'"
     else if service_info.name is 'reddit' and !allItemsInLocalStorage.kiwi_reddit_oauth?
+      # console.log 'adfaeaefae'
+      
       responsePackage = {
         forUrl: currentUrl,
         servicesInfo: servicesInfo,
         serviceName: service_info.name,
         queryResult: null
       };
-      # console.log('unauthenticated');
+      
       setPreppedServiceResults(responsePackage, servicesInfo)
       
-      if kiwi_userMessages[service_info.name + "Down"]?
-        send_kiwi_userMessage(service_info.name + "Down")
       
       tryAgainTimestamp = currentTime + (1000 * 60 * 2)
       setTimeout_forRedditRefresh(tryAgainTimestamp, temp__kiwi_reddit_oauth)
@@ -1379,7 +1424,7 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
         # 'Host': 'api.producthunt.com'
         
     else if service_info.name is 'productHunt' and !allItemsInLocalStorage.kiwi_productHunt_oauth? 
-      
+      # console.log 'asdfasdfasdfdas'
       # call out and to a reset / refresh timer thingy
       responsePackage = {
         forUrl: currentUrl,
@@ -1387,11 +1432,8 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
         serviceName: service_info.name,
         queryResult: null
       };
-      # console.log('unauthenticated');
-      setPreppedServiceResults(responsePackage, servicesInfo)
       
-      if kiwi_userMessages[service_info.name + "Down"]?
-        send_kiwi_userMessage(service_info.name + "Down")
+      setPreppedServiceResults(responsePackage, servicesInfo)
       
       tryAgainTimestamp = currentTime + (1000 * 60 * 2)
       setTimeout_forProductHuntRefresh(tryAgainTimestamp, temp__kiwi_productHunt_oauth)
@@ -1558,6 +1600,31 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
       type: "GET"
       url: queryUrl
       statusCode: {
+        
+        0: ->
+          responsePackage = {
+            servicesInfo: servicesInfo
+            serviceName: service_info.name
+            queryResult: null
+            servicesToSearch: servicesToSearch
+            customSearchQuery: customSearchQuery
+          };
+          console.log('unavailable!1');
+          if kiwi_userMessages[service_info.name + "Down"]?
+            send_kiwi_userMessage(service_info.name + "Down")
+          setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
+        504: ->
+          responsePackage = {
+            servicesInfo: servicesInfo
+            serviceName: service_info.name
+            queryResult: null
+            servicesToSearch: servicesToSearch
+            customSearchQuery: customSearchQuery
+          };
+          console.log('unavailable!1');
+          if kiwi_userMessages[service_info.name + "Down"]?
+            send_kiwi_userMessage(service_info.name + "Down")
+          setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
         503: ->
           responsePackage = {
             servicesInfo: servicesInfo
@@ -1566,7 +1633,7 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
             servicesToSearch: servicesToSearch
             customSearchQuery: customSearchQuery
           };
-          # console.log('unavailable!');
+          console.log('unavailable!1');
           if kiwi_userMessages[service_info.name + "Down"]?
             send_kiwi_userMessage(service_info.name + "Down")
           setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
@@ -1579,7 +1646,7 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
             servicesToSearch: servicesToSearch
             customSearchQuery: customSearchQuery
           };
-          # console.log('Fail!');
+          console.log('Fail!1');
           if kiwi_userMessages[service_info.name + "Down"]?
             send_kiwi_userMessage(service_info.name + "Down")
           setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
@@ -1592,7 +1659,7 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
             servicesToSearch: servicesToSearch
             customSearchQuery: customSearchQuery
           };
-          # console.log('unauthenticated');
+          console.log('unauthenticated1');
           setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
           
           if kiwi_userMessages[service_info.name + "Down"]?
@@ -1638,6 +1705,7 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
       
       setPreppedServiceResults__customSearch(responsePackage, servicesInfo)
       if kiwi_userMessages[service_info.name + "Down"]?
+        console.log 'setPreppedServiceResults__customSearch(responsePackage, servicesInfo)1'
         send_kiwi_userMessage(service_info.name + "Down")
       
       # console.log('unauthenticated');

@@ -361,20 +361,40 @@
       },
       url: 'https://www.reddit.com/api/v1/access_token',
       statusCode: {
+        0: function() {
+          var tryAgainTimestamp;
+          tryAgainTimestamp = currentTime + (1000 * 60 * 3);
+          setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth);
+          send_kiwi_userMessage("redditDown");
+          return console.log('unavailable!2');
+        },
+        504: function() {
+          var tryAgainTimestamp;
+          tryAgainTimestamp = currentTime + (1000 * 60 * 3);
+          setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth);
+          send_kiwi_userMessage("redditDown");
+          return console.log('unavailable!2');
+        },
         503: function() {
           var tryAgainTimestamp;
           tryAgainTimestamp = currentTime + (1000 * 60 * 3);
-          return setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth);
+          setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth);
+          send_kiwi_userMessage("redditDown");
+          return console.log('unavailable!2');
         },
         502: function() {
           var tryAgainTimestamp;
           tryAgainTimestamp = currentTime + (1000 * 60 * 3);
-          return setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth);
+          setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth);
+          send_kiwi_userMessage("redditDown");
+          return console.log('Fail!2');
         },
         401: function() {
           var tryAgainTimestamp;
           tryAgainTimestamp = currentTime + (1000 * 60 * 3);
-          return setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth);
+          setTimeout_forRedditRefresh(tryAgainTimestamp, kiwi_reddit_oauth);
+          send_kiwi_userMessage("redditDown");
+          return console.log('unauthenticated2');
         }
       },
       headers: {
@@ -422,20 +442,40 @@
         "grant_type": "client_credentials"
       },
       statusCode: {
+        0: function() {
+          var tryAgainTimestamp;
+          tryAgainTimestamp = currentTime + (1000 * 60 * 3);
+          setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth);
+          send_kiwi_userMessage("productHuntDown");
+          return console.log('unavailable!3');
+        },
+        504: function() {
+          var tryAgainTimestamp;
+          tryAgainTimestamp = currentTime + (1000 * 60 * 3);
+          setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth);
+          send_kiwi_userMessage("productHuntDown");
+          return console.log('unavailable!3');
+        },
         503: function() {
           var tryAgainTimestamp;
           tryAgainTimestamp = currentTime + (1000 * 60 * 3);
-          return setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth);
+          setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth);
+          send_kiwi_userMessage("productHuntDown");
+          return console.log('unavailable!3');
         },
         502: function() {
           var tryAgainTimestamp;
           tryAgainTimestamp = currentTime + (1000 * 60 * 3);
-          return setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth);
+          setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth);
+          send_kiwi_userMessage("productHuntDown");
+          return console.log('Fail!3');
         },
         401: function() {
           var tryAgainTimestamp;
           tryAgainTimestamp = currentTime + (1000 * 60 * 3);
-          return setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth);
+          setTimeout_forProductHuntRefresh(tryAgainTimestamp, kiwi_productHunt_oauth);
+          send_kiwi_userMessage("productHuntDown");
+          return console.log('unauthenticated3');
         }
       },
       url: 'https://api.producthunt.com/v1/oauth/token',
@@ -968,6 +1008,34 @@
         type: "GET",
         url: service_info.queryApi + encodeURIComponent(currentUrl),
         statusCode: {
+          0: function() {
+            var responsePackage;
+            responsePackage = {
+              forUrl: currentUrl,
+              servicesInfo: servicesInfo,
+              serviceName: service_info.name,
+              queryResult: null
+            };
+            console.log('unavailable!4');
+            if (kiwi_userMessages[service_info.name + "Down"] != null) {
+              send_kiwi_userMessage(service_info.name + "Down");
+            }
+            return setPreppedServiceResults(responsePackage, servicesInfo);
+          },
+          504: function() {
+            var responsePackage;
+            responsePackage = {
+              forUrl: currentUrl,
+              servicesInfo: servicesInfo,
+              serviceName: service_info.name,
+              queryResult: null
+            };
+            console.log('unavailable!4');
+            if (kiwi_userMessages[service_info.name + "Down"] != null) {
+              send_kiwi_userMessage(service_info.name + "Down");
+            }
+            return setPreppedServiceResults(responsePackage, servicesInfo);
+          },
           503: function() {
             var responsePackage;
             responsePackage = {
@@ -976,6 +1044,7 @@
               serviceName: service_info.name,
               queryResult: null
             };
+            console.log('unavailable!4');
             if (kiwi_userMessages[service_info.name + "Down"] != null) {
               send_kiwi_userMessage(service_info.name + "Down");
             }
@@ -989,6 +1058,7 @@
               serviceName: service_info.name,
               queryResult: null
             };
+            console.log('Fail!4');
             if (kiwi_userMessages[service_info.name + "Down"] != null) {
               send_kiwi_userMessage(service_info.name + "Down");
             }
@@ -1002,6 +1072,7 @@
               serviceName: service_info.name,
               queryResult: null
             };
+            console.log('unauthenticated4');
             setPreppedServiceResults(responsePackage, servicesInfo);
             if (kiwi_userMessages[service_info.name + "Down"] != null) {
               send_kiwi_userMessage(service_info.name + "Down");
@@ -1038,9 +1109,6 @@
           queryResult: null
         };
         setPreppedServiceResults(responsePackage, servicesInfo);
-        if (kiwi_userMessages[service_info.name + "Down"] != null) {
-          send_kiwi_userMessage(service_info.name + "Down");
-        }
         tryAgainTimestamp = currentTime + (1000 * 60 * 2);
         setTimeout_forRedditRefresh(tryAgainTimestamp, temp__kiwi_reddit_oauth);
         return 0;
@@ -1059,9 +1127,6 @@
           queryResult: null
         };
         setPreppedServiceResults(responsePackage, servicesInfo);
-        if (kiwi_userMessages[service_info.name + "Down"] != null) {
-          send_kiwi_userMessage(service_info.name + "Down");
-        }
         tryAgainTimestamp = currentTime + (1000 * 60 * 2);
         setTimeout_forProductHuntRefresh(tryAgainTimestamp, temp__kiwi_productHunt_oauth);
         return 0;
@@ -1185,6 +1250,36 @@
         type: "GET",
         url: queryUrl,
         statusCode: {
+          0: function() {
+            var responsePackage;
+            responsePackage = {
+              servicesInfo: servicesInfo,
+              serviceName: service_info.name,
+              queryResult: null,
+              servicesToSearch: servicesToSearch,
+              customSearchQuery: customSearchQuery
+            };
+            console.log('unavailable!1');
+            if (kiwi_userMessages[service_info.name + "Down"] != null) {
+              send_kiwi_userMessage(service_info.name + "Down");
+            }
+            return setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
+          },
+          504: function() {
+            var responsePackage;
+            responsePackage = {
+              servicesInfo: servicesInfo,
+              serviceName: service_info.name,
+              queryResult: null,
+              servicesToSearch: servicesToSearch,
+              customSearchQuery: customSearchQuery
+            };
+            console.log('unavailable!1');
+            if (kiwi_userMessages[service_info.name + "Down"] != null) {
+              send_kiwi_userMessage(service_info.name + "Down");
+            }
+            return setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
+          },
           503: function() {
             var responsePackage;
             responsePackage = {
@@ -1194,6 +1289,7 @@
               servicesToSearch: servicesToSearch,
               customSearchQuery: customSearchQuery
             };
+            console.log('unavailable!1');
             if (kiwi_userMessages[service_info.name + "Down"] != null) {
               send_kiwi_userMessage(service_info.name + "Down");
             }
@@ -1208,6 +1304,7 @@
               servicesToSearch: servicesToSearch,
               customSearchQuery: customSearchQuery
             };
+            console.log('Fail!1');
             if (kiwi_userMessages[service_info.name + "Down"] != null) {
               send_kiwi_userMessage(service_info.name + "Down");
             }
@@ -1222,6 +1319,7 @@
               servicesToSearch: servicesToSearch,
               customSearchQuery: customSearchQuery
             };
+            console.log('unauthenticated1');
             setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
             if (kiwi_userMessages[service_info.name + "Down"] != null) {
               send_kiwi_userMessage(service_info.name + "Down");
@@ -1261,6 +1359,7 @@
         };
         setPreppedServiceResults__customSearch(responsePackage, servicesInfo);
         if (kiwi_userMessages[service_info.name + "Down"] != null) {
+          console.log('setPreppedServiceResults__customSearch(responsePackage, servicesInfo)1');
           send_kiwi_userMessage(service_info.name + "Down");
         }
         return 0;

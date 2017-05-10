@@ -1915,8 +1915,8 @@ receiveParcel  = (parcel) ->
     
     when 'kiwiPP_popupParcel_ready' 
     
-      chrome.tabs.query({ currentWindow: true, active: true }, (tabs) ->
-      # chrome.tabs.getSelected(null,(tab) ->
+      browser.tabs.query({ currentWindow: true, active: true }, (tabs) ->
+      # browser.tabs.getSelected(null,(tab) ->
         if tabs.length > 0 and tabs[0].status is "complete"
           if tabs[0].url.indexOf('chrome-devtools://') != 0
           
@@ -1939,10 +1939,10 @@ receiveParcel  = (parcel) ->
  
 sendParcel = (parcel) ->
   # console.log 'wtf sent'
-  port = chrome.extension.connect({name: "kiwi_fromBackgroundToPopup"})
+  port = browser.runtime.connect({name: "kiwi_fromBackgroundToPopup"})
   
-  # chrome.tabs.getSelected(null,(tab) ->
-  chrome.tabs.query({ currentWindow: true, active: true }, (tabs) ->
+  # browser.tabs.getSelected(null,(tab) ->
+  browser.tabs.query({ currentWindow: true, active: true }, (tabs) ->
     # console.log 'wtf sent2'
     # console.debug tabs
     if tabs.length > 0 and tabs[0].status is "complete"
@@ -1980,7 +1980,7 @@ sendParcel = (parcel) ->
   )
   
   # listen for other messages
-chrome.extension.onConnect.addListener((port) ->  
+browser.runtime.onConnect.addListener((port) ->  
   if port.name is 'kiwi_fromBackgroundToPopup'
     
     port.onMessage.addListener((pkg) ->

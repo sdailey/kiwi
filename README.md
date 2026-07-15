@@ -1,6 +1,6 @@
 # kiwi conversations (archived)
 
-To see a demo video and what the project's homepage used to look like,
+To see a demo video and what the project's homepage looked like,
 visit https://www.metafruit.com/kiwi/ (the project has since been retired).
 
 # original readme:

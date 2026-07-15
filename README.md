@@ -1,7 +1,9 @@
-# kiwi conversations
+# kiwi conversations (archived)
 
-The packaged end-result can be found here:
-https://chrome.google.com/webstore/detail/kiwi-conversations/pkifhlefpamigmobjmjjjnjglpebflhp
+To see a demo video and what the project's homepage used to look like,
+visit https://www.metafruit.com/kiwi/ (the project has since been retired).
+
+# original README:
 
 the firefox add-on repo can be found here: https://github.com/sdailey/kiwi-firefox
 

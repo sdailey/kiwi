@@ -3,7 +3,7 @@
 To see a demo video and what the project's homepage used to look like,
 visit https://www.metafruit.com/kiwi/ (the project has since been retired).
 
-# original README:
+# original readme:
 
 the firefox add-on repo can be found here: https://github.com/sdailey/kiwi-firefox
 

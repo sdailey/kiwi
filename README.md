@@ -1,7 +1,8 @@
 # kiwi conversations (archived)
 
-To see a demo video and what the project's homepage looked like,
-visit https://www.metafruit.com/kiwi/ (the project has since been retired).
+To see a demo video or get an idea of what the project was about,
+visit its old homepage https://www.metafruit.com/kiwi/ (the project has since been retired) 
+or check out its Product Hunt debut https://www.producthunt.com/products/kiwi-3/launches/kiwi-conversations.
 
 # original readme:
 

@@ -416,7 +416,7 @@
             client_id: kiwi_reddit_oauth.client_id,
             device_id: kiwi_reddit_oauth.device_id
           };
-          return chrome.storage.local.set(setObj, function(data) {
+          return browser.storage.local.set(setObj, function(data) {
             return setTimeout_forRedditRefresh(token_lifespan_timestamp, setObj.kiwi_reddit_oauth, true);
           });
         }
@@ -494,7 +494,7 @@
             client_id: kiwi_productHunt_oauth.client_id,
             client_secret: kiwi_productHunt_oauth.client_secret
           };
-          return chrome.storage.local.set(setObj, function(_data) {
+          return browser.storage.local.set(setObj, function(_data) {
             return setTimeout_forProductHuntRefresh(token_lifespan_timestamp, setObj.kiwi_productHunt_oauth, true);
           });
         }
@@ -509,7 +509,7 @@
     return $.ajax(queryObj);
   };
 
-  chrome.storage.local.get(null, function(allItemsInLocalStorage) {
+  browser.storage.local.get(null, function(allItemsInLocalStorage) {
     var currentTime, token_timestamp;
     currentTime = Date.now();
     if ((allItemsInLocalStorage.kiwi_productHunt_oauth == null) || (allItemsInLocalStorage.kiwi_productHunt_oauth.token == null)) {
@@ -622,7 +622,7 @@
 
   sendParcel = function(parcel) {
     var outPort;
-    outPort = chrome.extension.connect({
+    outPort = browser.runtime.connect({
       name: "kiwi_fromBackgroundToPopup"
     });
     if ((parcel.msg == null) || (parcel.forUrl == null)) {
@@ -638,7 +638,7 @@
     var setObj;
     setObj = {};
     setObj[parcel.keyName] = parcel.newValue;
-    return chrome.storage[parcel.localOrSync].set(setObj, function(data) {
+    return browser.storage[parcel.localOrSync].set(setObj, function(data) {
       var tempResponsesStoreServices;
       if ((tempResponsesStore == null) || (tempResponsesStore.services == null)) {
         tempResponsesStoreServices = {};
@@ -653,7 +653,7 @@
     });
   };
 
-  chrome.extension.onConnect.addListener(function(port) {
+  browser.runtime.onConnect.addListener(function(port) {
     if (port.name === 'kiwi_fromBackgroundToPopup') {
       popupOpen = true;
       return port.onMessage.addListener(function(dataFromPopup) {
@@ -681,7 +681,7 @@
             break;
           case 'kiwiPP_post_customSearch':
             if ((dataFromPopup.customSearchRequest != null) && (dataFromPopup.customSearchRequest.queryString != null) && dataFromPopup.customSearchRequest.queryString !== '') {
-              return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
+              return browser.storage.sync.get(null, function(allItemsInSyncedStorage) {
                 var serviceInfoObject, _j, _len1, _ref1, _results;
                 if (allItemsInSyncedStorage['kiwi_servicesInfo'] != null) {
                   _ref1 = allItemsInSyncedStorage['kiwi_servicesInfo'];
@@ -791,9 +791,9 @@
   });
 
   initialize = function(currentUrl) {
-    return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
+    return browser.storage.sync.get(null, function(allItemsInSyncedStorage) {
       if (allItemsInSyncedStorage['kiwi_servicesInfo'] == null) {
-        return chrome.storage.sync.set({
+        return browser.storage.sync.set({
           'kiwi_servicesInfo': defaultServicesInfo
         }, function(servicesInfo) {
           return getUrlResults_to_refreshBadgeIcon(defaultServicesInfo, currentUrl);
@@ -877,7 +877,7 @@
     var tabUrl_hash, tabUrl_hashWordArray;
     tabUrl_hashWordArray = CryptoJS.SHA512(tabUrl);
     tabUrl_hash = tabUrl_hashWordArray.toString(CryptoJS.enc.Latin1);
-    return chrome.storage.local.get(null, function(allItemsInLocalStorage) {
+    return browser.storage.local.get(null, function(allItemsInLocalStorage) {
       var historyString, newKiwi_historyBlob, paddedHistoryString;
       historyString = reduceHashByHalf(tabUrl_hash);
       paddedHistoryString = __randomishStringPadding() + historyString;
@@ -896,7 +896,7 @@
       if ((allItemsInLocalStorage.kiwi_historyBlob != null) && allItemsInLocalStorage.kiwi_historyBlob.indexOf(historyString) > 17000) {
         newKiwi_historyBlob = newKiwi_historyBlob.substring(0, 15500);
       }
-      return chrome.storage.local.set({
+      return browser.storage.local.set({
         'kiwi_historyBlob': newKiwi_historyBlob
       }, function() {});
     });
@@ -1002,7 +1002,7 @@
         serviceQueryTimestamps[service_info.name] = currentTime;
       }
     }
-    return chrome.storage.local.get(null, function(allItemsInLocalStorage) {
+    return browser.storage.local.get(null, function(allItemsInLocalStorage) {
       var queryObj, responsePackage, tryAgainTimestamp;
       queryObj = {
         type: "GET",
@@ -1244,7 +1244,7 @@
         queryUrl = queryUrl + service_info.customSearchTags__convention.string + service_info.customSearchTags[tagIdentifier].string;
       }
     }
-    return chrome.storage.local.get(null, function(allItemsInLocalStorage) {
+    return browser.storage.local.get(null, function(allItemsInLocalStorage) {
       var queryObj, responsePackage;
       queryObj = {
         type: "GET",
@@ -1426,7 +1426,7 @@
     }
     setObj_popupParcel = {};
     setObj_popupParcel.forUrl = tabUrl;
-    return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
+    return browser.storage.sync.get(null, function(allItemsInSyncedStorage) {
       var isUrlBlocked, messageName, messageObj, parcel, sentInstance, _i, _len, _ref;
       if (allItemsInSyncedStorage['kiwi_userPreferences'] == null) {
         setObj_popupParcel.kiwi_userPreferences = defaultUserPreferences;
@@ -1988,7 +1988,7 @@
     }
     badgeText = '';
     if (abbreviationLettersArray.length === 0) {
-      chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
+      browser.storage.sync.get(null, function(allItemsInSyncedStorage) {
         if ((allItemsInSyncedStorage['kiwi_userPreferences'] != null) && allItemsInSyncedStorage['kiwi_userPreferences'].researchModeOnOff === 'off') {
           return badgeText = 'off';
         } else if (defaultUserPreferences.researchModeOnOff === 'off') {
@@ -2004,7 +2004,7 @@
   };
 
   updateBadgeText = function(text) {
-    return chrome.browserAction.setBadgeText({
+    return browser.browserAction.setBadgeText({
       'text': text.toString()
     });
   };
@@ -2071,10 +2071,10 @@
     }
     _autoOffAtUTCmilliTimestamp = setAutoOffTimer(resetTimerBool, _popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp, _popupParcel.kiwi_userPreferences.autoOffTimerValue, _popupParcel.kiwi_userPreferences.autoOffTimerType, _popupParcel.kiwi_userPreferences.researchModeOnOff);
     _popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp;
-    return chrome.storage.sync.set({
+    return browser.storage.sync.set({
       'kiwi_userPreferences': _popupParcel.kiwi_userPreferences
     }, function() {
-      return chrome.storage.sync.set({
+      return browser.storage.sync.set({
         'kiwi_servicesInfo': _popupParcel.kiwi_servicesInfo
       }, function() {
         var formerActiveServicesList, newActiveServicesList, parcel;
@@ -2154,7 +2154,7 @@
   };
 
   turnResearchModeOff = function() {
-    return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
+    return browser.storage.sync.get(null, function(allItemsInSyncedStorage) {
       var urlResults;
       if (kiwi_urlsResultsCache[tabUrl] != null) {
         urlResults = kiwi_urlsResultsCache[tabUrl];
@@ -2163,7 +2163,7 @@
       }
       if (allItemsInSyncedStorage.kiwi_userPreferences != null) {
         allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff = 'off';
-        return chrome.storage.sync.set({
+        return browser.storage.sync.set({
           'kiwi_userPreferences': allItemsInSyncedStorage.kiwi_userPreferences
         }, function() {
           _set_popupParcel(urlResults, tabUrl, true);
@@ -2173,7 +2173,7 @@
         });
       } else {
         defaultUserPreferences.researchModeOnOff = 'off';
-        return chrome.storage.sync.set({
+        return browser.storage.sync.set({
           'kiwi_userPreferences': defaultUserPreferences
         }, function() {
           _set_popupParcel(urlResults, tabUrl, true);
@@ -2225,7 +2225,7 @@
             kiwi_servicesInfo: defaultServicesInfo,
             kiwi_userPreferences: defaultUserPreferences
           };
-          return chrome.storage.sync.set(setObj, function() {
+          return browser.storage.sync.set(setObj, function() {
             var isUrlBlocked;
             isUrlBlocked = is_url_blocked(defaultUserPreferences.urlSubstring_blacklists, tabUrl);
             if (isUrlBlocked === true && overrideResearchModeOff === false) {
@@ -2303,7 +2303,7 @@
       if (newServicesInfoAttribute) {
         setObj['kiwi_servicesInfo'] = newServicesInfo;
       }
-      return chrome.storage.sync.set(setObj, function() {
+      return browser.storage.sync.set(setObj, function() {
         if (newUserPrefsAttribute) {
           allItemsInSyncedStorage['kiwi_userPreferences'] = newUserPreferences;
         }
@@ -2334,7 +2334,7 @@
       popupOpen = false;
     }
     currentTime = Date.now();
-    return chrome.tabs.query({
+    return browser.tabs.query({
       currentWindow: true,
       active: true
     }, function(tabs) {
@@ -2363,7 +2363,7 @@
         }
         tabUrl_hashWordArray = CryptoJS.SHA512(tabUrl);
         tabUrl_hash = tabUrl_hashWordArray.toString(CryptoJS.enc.Latin1);
-        return chrome.storage.local.get(null, function(allItemsInLocalStorage) {
+        return browser.storage.local.get(null, function(allItemsInLocalStorage) {
           var historyString, sameURLCheck;
           sameURLCheck = true;
           historyString = reduceHashByHalf(tabUrl_hash);
@@ -2379,12 +2379,12 @@
           } else if (overrideSameURLCheck_popupOpen === true) {
             sameURLCheck = false;
           }
-          chrome.storage.local.set({
+          browser.storage.local.set({
             'persistentUrlHash': tabUrl_hash
           }, function() {});
           if (sameURLCheck === false) {
             updateBadgeText('');
-            return chrome.storage.sync.get(null, function(allItemsInSyncedStorage) {
+            return browser.storage.sync.get(null, function(allItemsInSyncedStorage) {
               return checkForNewDefaultUserPreferenceAttributes_thenProceedWithInitCheck(allItemsInSyncedStorage, allItemsInLocalStorage, overrideSameURLCheck_popupOpen, overrideResearchModeOff, sameURLCheck, tabUrl, currentTime, popupOpen);
             });
           }
@@ -2393,11 +2393,11 @@
     });
   };
 
-  chrome.tabs.onActivated.addListener(function() {
+  browser.tabs.onActivated.addListener(function() {
     return initIfNewURL();
   });
 
-  chrome.tabs.onUpdated.addListener(function(tabId, info) {
+  browser.tabs.onUpdated.addListener(function(tabId, info) {
     if ((tabTitleObject != null) && tabTitleObject.forUrl === tabUrl && (tabTitleObject.tabTitle == null)) {
       if (info.status === "complete") {
         initIfNewURL(true);
@@ -2408,7 +2408,7 @@
     }
   });
 
-  chrome.windows.onFocusChanged.addListener(function() {
+  browser.windows.onFocusChanged.addListener(function() {
     return initIfNewURL();
   });
 

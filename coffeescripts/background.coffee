@@ -145,7 +145,7 @@ defaultUserPreferences = {
   
     # suggested values to all users  -- any can be overriden with the "Research this URL" button
       # unfortunately, because of Chrome's discouragement of storing sensitive 
-      # user info with chrome.storage, blacklists are fixed for now . see: https://news.ycombinator.com/item?id=9993030
+      # user info with browser.storage, blacklists are fixed for now . see: https://news.ycombinator.com/item?id=9993030
   urlSubstring_blacklists: 
     anyMatch: [
       'facebook.com'
@@ -614,7 +614,7 @@ requestRedditOathToken = (kiwi_reddit_oauth) ->
           client_id: kiwi_reddit_oauth.client_id
           device_id: kiwi_reddit_oauth.device_id
         
-        chrome.storage.local.set(setObj, (data) ->
+        browser.storage.local.set(setObj, (data) ->
           
           setTimeout_forRedditRefresh(token_lifespan_timestamp, setObj.kiwi_reddit_oauth, true)
           
@@ -691,7 +691,7 @@ requestProductHuntOauthToken = (kiwi_productHunt_oauth) ->
           client_id: kiwi_productHunt_oauth.client_id
           client_secret: kiwi_productHunt_oauth.client_secret
         
-        chrome.storage.local.set(setObj, (_data) ->
+        browser.storage.local.set(setObj, (_data) ->
           # console.log ' set product hunt oauth'
           setTimeout_forProductHuntRefresh(token_lifespan_timestamp, setObj.kiwi_productHunt_oauth, true)
           
@@ -706,7 +706,7 @@ requestProductHuntOauthToken = (kiwi_productHunt_oauth) ->
   $.ajax( queryObj )
 
 # authenticate with Reddit's OAUTH2, so we can be a good webizen
-chrome.storage.local.get(null, (allItemsInLocalStorage) ->
+browser.storage.local.get(null, (allItemsInLocalStorage) ->
   currentTime = Date.now()
   
   # console.log ' trying yo ' 
@@ -834,7 +834,7 @@ returnNumberOfActiveServices = (servicesInfo) ->
   return numberOfActiveServices
 
 sendParcel = (parcel) ->
-  outPort = chrome.extension.connect({name: "kiwi_fromBackgroundToPopup"})
+  outPort = browser.runtime.connect({name: "kiwi_fromBackgroundToPopup"})
   
   if !parcel.msg? or !parcel.forUrl?
     return false
@@ -851,7 +851,7 @@ _save_a_la_carte = (parcel) ->
   setObj = {}
   setObj[parcel.keyName] = parcel.newValue
   
-  chrome.storage[parcel.localOrSync].set(setObj, (data) ->
+  browser.storage[parcel.localOrSync].set(setObj, (data) ->
     if !tempResponsesStore? or !tempResponsesStore.services?
       tempResponsesStoreServices = {}
     else
@@ -863,7 +863,7 @@ _save_a_la_carte = (parcel) ->
   )
 
 
-chrome.extension.onConnect.addListener((port) ->
+browser.runtime.onConnect.addListener((port) ->
   if port.name is 'kiwi_fromBackgroundToPopup'
     popupOpen = true
     
@@ -900,7 +900,7 @@ chrome.extension.onConnect.addListener((port) ->
           if dataFromPopup.customSearchRequest? and dataFromPopup.customSearchRequest.queryString? and
               dataFromPopup.customSearchRequest.queryString != ''
             
-            chrome.storage.sync.get(null, (allItemsInSyncedStorage) -> 
+            browser.storage.sync.get(null, (allItemsInSyncedStorage) -> 
               
               if allItemsInSyncedStorage['kiwi_servicesInfo']?
                 #console.log 'when kiwiPP_post_customSearch3'
@@ -1033,12 +1033,12 @@ chrome.extension.onConnect.addListener((port) ->
 
 initialize = (currentUrl) ->
   
-  chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
+  browser.storage.sync.get(null, (allItemsInSyncedStorage) ->
     
     if !allItemsInSyncedStorage['kiwi_servicesInfo']?
       
         # we set the defaults in localStorage if servicesInfo doesn't exist in localStorage 
-      chrome.storage.sync.set({'kiwi_servicesInfo': defaultServicesInfo}, (servicesInfo) ->
+      browser.storage.sync.set({'kiwi_servicesInfo': defaultServicesInfo}, (servicesInfo) ->
         getUrlResults_to_refreshBadgeIcon(defaultServicesInfo, currentUrl)
       )
       
@@ -1145,7 +1145,7 @@ _save_historyBlob = (kiwi_urlsResultsCache, tabUrl) ->
   tabUrl_hashWordArray = CryptoJS.SHA512(tabUrl)
   tabUrl_hash = tabUrl_hashWordArray.toString(CryptoJS.enc.Latin1)
   
-  chrome.storage.local.get(null, (allItemsInLocalStorage) ->  
+  browser.storage.local.get(null, (allItemsInLocalStorage) ->  
     
     historyString = reduceHashByHalf(tabUrl_hash)
     paddedHistoryString = __randomishStringPadding() + historyString
@@ -1179,7 +1179,7 @@ _save_historyBlob = (kiwi_urlsResultsCache, tabUrl) ->
     
     
     
-    chrome.storage.local.set({'kiwi_historyBlob': newKiwi_historyBlob}, ->
+    browser.storage.local.set({'kiwi_historyBlob': newKiwi_historyBlob}, ->
       
         # console.log 'historyString'
         # console.log historyString
@@ -1297,7 +1297,7 @@ dispatchQuery = (service_info, currentUrl, servicesInfo) ->
     else
       serviceQueryTimestamps[service_info.name] = currentTime
   
-  chrome.storage.local.get(null, (allItemsInLocalStorage) ->
+  browser.storage.local.get(null, (allItemsInLocalStorage) ->
     queryObj = {
       type: "GET"
       url: service_info.queryApi + encodeURIComponent(currentUrl)
@@ -1595,7 +1595,7 @@ dispatchQuery__customSearch = (customSearchQuery, servicesToSearch, service_info
       #console.log queryUrl
       # tagObject might one day accept special parameters like author name, etc
       
-  chrome.storage.local.get(null, (allItemsInLocalStorage) ->
+  browser.storage.local.get(null, (allItemsInLocalStorage) ->
     queryObj = {
       type: "GET"
       url: queryUrl
@@ -1786,7 +1786,7 @@ setPreppedServiceResults__customSearch = (responsePackage, servicesInfo) ->
     
       # NO LONGER STORING URL CACHE IN LOCALSTORAGE - BECAUSE : INFORMATION LEAKAGE / BROKEN EXTENSION SECURITY MODEL
         # get a fresh copy of urls results and reset with updated info
-        # chrome.storage.local.get(null, (allItemsInLocalStorage) ->
+        # browser.storage.local.get(null, (allItemsInLocalStorage) ->
           # #console.log 'trying to save all'
           # if !allItemsInLocalStorage['kiwi_urlsResultsCache']?
           #   allItemsInLocalStorage['kiwi_urlsResultsCache'] = {}
@@ -1816,7 +1816,7 @@ _set_popupParcel = (setWith_urlResults = {}, forUrl, sendPopupParcel, renderView
   setObj_popupParcel.forUrl = tabUrl
   
   
-  chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
+  browser.storage.sync.get(null, (allItemsInSyncedStorage) ->
     
     if !allItemsInSyncedStorage['kiwi_userPreferences']?
       setObj_popupParcel.kiwi_userPreferences = defaultUserPreferences
@@ -1969,7 +1969,7 @@ setPreppedServiceResults = (responsePackage, servicesInfo) ->
       
         # NO LONGER STORING URL CACHE IN LOCALSTORAGE - BECAUSE 1.) INFORMATION LEAKAGE, 2.) SLOWER
           # get a fresh copy of urls results and reset with updated info
-          # chrome.storage.local.get(null, (allItemsInLocalStorage) ->
+          # browser.storage.local.get(null, (allItemsInLocalStorage) ->
             # #console.log 'trying to save all'
             # if !allItemsInLocalStorage['kiwi_urlsResultsCache']?
             #   allItemsInLocalStorage['kiwi_urlsResultsCache'] = {}
@@ -2550,7 +2550,7 @@ refreshBadge = (servicesInfo, resultsObjForCurrentUrl) ->
    # if Object.keys(resultsObjForCurrentUrl).length == 0
   badgeText = ''
   if abbreviationLettersArray.length == 0
-    chrome.storage.sync.get(null, (allItemsInSyncedStorage) -> 
+    browser.storage.sync.get(null, (allItemsInSyncedStorage) -> 
       if allItemsInSyncedStorage['kiwi_userPreferences']? and allItemsInSyncedStorage['kiwi_userPreferences'].researchModeOnOff == 'off'
         badgeText = 'off'
       else if defaultUserPreferences.researchModeOnOff == 'off'
@@ -2577,7 +2577,7 @@ refreshBadge = (servicesInfo, resultsObjForCurrentUrl) ->
 
 updateBadgeText = (text) ->
   
-  chrome.browserAction.setBadgeText({'text':text.toString()})
+  browser.browserAction.setBadgeText({'text':text.toString()})
 
 
 periodicCleanup = (tab, allItemsInLocalStorage, allItemsInSyncedStorage, initialize_callback) ->
@@ -2628,7 +2628,7 @@ periodicCleanup = (tab, allItemsInLocalStorage, allItemsInSyncedStorage, initial
             
             deletedCount++
         
-        # chrome.storage.local.set({'kiwi_urlsResultsCache':kiwi_urlsResultsCache}, ->
+        # browser.storage.local.set({'kiwi_urlsResultsCache':kiwi_urlsResultsCache}, ->
             
         initialize_callback(tab, allItemsInLocalStorage, allItemsInSyncedStorage)
           
@@ -2683,9 +2683,9 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
   
   _popupParcel.kiwi_userPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp
   
-  chrome.storage.sync.set({'kiwi_userPreferences': _popupParcel.kiwi_userPreferences}, ->
+  browser.storage.sync.set({'kiwi_userPreferences': _popupParcel.kiwi_userPreferences}, ->
       
-    chrome.storage.sync.set({'kiwi_servicesInfo': _popupParcel.kiwi_servicesInfo}, ->
+    browser.storage.sync.set({'kiwi_servicesInfo': _popupParcel.kiwi_servicesInfo}, ->
         
       
       if updateToView?
@@ -2798,7 +2798,7 @@ setAutoOffTimer = (resetTimerBool, autoOffAtUTCmilliTimestamp, autoOffTimerValue
 turnResearchModeOff = ->
   #console.log 'turning off research mode - in turnResearchModeOff'
   
-  chrome.storage.sync.get(null, (allItemsInSyncedStorage) -> 
+  browser.storage.sync.get(null, (allItemsInSyncedStorage) -> 
     
     if kiwi_urlsResultsCache[tabUrl]?
       urlResults = kiwi_urlsResultsCache[tabUrl]
@@ -2808,7 +2808,7 @@ turnResearchModeOff = ->
     if allItemsInSyncedStorage.kiwi_userPreferences?
       
       allItemsInSyncedStorage.kiwi_userPreferences.researchModeOnOff = 'off'
-      chrome.storage.sync.set({'kiwi_userPreferences':allItemsInSyncedStorage.kiwi_userPreferences}, ->
+      browser.storage.sync.set({'kiwi_userPreferences':allItemsInSyncedStorage.kiwi_userPreferences}, ->
           _set_popupParcel(urlResults, tabUrl, true)
           if allItemsInSyncedStorage.kiwi_servicesInfo?
             refreshBadge(allItemsInSyncedStorage.kiwi_servicesInfo, urlResults)
@@ -2819,7 +2819,7 @@ turnResearchModeOff = ->
     else
       defaultUserPreferences.researchModeOnOff = 'off'
       
-      chrome.storage.sync.set({'kiwi_userPreferences':defaultUserPreferences}, ->
+      browser.storage.sync.set({'kiwi_userPreferences':defaultUserPreferences}, ->
           
           _set_popupParcel(urlResults, tabUrl, true)
           
@@ -2902,7 +2902,7 @@ proceedWithPreInitCheck = (allItemsInSyncedStorage, allItemsInLocalStorage, over
         setObj =
           kiwi_servicesInfo: defaultServicesInfo
           kiwi_userPreferences: defaultUserPreferences
-        chrome.storage.sync.set(setObj, ->
+        browser.storage.sync.set(setObj, ->
           
           isUrlBlocked = is_url_blocked(defaultUserPreferences.urlSubstring_blacklists, tabUrl)
           if isUrlBlocked == true and overrideResearchModeOff == false
@@ -2999,7 +2999,7 @@ checkForNewDefaultUserPreferenceAttributes_thenProceedWithInitCheck = (allItemsI
     if newServicesInfoAttribute
       setObj['kiwi_servicesInfo'] = newServicesInfo
     
-    chrome.storage.sync.set(setObj, ->
+    browser.storage.sync.set(setObj, ->
         
         # this reminds me of the frog DNA injection from jurassic park
       if newUserPrefsAttribute
@@ -3031,8 +3031,8 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
   
   currentTime = Date.now()
   
-  # chrome.tabs.getSelected(null,(tab) ->
-  chrome.tabs.query({ currentWindow: true, active: true }, (tabs) ->
+  # browser.tabs.getSelected(null,(tab) ->
+  browser.tabs.query({ currentWindow: true, active: true }, (tabs) ->
     
     if tabs.length > 0 and tabs[0].url?
         
@@ -3068,9 +3068,9 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
       tabUrl_hashWordArray = CryptoJS.SHA512(tabUrl)
       tabUrl_hash = tabUrl_hashWordArray.toString(CryptoJS.enc.Latin1)
       
-      chrome.storage.local.get(null, (allItemsInLocalStorage) ->
+      browser.storage.local.get(null, (allItemsInLocalStorage) ->
         
-        # #console.log 'chrome.storage.local.get(null, (allItemsInLocalStorage) ->  '
+        # #console.log 'browser.storage.local.get(null, (allItemsInLocalStorage) ->  '
         
         sameURLCheck = true
         
@@ -3100,12 +3100,12 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
           sameURLCheck = false
         
         #useful for switching window contexts
-        chrome.storage.local.set({'persistentUrlHash': tabUrl_hash}, ->)
+        browser.storage.local.set({'persistentUrlHash': tabUrl_hash}, ->)
         
         if sameURLCheck == false          
           updateBadgeText('')
         
-          chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
+          browser.storage.sync.get(null, (allItemsInSyncedStorage) ->
             
             checkForNewDefaultUserPreferenceAttributes_thenProceedWithInitCheck(allItemsInSyncedStorage, allItemsInLocalStorage, 
                 overrideSameURLCheck_popupOpen, overrideResearchModeOff, sameURLCheck, tabUrl, currentTime, popupOpen)
@@ -3115,12 +3115,12 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
     )
   )
 
-chrome.tabs.onActivated.addListener( -> 
+browser.tabs.onActivated.addListener( -> 
     # nesting function because the Chrome api tab listening functions were exec-ing callback with an integer argument
     initIfNewURL()
   )
 
-chrome.tabs.onUpdated.addListener((tabId , info) ->
+browser.tabs.onUpdated.addListener((tabId , info) ->
     # updateBadgeText('')
     if tabTitleObject? and tabTitleObject.forUrl == tabUrl and !tabTitleObject.tabTitle?
       if (info.status == "complete") 
@@ -3130,7 +3130,7 @@ chrome.tabs.onUpdated.addListener((tabId , info) ->
       initIfNewURL()
   )
 
-chrome.windows.onFocusChanged.addListener( -> 
+browser.windows.onFocusChanged.addListener( -> 
     # nesting function because the Chrome api tab listening functions were exec-ing callback with an integer argument
     initIfNewURL()
   )

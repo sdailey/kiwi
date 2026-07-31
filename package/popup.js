@@ -1579,7 +1579,7 @@
     }
     switch (parcel.msg) {
       case 'kiwiPP_popupParcel_ready':
-        return chrome.tabs.query({
+        return browser.tabs.query({
           currentWindow: true,
           active: true
         }, function(tabs) {
@@ -1600,10 +1600,10 @@
 
   sendParcel = function(parcel) {
     var port;
-    port = chrome.extension.connect({
+    port = browser.runtime.connect({
       name: "kiwi_fromBackgroundToPopup"
     });
-    return chrome.tabs.query({
+    return browser.tabs.query({
       currentWindow: true,
       active: true
     }, function(tabs) {
@@ -1640,7 +1640,7 @@
     });
   };
 
-  chrome.extension.onConnect.addListener(function(port) {
+  browser.runtime.onConnect.addListener(function(port) {
     if (port.name === 'kiwi_fromBackgroundToPopup') {
       return port.onMessage.addListener(function(pkg) {
         return receiveParcel(pkg);
